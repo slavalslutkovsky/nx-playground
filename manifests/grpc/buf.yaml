@@ -1,0 +1,24 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+modules:
+  - path: ./proto
+#    build:
+#      roots:
+#        - proto
+#    deps:
+#      - buf.build/googleapis/googleapis
+#    lint:
+#      use:
+#        - DEFAULT
+#    breaking:
+#      use:
+#        - FILE
+lint:
+  use:
+    - STANDARD
+  ignore:
+    - grpc/proto/google/type/datetime.proto
+    - grpc/proto/commons.proto
+breaking:
+  use:
+    - FILE

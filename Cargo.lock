@@ -3,5 +3,17 @@
 version = 4
 
 [[package]]
+name = "proc_macros"
+version = "0.1.0"
+
+[[package]]
 name = "rpc"
+version = "0.1.0"
+
+[[package]]
+name = "zerg_api"
+version = "0.1.0"
+
+[[package]]
+name = "zerg_tasks"
 version = "0.1.0"

@@ -1,0 +1,75 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/bufbuild/buf-tour/gen
+plugins:
+  #   API
+  - remote: buf.build/grpc-ecosystem/openapiv2:v2.24.0
+    out: gen/api
+
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: libs/rpc/src
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
+    out: libs/rpc/src
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+    out: libs/rpc/src
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+    #  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    #    out: gen
+    #    opt:
+    #      - gen_crate=Cargo.toml
+    #      - gen_crate=Cargo.toml.tpl
+    #    Node
+    #  - remote: buf.build/grpc/node:v1.12.4
+    #    out: gen/node
+    #  - remote: buf.build/protocolbuffers/js:v3.21.2
+    #    out: gen/node
+    #    Rust
+  #  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+  #    out: libs/rpc/src
+  #    opt:
+  #      - compile_well_known_types
+  #      - extern_path=.google.protobuf=::pbjson_types
+  #  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+  #    out: libs/rpc/src
+  #    opt:
+  #      - compile_well_known_types
+  #      - extern_path=.google.protobuf=::pbjson_types
+  #  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
+  #    out: gen/rust
+  #  - remote: buf.build/community/neoeinstein-prost-crate:v0.4.1
+  #    out: gen/rust
+  #   Golang
+  - remote: buf.build/protocolbuffers/go
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go
+    out: gen
+    opt: paths=source_relative
+inputs:
+  - directory: grpc/proto
+
+# from medium.com
+# https://arc.net/l/quote/mdmdkouv
+#version: v1
+#plugins:
+#  - name: openapi
+#    out: api
+#    opt:
+#      - paths=source_relative
+#      - output_mode=source_relative
+#      - enum_type=string
+#      - default_response=false
+#  - name: go
+#    out: proto
+#    opt: paths=source_relative
+#  - name: go-grpc
+#    out: proto
+#    opt: paths=source_relative
