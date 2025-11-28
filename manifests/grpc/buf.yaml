@@ -2,20 +2,17 @@
 version: v2
 modules:
   - path: ./proto
-#    build:
-#      roots:
-#        - proto
-#    deps:
-#      - buf.build/googleapis/googleapis
-#    lint:
-#      use:
-#        - DEFAULT
-#    breaking:
-#      use:
-#        - FILE
 lint:
   use:
     - STANDARD
+  except:
+    # Allow multiple packages in same directory (flexible structure)
+    - PACKAGE_DIRECTORY_MATCH
+    - DIRECTORY_SAME_PACKAGE
+    # Allow packages without version suffix
+    - PACKAGE_VERSION_SUFFIX
+    # Allow flexible RPC response naming
+    - RPC_RESPONSE_STANDARD_NAME
   ignore:
     - grpc/proto/google/type/datetime.proto
     - grpc/proto/commons.proto

@@ -3,8 +3,11 @@ name = "zerg_tasks"
 version = "0.1.0"
 edition = "2021"
 
-
 [dependencies]
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+rpc = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tonic = "0.12"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }

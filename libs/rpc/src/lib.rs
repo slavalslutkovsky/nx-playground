@@ -1,8 +1,4 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 3 + 2;
-        assert_eq!(result, 5);
-    }
-}
+pub mod gen;
+
+// Re-export for convenience
+pub use gen::*;

@@ -1,18 +1,17 @@
 [package]
-name = "zerg_api"
+name = "domain_projects"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-trait = { workspace = true }
 axum = { workspace = true }
-domain_projects = { workspace = true }
-domain_users = { workspace = true }
-rpc = { workspace = true }
+chrono = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
 tokio = { workspace = true }
-tonic = "0.12"
-tower = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
+uuid = { workspace = true }

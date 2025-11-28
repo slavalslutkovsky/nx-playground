@@ -3,6 +3,10 @@
 default:
   just -l
 
+check:
+  cargo check
+  cargo audit
+
 _docker-up:
   docker compose -f manifests/dockers/compose.yaml up -d
 # Remove local env db
@@ -34,10 +38,40 @@ schema:
 #  docker rm $(docker ps -aq) -f
 test-all:
   cargo nextest run --workspace
-buf:
-    buf lint
-    buf build
-    buf generate
+# Proto/gRPC workflow (using buf)
+# Directory containing buf configuration
+proto_dir := "manifests/grpc"
+
+# Format proto files
+proto-fmt:
+    cd {{proto_dir}} && buf format -w
+
+# Lint proto files
+proto-lint:
+    cd {{proto_dir}} && buf lint
+
+# Check for breaking changes (against git main branch)
+proto-breaking:
+    cd {{proto_dir}} && buf breaking --against '.git#branch=main'
+
+# Build/validate proto files
+proto-build:
+    cd {{proto_dir}} && buf build
+
+# Generate Rust code from proto files
+proto-gen:
+    cd {{proto_dir}} && buf generate
+
+# Verify generated Rust code compiles
+proto-check:
+    cargo check -p rpc
+
+# Full proto workflow: format, lint, build, generate, verify
+proto: proto-fmt proto-lint proto-build proto-gen proto-check
+    @echo "Proto workflow complete"
+
+# Alias for backward compatibility
+buf: proto
 
 backstage-dev:
   kubectl apply -k manifests/kustomize/backstage/overlays/dev

@@ -7,13 +7,13 @@ option go_package = "grpc/tasks";
 // Declare a service for each controller you have
 service TasksService {
   // Declare an rpc for each method that is called via gRPC
-  rpc Create (CreateRequest) returns (CreateResponse) {};
+  rpc Create(CreateRequest) returns (CreateResponse) {}
   //  my get user method
-  rpc GetById (GetByIdRequest) returns (GetByIdResponse) {};
-  rpc DeleteById (DeleteByIdRequest) returns (DeleteByIdResponse) {};
-  rpc UpdateById (UpdateByIdRequest) returns (UpdateByIdResponse) {};
-  rpc List (ListRequest) returns (ListResponse) {};
-  rpc ListStream (ListStreamRequest) returns (stream ListStreamResponse) {};
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
+  rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {}
+  rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
 }
 
 message GetByIdResponse {
@@ -50,7 +50,7 @@ message UpdateByIdRequest {
   string id = 1;
 }
 
-message DeleteByIdResponse {};
+message DeleteByIdResponse {}
 message DeleteByIdRequest {
   string id = 1;
 }

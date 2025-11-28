@@ -1,14 +1,12 @@
 
 [workspace]
 resolver = '2'
-members = [
-	'libs/rpc',
-	'apps/zerg/api',
-	'apps/zerg/tasks',
-	'libs/proc_macros',
-]
+members = ['apps/zerg/api', 'apps/zerg/tasks', 'libs/proc_macros', 'libs/rpc', 'libs/domains/projects', 'libs/domains/users']
 
 [workspace.dependencies]
+rpc = {path = 'libs/rpc'}
+domain_projects = { path = 'libs/domains/projects' }
+domain_users = { path = 'libs/domains/users' }
 api_resource = { path = 'libs/proc_macros/api_resource' }
 apis_bike = { path = 'libs/apis/bike' }
 apis_car = { path = 'libs/apis/car' }
@@ -47,8 +45,8 @@ proc_macros = { path = 'libs/proc_macros' }
 prost = '0.14'
 quote = '1.0'
 r2d2 = { version = '0.8', features = [] }
-rand = '0.10.0-rc.0'
-redis = { version = '1.0.0-rc.3', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
+rand = '0.10.0-rc.5'
+redis = { version = '1.0.0-rc.4', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 reqwest = { version = '0.12', features = ['json', 'rustls-tls'], default-features = false }
 schemars = '1.1'
 sea-orm = { version = '2.0.0-rc.19', features = ['sqlx-postgres', 'runtime-tokio-rustls', 'macros', 'with-uuid', 'with-chrono', 'mock', 'debug-print', 'with-json'] }
@@ -77,7 +75,7 @@ tower_governor = '0.8'
 tracing = '0.1'
 tracing-subscriber = { version = '0.3', features = ['env-filter', 'json', 'serde_json'] }
 trybuild = '1.0'
-ts-rs = '11.1'
+#ts-rs = '11.1'
 typeshare = '1.0'
 typeshare-cli = { version = '1.13', featires = [] }
 utoipa = { version = '5.4', features = ['axum_extras', 'chrono', 'uuid'] }

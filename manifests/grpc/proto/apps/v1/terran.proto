@@ -5,13 +5,13 @@ package terran.v1;
 option go_package = "grpc/terran/v1";
 
 service TerranService {
-  rpc Healthcheck (HealthcheckRequest) returns (HealthcheckResponse) {};
-  rpc ListProjects (ListProjectsRequest) returns (ListProjectsResponse) {};
-  rpc GetProject (GetProjectRequest) returns (GetProjectResponse) {};
-  rpc CreateProject (CreateProjectRequest) returns (CreateProjectResponse) {};
-  rpc UpdateProject (UpdateProjectRequest) returns (UpdateProjectResponse) {};
-  rpc DeleteProject (DeleteProjectRequest) returns (DeleteProjectResponse) {};
-  rpc StreamProjects (StreamProjectsRequest) returns (stream ProjectStreamResponse) {};
+  rpc Healthcheck(HealthcheckRequest) returns (HealthcheckResponse) {}
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {}
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {}
+  rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
+  rpc StreamProjects(StreamProjectsRequest) returns (stream ProjectStreamResponse) {}
 }
 
 message HealthcheckRequest {}
@@ -90,11 +90,11 @@ message ProjectStreamResponse {
 }
 
 service CodeGraphService {
-  rpc InitGraph (InitGraphRequest) returns (InitGraphResponse) {};
-  rpc ScanWorkspace (ScanWorkspaceRequest) returns (stream ScanProgressResponse) {};
-  rpc ClearGraph (ClearGraphRequest) returns (ClearGraphResponse) {};
-  rpc QueryGraph (QueryGraphRequest) returns (QueryGraphResponse) {};
-  rpc GetGraphStats (GetGraphStatsRequest) returns (GetGraphStatsResponse) {};
+  rpc InitGraph(InitGraphRequest) returns (InitGraphResponse) {}
+  rpc ScanWorkspace(ScanWorkspaceRequest) returns (stream ScanProgressResponse) {}
+  rpc ClearGraph(ClearGraphRequest) returns (ClearGraphResponse) {}
+  rpc QueryGraph(QueryGraphRequest) returns (QueryGraphResponse) {}
+  rpc GetGraphStats(GetGraphStatsRequest) returns (GetGraphStatsResponse) {}
 }
 
 message InitGraphRequest {}
