@@ -1,4 +1,4 @@
-use crate::{env_required, FromEnv};
+use crate::{env_required, ConfigError, FromEnv};
 
 /// Database configuration
 #[derive(Clone, Debug)]
@@ -14,7 +14,7 @@ impl DatabaseConfig {
 
 impl FromEnv for DatabaseConfig {
     /// Requires DATABASE_URL to be set (no default)
-    fn from_env() -> eyre::Result<Self> {
+    fn from_env() -> Result<Self, ConfigError> {
         Ok(Self {
             url: env_required("DATABASE_URL")?,
         })

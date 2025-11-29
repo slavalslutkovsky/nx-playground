@@ -1,4 +1,4 @@
-use crate::{env_required, FromEnv};
+use crate::{env_required, ConfigError, FromEnv};
 
 /// Redis configuration
 #[derive(Clone, Debug)]
@@ -14,7 +14,7 @@ impl RedisConfig {
 
 impl FromEnv for RedisConfig {
     /// Requires REDIS_HOST to be set (no default)
-    fn from_env() -> eyre::Result<Self> {
+    fn from_env() -> Result<Self, ConfigError> {
         Ok(Self {
             uri: env_required("REDIS_HOST")?,
         })

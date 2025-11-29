@@ -1,4 +1,4 @@
-use crate::{env_required, FromEnv};
+use crate::{env_required, ConfigError, FromEnv};
 
 /// MongoDB configuration
 #[derive(Clone, Debug)]
@@ -10,16 +10,11 @@ impl MongoConfig {
     pub fn new(uri: String) -> Self {
         Self { uri }
     }
-
-    // /// Get the MongoDB connection URI
-    // pub fn uri(&self) -> &str {
-    //     &self.uri
-    // }
 }
 
 impl FromEnv for MongoConfig {
     /// Requires MONGO_URI to be set (no default)
-    fn from_env() -> eyre::Result<Self> {
+    fn from_env() -> Result<Self, ConfigError> {
         Ok(Self {
             uri: env_required("MONGO_URI")?,
         })

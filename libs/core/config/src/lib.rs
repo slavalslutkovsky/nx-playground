@@ -5,6 +5,17 @@ pub mod server;
 pub mod tracing;
 
 use std::env;
+use thiserror::Error;
+
+/// Configuration error type
+#[derive(Error, Debug)]
+pub enum ConfigError {
+    #[error("Environment variable '{0}' is required but not set")]
+    MissingEnvVar(String),
+
+    #[error("Failed to parse environment variable '{key}': {details}")]
+    ParseError { key: String, details: String },
+}
 
 /// Application environment (dev = local/kind, prod = full k8s)
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -40,7 +51,7 @@ impl Environment {
 
 /// Trait for configuration that can be loaded from environment variables
 pub trait FromEnv: Sized {
-    fn from_env() -> eyre::Result<Self>;
+    fn from_env() -> Result<Self, ConfigError>;
 }
 
 /// Helper to load and parse environment variable with a default value
@@ -49,8 +60,8 @@ pub fn env_or_default(key: &str, default: &str) -> String {
 }
 
 /// Helper to load and parse environment variable or return error
-pub fn env_required(key: &str) -> eyre::Result<String> {
-    env::var(key).map_err(|_| eyre::eyre!("Environment variable {} is required", key))
+pub fn env_required(key: &str) -> Result<String, ConfigError> {
+    env::var(key).map_err(|_| ConfigError::MissingEnvVar(key.to_string()))
 }
 
 #[cfg(test)]

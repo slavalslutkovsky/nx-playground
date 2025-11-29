@@ -1,4 +1,4 @@
-use crate::{env_or_default, FromEnv};
+use crate::{env_or_default, ConfigError, FromEnv};
 use std::net::Ipv4Addr;
 
 /// Server configuration for HTTP APIs
@@ -23,11 +23,14 @@ impl FromEnv for ServerConfig {
     /// Reads from environment variables with sensible defaults:
     /// - HOST: defaults to Ipv4Addr::UNSPECIFIED (0.0.0.0 - all interfaces)
     /// - PORT: defaults to 8080
-    fn from_env() -> eyre::Result<Self> {
+    fn from_env() -> Result<Self, ConfigError> {
         let host = env_or_default("HOST", &Ipv4Addr::UNSPECIFIED.to_string());
-        let port = env_or_default("PORT", "8080")
-            .parse()
-            .map_err(|_| eyre::eyre!("PORT must be a valid u16"))?;
+        let port = env_or_default("PORT", "8080").parse().map_err(|e| {
+            ConfigError::ParseError {
+                key: "PORT".to_string(),
+                details: format!("{}", e),
+            }
+        })?;
 
         Ok(Self { host, port })
     }
@@ -84,7 +87,7 @@ mod tests {
             let result = ServerConfig::from_env();
             assert!(result.is_err());
             let err = result.unwrap_err();
-            assert!(err.to_string().contains("PORT must be a valid u16"));
+            assert!(err.to_string().contains("PORT"));
         });
     }
 
@@ -94,7 +97,7 @@ mod tests {
             let result = ServerConfig::from_env();
             assert!(result.is_err());
             let err = result.unwrap_err();
-            assert!(err.to_string().contains("PORT must be a valid u16"));
+            assert!(err.to_string().contains("PORT"));
         });
     }
 
