@@ -122,10 +122,7 @@ impl ProjectRepository for InMemoryProjectRepository {
         let mut projects = self.projects.write().await;
 
         // First, get the user_id for duplicate check
-        let user_id = projects
-            .get(&id)
-            .ok_or(ProjectError::NotFound(id))?
-            .user_id;
+        let user_id = projects.get(&id).ok_or(ProjectError::NotFound(id))?.user_id;
 
         // Check for duplicate name if name is being changed
         if let Some(ref new_name) = input.name {

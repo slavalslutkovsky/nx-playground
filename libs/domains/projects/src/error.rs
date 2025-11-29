@@ -40,11 +40,9 @@ impl IntoResponse for ProjectError {
                 "duplicate",
                 format!("Project with name '{}' already exists", name),
             ),
-            ProjectError::Validation(msg) => (
-                StatusCode::BAD_REQUEST,
-                "validation_error",
-                msg.clone(),
-            ),
+            ProjectError::Validation(msg) => {
+                (StatusCode::BAD_REQUEST, "validation_error", msg.clone())
+            }
             ProjectError::Unauthorized(id) => (
                 StatusCode::FORBIDDEN,
                 "unauthorized",

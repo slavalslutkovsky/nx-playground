@@ -7,18 +7,21 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use domain_cloud_resources::{
+    handlers as cloud_resources_handlers, CloudResourceService, PgCloudResourceRepository,
+};
 use domain_projects::{handlers as projects_handlers, PgProjectRepository, ProjectService};
 use domain_users::{handlers as users_handlers, InMemoryUserRepository, UserService};
+use migration::{Migrator, MigratorTrait};
 use rpc::tasks::{
     tasks_service_client::TasksServiceClient, CreateRequest, DeleteByIdRequest, GetByIdRequest,
     ListRequest,
 };
+use sea_orm::Database;
 use serde::{Deserialize, Serialize};
-use sqlx::postgres::PgPoolOptions;
 use tokio::sync::RwLock;
 use tonic::transport::Channel;
-use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
+use tracing::info;
 
 #[derive(Clone)]
 struct AppState {
@@ -180,12 +183,17 @@ async fn delete_task(State(state): State<AppState>, Path(id): Path<String>) -> i
     }
 }
 
+use core_config::tracing::init_tracing;
+use zerg_api::config::Config;
+
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
-        .finish();
-    tracing::subscriber::set_global_default(subscriber)?;
+async fn main() -> eyre::Result<()> {
+    color_eyre::install()?;
+    // Load configuration from environment variables
+    let config = Config::from_env()?;
+
+    // Initialize tracing with environment-aware configuration
+    init_tracing(&config.environment);
 
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
@@ -198,24 +206,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tasks_client: Arc::new(RwLock::new(tasks_client)),
     };
 
-    // Initialize database connection pool
+    // Initialize database connection with Sea-ORM
     let database_url = std::env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://myuser:mypassword@localhost/mydatabase".to_string());
 
     info!("Connecting to database");
 
-    let pool = PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&database_url)
-        .await?;
+    let db = Database::connect(&database_url).await?;
 
     info!("Database connection established");
 
+    // Conditional migrations based on environment
+    // Set RUN_MIGRATIONS=true for development, or use the separate migrate binary for production
+    if std::env::var("RUN_MIGRATIONS").is_ok() {
+        info!("Running database migrations (RUN_MIGRATIONS is set)");
+        Migrator::up(&db, None).await?;
+        info!("Migrations completed successfully");
+    } else {
+        info!("Skipping automatic migrations. Use 'cargo run --bin migrate' to run migrations separately");
+    }
+
     // Initialize projects domain with PostgreSQL
-    let projects_repo = PgProjectRepository::new(pool.clone());
+    let projects_repo = PgProjectRepository::new(db.clone());
     let projects_service = ProjectService::new(projects_repo);
 
-    // Initialize users' domain
+    // Initialize cloud resources domain with PostgreSQL
+    let cloud_resources_repo = PgCloudResourceRepository::new(db.clone());
+    let cloud_resources_service = CloudResourceService::new(cloud_resources_repo);
+
+    // Initialize users' domain (still in-memory)
     let users_repo = InMemoryUserRepository::new();
     let users_service = UserService::new(users_repo);
 
@@ -225,6 +244,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/tasks/{id}", get(get_task).delete(delete_task))
         .with_state(state)
         .nest("/projects", projects_handlers::router(projects_service))
+        .nest(
+            "/cloud-resources",
+            cloud_resources_handlers::router(cloud_resources_service),
+        )
         .nest("/users", users_handlers::router(users_service));
 
     let addr = "0.0.0.0:3000";

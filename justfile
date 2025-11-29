@@ -18,13 +18,15 @@ run *args:
 
 _migration:
   sqlx migrate run --database-url=postgres://myuser:mypassword@localhost/mydatabase --source manifests/migrations/postgres/
-
+  sea-orm
 _seed:
   sqlx migrate run --ignore-missing --database-url=postgres://myuser:mypassword@localhost/mydatabase --source manifests/migrations/postgres/seeds
 
 sort-deps:
   cargo fmt
   cargo sort --workspace
+#  cargo doc --workspace --no-deps --document-private-items --open
+#  bacon doc --open
 
 reset-db:
   just docker-down

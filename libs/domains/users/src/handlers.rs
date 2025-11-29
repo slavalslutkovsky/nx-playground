@@ -148,6 +148,8 @@ async fn login<R: UserRepository>(
     State(service): State<Arc<UserService<R>>>,
     Json(input): Json<LoginRequest>,
 ) -> UserResult<Json<UserResponse>> {
-    let user = service.verify_credentials(&input.email, &input.password).await?;
+    let user = service
+        .verify_credentials(&input.email, &input.password)
+        .await?;
     Ok(Json(user))
 }

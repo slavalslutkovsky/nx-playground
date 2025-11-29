@@ -1,0 +1,31 @@
+use core_config::{database::DatabaseConfig, server::ServerConfig, FromEnv};
+
+// Re-export Environment for use in other modules
+use core_config::redis::RedisConfig;
+pub use core_config::Environment;
+
+/// Application-specific configuration
+/// Composes shared config components from the `config` library
+#[derive(Clone, Debug)]
+pub struct Config {
+    pub database: DatabaseConfig,
+    pub redis: RedisConfig,
+    pub server: ServerConfig,
+    pub environment: Environment,
+}
+
+impl Config {
+    pub fn from_env() -> eyre::Result<Self> {
+        let environment = Environment::from_env();
+        let database = DatabaseConfig::from_env()?; // Required - will fail if not set
+        let server = ServerConfig::from_env()?; // Uses defaults: HOST=0.0.0.0, PORT=8080
+        let redis = RedisConfig::from_env()?; // Uses defaults: HOST=0.0.0.0, PORT=8080
+
+        Ok(Self {
+            database,
+            redis,
+            server,
+            environment,
+        })
+    }
+}

@@ -31,11 +31,7 @@ impl<R: UserRepository> UserService<R> {
         let password_hash = self.hash_password(&input.password)?;
 
         // Parse roles
-        let roles: Vec<Role> = input
-            .roles
-            .iter()
-            .filter_map(|r| r.parse().ok())
-            .collect();
+        let roles: Vec<Role> = input.roles.iter().filter_map(|r| r.parse().ok()).collect();
 
         let user = User::new(input.email, input.name, password_hash, roles);
 
@@ -56,11 +52,9 @@ impl<R: UserRepository> UserService<R> {
 
     /// Get a user by email
     pub async fn get_user_by_email(&self, email: &str) -> UserResult<UserResponse> {
-        let user = self
-            .repository
-            .get_by_email(email)
-            .await?
-            .ok_or_else(|| UserError::Validation(format!("User with email '{}' not found", email)))?;
+        let user = self.repository.get_by_email(email).await?.ok_or_else(|| {
+            UserError::Validation(format!("User with email '{}' not found", email))
+        })?;
 
         Ok(user.into())
     }
@@ -119,7 +113,11 @@ impl<R: UserRepository> UserService<R> {
     }
 
     /// Verify user credentials (for login)
-    pub async fn verify_credentials(&self, email: &str, password: &str) -> UserResult<UserResponse> {
+    pub async fn verify_credentials(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> UserResult<UserResponse> {
         let user = self
             .repository
             .get_by_email(email)
@@ -190,8 +188,8 @@ impl<R: UserRepository> UserService<R> {
     }
 
     fn verify_password(&self, password: &str, hash: &str) -> UserResult<bool> {
-        let parsed_hash = PasswordHash::new(hash)
-            .map_err(|e| UserError::PasswordHash(e.to_string()))?;
+        let parsed_hash =
+            PasswordHash::new(hash).map_err(|e| UserError::PasswordHash(e.to_string()))?;
 
         Ok(Argon2::default()
             .verify_password(password.as_bytes(), &parsed_hash)

@@ -51,11 +51,9 @@ impl IntoResponse for UserError {
                 "invalid_credentials",
                 "Invalid email or password".to_string(),
             ),
-            UserError::Validation(msg) => (
-                StatusCode::BAD_REQUEST,
-                "validation_error",
-                msg.clone(),
-            ),
+            UserError::Validation(msg) => {
+                (StatusCode::BAD_REQUEST, "validation_error", msg.clone())
+            }
             UserError::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 "unauthorized",

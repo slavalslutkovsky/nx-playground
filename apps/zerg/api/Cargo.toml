@@ -5,12 +5,17 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true }
+color-eyre = "0.6"
+core_config = { workspace = true }
+domain_cloud_resources = { workspace = true }
 domain_projects = { workspace = true }
 domain_users = { workspace = true }
+eyre = { workspace = true }
+migration = { workspace = true }
 rpc = { workspace = true }
+sea-orm = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-sqlx = { workspace = true }
 tokio = { workspace = true }
 tonic = "0.12"
 tower = { workspace = true }

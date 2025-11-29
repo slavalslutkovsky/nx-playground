@@ -163,10 +163,7 @@ impl User {
             self.password_hash = hash;
         }
         if let Some(roles) = update.roles {
-            self.roles = roles
-                .iter()
-                .filter_map(|r| r.parse().ok())
-                .collect();
+            self.roles = roles.iter().filter_map(|r| r.parse().ok()).collect();
             if self.roles.is_empty() {
                 self.roles = vec![Role::User];
             }

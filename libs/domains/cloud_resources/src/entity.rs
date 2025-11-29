@@ -1,0 +1,108 @@
+use crate::models::{ResourceStatus, ResourceType, Tag};
+use sea_orm::entity::prelude::*;
+use sea_orm::ActiveValue::Set;
+use serde::{Deserialize, Serialize};
+
+/// Sea-ORM Entity for cloud_resources table
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
+#[sea_orm(table_name = "cloud_resources")]
+pub struct Model {
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub id: Uuid,
+    pub project_id: Uuid,
+    pub name: String,
+    pub resource_type: String, // Stored as text, converted to/from enum
+    pub status: String,        // Stored as text, converted to/from enum
+    #[sea_orm(column_type = "Text")]
+    pub region: String,
+    pub configuration: Json, // JSONB field
+    pub cost_per_hour: Option<f64>,
+    pub monthly_cost_estimate: Option<f64>,
+    pub tags: Json, // JSONB field
+    pub enabled: bool,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+    pub deleted_at: Option<DateTimeWithTimeZone>,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "domain_projects::entity::Entity",
+        from = "Column::ProjectId",
+        to = "domain_projects::entity::Column::Id"
+    )]
+    Projects,
+}
+
+impl Related<domain_projects::entity::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Projects.def()
+    }
+}
+
+impl ActiveModelBehavior for ActiveModel {}
+
+// Conversion from Sea-ORM Model to domain CloudResource
+impl From<Model> for crate::models::CloudResource {
+    fn from(model: Model) -> Self {
+        // Parse enums from strings
+        let resource_type = model
+            .resource_type
+            .parse::<ResourceType>()
+            .expect("Invalid resource_type in database");
+        let status = model
+            .status
+            .parse::<ResourceStatus>()
+            .expect("Invalid status in database");
+
+        // Parse tags from JSON
+        let tags: Vec<Tag> = serde_json::from_value(model.tags.clone()).unwrap_or_default();
+
+        // Parse configuration
+        let configuration = model.configuration.clone();
+
+        Self {
+            id: model.id,
+            project_id: model.project_id,
+            name: model.name,
+            resource_type,
+            status,
+            region: model.region,
+            configuration,
+            cost_per_hour: model.cost_per_hour,
+            monthly_cost_estimate: model.monthly_cost_estimate,
+            tags,
+            enabled: model.enabled,
+            created_at: model.created_at.into(),
+            updated_at: model.updated_at.into(),
+            deleted_at: model.deleted_at.map(|dt| dt.into()),
+        }
+    }
+}
+
+// Conversion from domain CreateCloudResource to Sea-ORM ActiveModel
+impl From<crate::models::CreateCloudResource> for ActiveModel {
+    fn from(input: crate::models::CreateCloudResource) -> Self {
+        let tags_json = serde_json::to_value(&input.tags).expect("Failed to serialize tags");
+
+        let monthly_cost = input.cost_per_hour.map(|hourly| hourly * 24.0 * 30.0);
+
+        ActiveModel {
+            id: Set(Uuid::new_v4()),
+            project_id: Set(input.project_id),
+            name: Set(input.name),
+            resource_type: Set(input.resource_type.to_string()),
+            status: Set(ResourceStatus::Creating.to_string()),
+            region: Set(input.region),
+            configuration: Set(input.configuration),
+            cost_per_hour: Set(input.cost_per_hour),
+            monthly_cost_estimate: Set(monthly_cost),
+            tags: Set(tags_json),
+            enabled: Set(true),
+            created_at: Set(chrono::Utc::now().into()),
+            updated_at: Set(chrono::Utc::now().into()),
+            deleted_at: Set(None),
+        }
+    }
+}

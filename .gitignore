@@ -42,3 +42,11 @@ Thumbs.db
 .nx/workspace-data
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# Allow example environment files (templates)
+!.env.example

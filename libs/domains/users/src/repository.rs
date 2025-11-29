@@ -131,9 +131,9 @@ impl UserRepository for InMemoryUserRepository {
         }
 
         // Check for duplicate email (excluding current user)
-        let email_exists = users.values().any(|u| {
-            u.id != user.id && u.email.to_lowercase() == user.email.to_lowercase()
-        });
+        let email_exists = users
+            .values()
+            .any(|u| u.id != user.id && u.email.to_lowercase() == user.email.to_lowercase());
 
         if email_exists {
             return Err(UserError::DuplicateEmail(user.email));
