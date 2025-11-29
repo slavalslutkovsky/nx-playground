@@ -1,0 +1,10 @@
+[package]
+name = "database"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = { workspace = true }
+sea-orm = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
