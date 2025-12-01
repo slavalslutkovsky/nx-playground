@@ -1,10 +1,11 @@
 use crate::models::{CloudProvider, Environment, ProjectStatus, Tag};
+use core_proc_macros::SeaOrmResource;
 use sea_orm::entity::prelude::*;
 use sea_orm::ActiveValue::Set;
 use serde::{Deserialize, Serialize};
 
 /// Sea-ORM Entity for Projects table
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, SeaOrmResource)]
 #[sea_orm(table_name = "projects")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -13,11 +14,11 @@ pub struct Model {
     pub user_id: Uuid,
     #[sea_orm(column_type = "Text")]
     pub description: String,
-    pub cloud_provider: String, // Stored as text, converted to/from enum
+    pub cloud_provider: CloudProvider,
     #[sea_orm(column_type = "Text")]
     pub region: String,
-    pub environment: String, // Stored as text, converted to/from enum
-    pub status: String,      // Stored as text, converted to/from enum
+    pub environment: Environment,
+    pub status: ProjectStatus,
     pub budget_limit: Option<f64>,
     pub tags: Json, // JSONB field
     pub enabled: bool,
@@ -33,20 +34,6 @@ impl ActiveModelBehavior for ActiveModel {}
 // Conversion from Sea-ORM Model to domain Project
 impl From<Model> for crate::models::Project {
     fn from(model: Model) -> Self {
-        // Parse enums from strings
-        let cloud_provider = model
-            .cloud_provider
-            .parse::<CloudProvider>()
-            .expect("Invalid cloud_provider in database");
-        let environment = model
-            .environment
-            .parse::<Environment>()
-            .expect("Invalid environment in database");
-        let status = model
-            .status
-            .parse::<ProjectStatus>()
-            .expect("Invalid status in database");
-
         // Parse tags from JSON
         let tags: Vec<Tag> = serde_json::from_value(model.tags.clone()).unwrap_or_default();
 
@@ -55,10 +42,10 @@ impl From<Model> for crate::models::Project {
             name: model.name,
             user_id: model.user_id,
             description: model.description,
-            cloud_provider,
+            cloud_provider: model.cloud_provider,
             region: model.region,
-            environment,
-            status,
+            environment: model.environment,
+            status: model.status,
             budget_limit: model.budget_limit,
             tags,
             enabled: model.enabled,
@@ -78,10 +65,10 @@ impl From<crate::models::CreateProject> for ActiveModel {
             name: Set(input.name),
             user_id: Set(input.user_id),
             description: Set(input.description),
-            cloud_provider: Set(input.cloud_provider.to_string()),
+            cloud_provider: Set(input.cloud_provider),
             region: Set(input.region),
-            environment: Set(input.environment.to_string()),
-            status: Set(ProjectStatus::Provisioning.to_string()),
+            environment: Set(input.environment),
+            status: Set(ProjectStatus::Provisioning),
             budget_limit: Set(input.budget_limit),
             tags: Set(tags_json),
             enabled: Set(true),

@@ -1,10 +1,11 @@
 use crate::models::{ResourceStatus, ResourceType, Tag};
+use core_proc_macros::SeaOrmResource;
 use sea_orm::entity::prelude::*;
 use sea_orm::ActiveValue::Set;
 use serde::{Deserialize, Serialize};
 
 /// Sea-ORM Entity for cloud_resources table
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, SeaOrmResource)]
 #[sea_orm(table_name = "cloud_resources")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]

@@ -7,7 +7,9 @@ edition = "2021"
 async-trait = { workspace = true }
 axum = { workspace = true }
 chrono = { workspace = true }
+core_proc_macros = { workspace = true, features = ["sea_orm_resource"] }
 database = { workspace = true }
+regex = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -17,3 +19,12 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
+validator = { workspace = true }
+
+[dev-dependencies]
+futures = { workspace = true }
+http-body-util = "0.1"
+mockall = { workspace = true }
+serde_json = { workspace = true }
+test-utils = { workspace = true }
+tower = { workspace = true }

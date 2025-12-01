@@ -7,6 +7,7 @@ edition = "2021"
 async-trait = { workspace = true }
 axum = { workspace = true }
 chrono = { workspace = true }
+core_proc_macros = { workspace = true, features = ["sea_orm_resource"] }
 database = { workspace = true }
 domain_projects = { workspace = true }
 sea-orm = { workspace = true }
@@ -17,3 +18,4 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
+validator = { workspace = true }

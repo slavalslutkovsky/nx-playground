@@ -4,7 +4,29 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Core dependencies (always available)
 async-trait = { workspace = true }
-sea-orm = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+
+# PostgreSQL dependencies (optional)
+sea-orm = { workspace = true, optional = true }
+sea-orm-migration = { workspace = true, optional = true }
+
+# Redis dependencies (optional)
+redis = { workspace = true, optional = true }
+
+# Configuration support (optional)
+core_config = { workspace = true, optional = true }
+
+[features]
+default = ["postgres", "redis"]
+postgres = ["dep:sea-orm", "dep:sea-orm-migration"]
+redis = ["dep:redis"]
+config = ["dep:core_config"]
+all = ["postgres", "redis", "config"]
+
+[dev-dependencies]
+temp-env = "0.3"

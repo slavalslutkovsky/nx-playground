@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::error::{ProjectError, ProjectResult};
 use crate::models::{CreateProject, Project, ProjectFilter, ProjectStatus, UpdateProject};
@@ -18,12 +19,29 @@ impl<R: ProjectRepository> ProjectService<R> {
         }
     }
 
-    /// Create a new project with validation
+    /// Create a new project with validation and limit checking
     pub async fn create_project(&self, input: CreateProject) -> ProjectResult<Project> {
         // Validate input
-        self.validate_create(&input)?;
+        input
+            .validate()
+            .map_err(|e| ProjectError::Validation(e.to_string()))?;
+
+        // Check if user can create more projects
+        if !self.can_user_create_project(input.user_id).await? {
+            return Err(ProjectError::Validation(
+                "Free tier limit reached: maximum 3 projects per user".to_string(),
+            ));
+        }
 
         self.repository.create(input).await
+    }
+
+    /// Check if a user can create more projects (free tier: 3 projects max)
+    pub async fn can_user_create_project(&self, user_id: Uuid) -> ProjectResult<bool> {
+        const FREE_TIER_LIMIT: usize = 3;
+
+        let count = self.repository.count_by_user(user_id).await?;
+        Ok(count < FREE_TIER_LIMIT)
     }
 
     /// Get a project by ID
@@ -53,7 +71,9 @@ impl<R: ProjectRepository> ProjectService<R> {
     /// Update a project
     pub async fn update_project(&self, id: Uuid, input: UpdateProject) -> ProjectResult<Project> {
         // Validate input
-        self.validate_update(&input)?;
+        input
+            .validate()
+            .map_err(|e| ProjectError::Validation(e.to_string()))?;
 
         self.repository.update(id, input).await
     }
@@ -159,104 +179,6 @@ impl<R: ProjectRepository> ProjectService<R> {
             )
             .await
     }
-
-    // Validation helpers
-
-    fn validate_create(&self, input: &CreateProject) -> ProjectResult<()> {
-        if input.name.trim().is_empty() {
-            return Err(ProjectError::Validation(
-                "Project name cannot be empty".to_string(),
-            ));
-        }
-
-        if input.name.len() > 100 {
-            return Err(ProjectError::Validation(
-                "Project name cannot exceed 100 characters".to_string(),
-            ));
-        }
-
-        if !input
-            .name
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
-        {
-            return Err(ProjectError::Validation(
-                "Project name can only contain alphanumeric characters, hyphens, and underscores"
-                    .to_string(),
-            ));
-        }
-
-        if input.region.trim().is_empty() {
-            return Err(ProjectError::Validation(
-                "Region cannot be empty".to_string(),
-            ));
-        }
-
-        if let Some(budget) = input.budget_limit {
-            if budget < 0.0 {
-                return Err(ProjectError::Validation(
-                    "Budget limit cannot be negative".to_string(),
-                ));
-            }
-        }
-
-        // Validate tags
-        for tag in &input.tags {
-            if tag.key.trim().is_empty() {
-                return Err(ProjectError::Validation(
-                    "Tag key cannot be empty".to_string(),
-                ));
-            }
-        }
-
-        Ok(())
-    }
-
-    fn validate_update(&self, input: &UpdateProject) -> ProjectResult<()> {
-        if let Some(ref name) = input.name {
-            if name.trim().is_empty() {
-                return Err(ProjectError::Validation(
-                    "Project name cannot be empty".to_string(),
-                ));
-            }
-
-            if name.len() > 100 {
-                return Err(ProjectError::Validation(
-                    "Project name cannot exceed 100 characters".to_string(),
-                ));
-            }
-
-            if !name
-                .chars()
-                .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
-            {
-                return Err(ProjectError::Validation(
-                    "Project name can only contain alphanumeric characters, hyphens, and underscores"
-                        .to_string(),
-                ));
-            }
-        }
-
-        if let Some(budget) = input.budget_limit {
-            if budget < 0.0 {
-                return Err(ProjectError::Validation(
-                    "Budget limit cannot be negative".to_string(),
-                ));
-            }
-        }
-
-        if let Some(ref tags) = input.tags {
-            for tag in tags {
-                if tag.key.trim().is_empty() {
-                    return Err(ProjectError::Validation(
-                        "Tag key cannot be empty".to_string(),
-                    ));
-                }
-            }
-        }
-
-        Ok(())
-    }
 }
 
 impl Default for UpdateProject {
@@ -271,5 +193,79 @@ impl Default for UpdateProject {
             tags: None,
             enabled: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::repository::MockProjectRepository;
+
+    #[tokio::test]
+    async fn test_can_create_project_when_under_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::new_v4();
+
+        // Mock: user has 2 projects (under the 3-project limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(2));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(can_create, "User with 2 projects should be able to create more");
+    }
+
+    #[tokio::test]
+    async fn test_cannot_create_project_when_at_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::new_v4();
+
+        // Mock: user has 3 projects (at the limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(3));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(!can_create, "User with 3 projects should not be able to create more");
+    }
+
+    #[tokio::test]
+    async fn test_cannot_create_project_when_over_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::new_v4();
+
+        // Mock: user has 5 projects (over the limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(5));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(!can_create, "User with 5 projects should not be able to create more");
+    }
+
+    #[tokio::test]
+    async fn test_can_create_first_project() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::new_v4();
+
+        // Mock: user has 0 projects
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(0));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(can_create, "User with 0 projects should be able to create their first");
     }
 }

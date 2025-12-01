@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use database::BaseRepository;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder, QuerySelect};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect};
 use uuid::Uuid;
 
 use crate::{
@@ -65,15 +65,15 @@ impl ProjectRepository for PgProjectRepository {
         }
 
         if let Some(cloud_provider) = filter.cloud_provider {
-            query = query.filter(entity::Column::CloudProvider.eq(cloud_provider.to_string()));
+            query = query.filter(entity::Column::CloudProvider.eq(cloud_provider));
         }
 
         if let Some(environment) = filter.environment {
-            query = query.filter(entity::Column::Environment.eq(environment.to_string()));
+            query = query.filter(entity::Column::Environment.eq(environment));
         }
 
         if let Some(status) = filter.status {
-            query = query.filter(entity::Column::Status.eq(status.to_string()));
+            query = query.filter(entity::Column::Status.eq(status));
         }
 
         if let Some(enabled) = filter.enabled {
@@ -131,10 +131,10 @@ impl ProjectRepository for PgProjectRepository {
             name: Set(project.name.clone()),
             user_id: Set(project.user_id),
             description: Set(project.description.clone()),
-            cloud_provider: Set(project.cloud_provider.to_string()),
+            cloud_provider: Set(project.cloud_provider),
             region: Set(project.region.clone()),
-            environment: Set(project.environment.to_string()),
-            status: Set(project.status.to_string()),
+            environment: Set(project.environment),
+            status: Set(project.status),
             budget_limit: Set(project.budget_limit),
             tags: Set(serde_json::to_value(&project.tags).unwrap()),
             enabled: Set(project.enabled),
@@ -178,5 +178,15 @@ impl ProjectRepository for PgProjectRepository {
             .is_some();
 
         Ok(exists)
+    }
+
+    async fn count_by_user(&self, user_id: Uuid) -> ProjectResult<usize> {
+        let count = entity::Entity::find()
+            .filter(entity::Column::UserId.eq(user_id))
+            .count(self.base.db())
+            .await
+            .map_err(|e| ProjectError::Internal(format!("Database error: {}", e)))?;
+
+        Ok(count as usize)
     }
 }

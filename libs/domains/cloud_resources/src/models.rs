@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use uuid::Uuid;
+use validator::Validate;
 
 /// Cloud resource type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
@@ -18,22 +19,17 @@ pub enum ResourceType {
 }
 
 /// Resource status
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum ResourceStatus {
+    #[default]
     Creating,
     Active,
     Updating,
     Deleting,
     Deleted,
     Failed,
-}
-
-impl Default for ResourceStatus {
-    fn default() -> Self {
-        Self::Creating
-    }
 }
 
 /// Cloud resource entity
@@ -63,26 +59,32 @@ pub struct Tag {
 }
 
 /// DTO for creating a new cloud resource
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct CreateCloudResource {
     pub project_id: Uuid,
+    #[validate(length(min = 1, max = 255))]
     pub name: String,
     pub resource_type: ResourceType,
+    #[validate(length(min = 1))]
     pub region: String,
     #[serde(default)]
     pub configuration: serde_json::Value,
+    #[validate(range(min = 0.0))]
     pub cost_per_hour: Option<f64>,
     #[serde(default)]
     pub tags: Vec<Tag>,
 }
 
 /// DTO for updating an existing cloud resource
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct UpdateCloudResource {
+    #[validate(length(min = 1, max = 255))]
     pub name: Option<String>,
     pub status: Option<ResourceStatus>,
+    #[validate(length(min = 1))]
     pub region: Option<String>,
     pub configuration: Option<serde_json::Value>,
+    #[validate(range(min = 0.0))]
     pub cost_per_hour: Option<f64>,
     pub monthly_cost_estimate: Option<f64>,
     pub tags: Option<Vec<Tag>>,

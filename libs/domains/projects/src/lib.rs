@@ -27,16 +27,23 @@
 //! ```rust,no_run
 //! use domain_projects::{
 //!     handlers,
-//!     repository::InMemoryProjectRepository,
+//!     postgres::PgProjectRepository,
 //!     service::ProjectService,
 //! };
+//! use sea_orm::Database;
+//!
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! // Create database connection
+//! let db = Database::connect("postgres://...").await?;
 //!
 //! // Create repository and service
-//! let repository = InMemoryProjectRepository::new();
+//! let repository = PgProjectRepository::new(db);
 //! let service = ProjectService::new(repository);
 //!
 //! // Create Axum router
 //! let router = handlers::router(service);
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod entity;
@@ -54,5 +61,5 @@ pub use models::{
     UpdateProject,
 };
 pub use postgres::PgProjectRepository;
-pub use repository::{InMemoryProjectRepository, ProjectRepository};
+pub use repository::ProjectRepository;
 pub use service::ProjectService;

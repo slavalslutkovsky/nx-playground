@@ -1,55 +1,77 @@
 use chrono::{DateTime, Utc};
+use regex::Regex;
+use sea_orm::{DeriveActiveEnum, EnumIter};
 use serde::{Deserialize, Serialize};
+use std::sync::LazyLock;
 use strum::{Display, EnumString};
 use uuid::Uuid;
+use validator::Validate;
+
+/// Regex pattern for alphanumeric characters with hyphens and underscores
+static ALPHANUMERIC_HYPHEN_UNDERSCORE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap());
+
+/// Custom validator for project names
+fn validate_project_name(name: &str) -> Result<(), validator::ValidationError> {
+    if !ALPHANUMERIC_HYPHEN_UNDERSCORE.is_match(name) {
+        return Err(validator::ValidationError::new(
+            "invalid_project_name",
+        ));
+    }
+    Ok(())
+}
 
 /// Supported cloud providers
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, DeriveActiveEnum, EnumIter)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "cloud_provider")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum CloudProvider {
+    #[sea_orm(string_value = "aws")]
     Aws,
+    #[sea_orm(string_value = "gcp")]
     Gcp,
+    #[sea_orm(string_value = "azure")]
     Azure,
 }
 
 /// Project deployment status
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "project_status")]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum ProjectStatus {
     /// Project is being set up
+    #[default]
+    #[sea_orm(string_value = "provisioning")]
     Provisioning,
     /// Project is active and running
+    #[sea_orm(string_value = "active")]
     Active,
     /// Project is temporarily suspended
+    #[sea_orm(string_value = "suspended")]
     Suspended,
     /// Project is being deleted
+    #[sea_orm(string_value = "deleting")]
     Deleting,
     /// Project has been archived
+    #[sea_orm(string_value = "archived")]
     Archived,
 }
 
-impl Default for ProjectStatus {
-    fn default() -> Self {
-        Self::Provisioning
-    }
-}
-
 /// Environment type for the project
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "environment")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum Environment {
+    #[default]
+    #[sea_orm(string_value = "development")]
     Development,
+    #[sea_orm(string_value = "staging")]
     Staging,
+    #[sea_orm(string_value = "production")]
     Production,
-}
-
-impl Default for Environment {
-    fn default() -> Self {
-        Self::Development
-    }
 }
 
 /// Project entity - represents a cloud project
@@ -84,43 +106,51 @@ pub struct Project {
 }
 
 /// Key-value tag for project organization
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Validate)]
 pub struct Tag {
+    #[validate(length(min = 1))]
     pub key: String,
     pub value: String,
 }
 
 /// DTO for creating a new project
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct CreateProject {
+    #[validate(length(min = 1, max = 100), custom(function = "validate_project_name"))]
     pub name: String,
     pub user_id: Uuid,
     #[serde(default)]
     pub description: String,
     pub cloud_provider: CloudProvider,
+    #[validate(length(min = 1))]
     pub region: String,
     #[serde(default)]
     pub environment: Environment,
+    #[validate(range(min = 0.0))]
     pub budget_limit: Option<f64>,
     #[serde(default)]
+    #[validate(nested)]
     pub tags: Vec<Tag>,
 }
 
 /// DTO for updating an existing project
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct UpdateProject {
+    #[validate(length(min = 1, max = 100), custom(function = "validate_project_name"))]
     pub name: Option<String>,
     pub description: Option<String>,
     pub region: Option<String>,
     pub environment: Option<Environment>,
     pub status: Option<ProjectStatus>,
+    #[validate(range(min = 0.0))]
     pub budget_limit: Option<f64>,
+    #[validate(nested)]
     pub tags: Option<Vec<Tag>>,
     pub enabled: Option<bool>,
 }
 
 /// Query filters for listing projects
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ProjectFilter {
     pub user_id: Option<Uuid>,
     pub cloud_provider: Option<CloudProvider>,
@@ -135,6 +165,20 @@ pub struct ProjectFilter {
 
 fn default_limit() -> usize {
     50
+}
+
+impl Default for ProjectFilter {
+    fn default() -> Self {
+        Self {
+            user_id: None,
+            cloud_provider: None,
+            environment: None,
+            status: None,
+            enabled: None,
+            limit: default_limit(),
+            offset: 0,
+        }
+    }
 }
 
 impl Project {

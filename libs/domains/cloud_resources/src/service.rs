@@ -1,4 +1,5 @@
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     error::{CloudResourceError, CloudResourceResult},
@@ -19,7 +20,9 @@ impl<R: CloudResourceRepository> CloudResourceService<R> {
     /// Create a new cloud resource with validation
     pub async fn create(&self, input: CreateCloudResource) -> CloudResourceResult<CloudResource> {
         // Validate input
-        self.validate_create(&input)?;
+        input
+            .validate()
+            .map_err(|e| CloudResourceError::Internal(e.to_string()))?;
 
         // Create resource
         let resource = self.repository.create(input).await?;
@@ -62,7 +65,9 @@ impl<R: CloudResourceRepository> CloudResourceService<R> {
         input: UpdateCloudResource,
     ) -> CloudResourceResult<CloudResource> {
         // Validate update
-        self.validate_update(&input)?;
+        input
+            .validate()
+            .map_err(|e| CloudResourceError::Internal(e.to_string()))?;
 
         // Update resource
         let resource = self.repository.update(id, input).await?;
@@ -88,70 +93,5 @@ impl<R: CloudResourceRepository> CloudResourceService<R> {
     /// Count cloud resources by project
     pub async fn count_by_project(&self, project_id: Uuid) -> CloudResourceResult<usize> {
         self.repository.count_by_project(project_id).await
-    }
-
-    // Private validation methods
-    fn validate_create(&self, input: &CreateCloudResource) -> CloudResourceResult<()> {
-        if input.name.trim().is_empty() {
-            return Err(CloudResourceError::Internal(
-                "Resource name cannot be empty".to_string(),
-            ));
-        }
-
-        if input.name.len() > 255 {
-            return Err(CloudResourceError::Internal(
-                "Resource name cannot exceed 255 characters".to_string(),
-            ));
-        }
-
-        if input.region.trim().is_empty() {
-            return Err(CloudResourceError::Internal(
-                "Region cannot be empty".to_string(),
-            ));
-        }
-
-        if let Some(cost) = input.cost_per_hour {
-            if cost < 0.0 {
-                return Err(CloudResourceError::Internal(
-                    "Cost per hour cannot be negative".to_string(),
-                ));
-            }
-        }
-
-        Ok(())
-    }
-
-    fn validate_update(&self, input: &UpdateCloudResource) -> CloudResourceResult<()> {
-        if let Some(ref name) = input.name {
-            if name.trim().is_empty() {
-                return Err(CloudResourceError::Internal(
-                    "Resource name cannot be empty".to_string(),
-                ));
-            }
-
-            if name.len() > 255 {
-                return Err(CloudResourceError::Internal(
-                    "Resource name cannot exceed 255 characters".to_string(),
-                ));
-            }
-        }
-
-        if let Some(ref region) = input.region {
-            if region.trim().is_empty() {
-                return Err(CloudResourceError::Internal(
-                    "Region cannot be empty".to_string(),
-                ));
-            }
-        }
-
-        if let Some(cost) = input.cost_per_hour {
-            if cost < 0.0 {
-                return Err(CloudResourceError::Internal(
-                    "Cost per hour cannot be negative".to_string(),
-                ));
-            }
-        }
-
-        Ok(())
     }
 }
