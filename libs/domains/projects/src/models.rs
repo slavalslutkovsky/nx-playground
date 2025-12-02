@@ -186,7 +186,7 @@ impl Project {
     pub fn new(input: CreateProject) -> Self {
         let now = Utc::now();
         Self {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             name: input.name,
             user_id: input.user_id,
             description: input.description,

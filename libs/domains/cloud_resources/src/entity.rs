@@ -90,7 +90,7 @@ impl From<crate::models::CreateCloudResource> for ActiveModel {
         let monthly_cost = input.cost_per_hour.map(|hourly| hourly * 24.0 * 30.0);
 
         ActiveModel {
-            id: Set(Uuid::new_v4()),
+            id: Set(Uuid::now_v7()),
             project_id: Set(input.project_id),
             name: Set(input.name),
             resource_type: Set(input.resource_type.to_string()),

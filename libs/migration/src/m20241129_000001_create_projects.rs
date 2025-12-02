@@ -160,10 +160,28 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Add updated_at trigger
+        manager
+            .get_connection()
+            .execute_unprepared(
+                r#"
+                CREATE TRIGGER projects_touch_updated_at
+                    BEFORE UPDATE ON projects
+                    FOR EACH ROW
+                    EXECUTE FUNCTION util.touch_updated_at()
+                "#,
+            )
+            .await?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .get_connection()
+            .execute_unprepared("DROP TRIGGER IF EXISTS projects_touch_updated_at ON projects")
+            .await?;
+
         manager
             .drop_table(Table::drop().table(Projects::Table).to_owned())
             .await?;

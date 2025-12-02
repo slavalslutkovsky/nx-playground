@@ -204,7 +204,7 @@ mod tests {
     #[tokio::test]
     async fn test_can_create_project_when_under_limit() {
         let mut mock_repo = MockProjectRepository::new();
-        let user_id = Uuid::new_v4();
+        let user_id = Uuid::now_v7();
 
         // Mock: user has 2 projects (under the 3-project limit)
         mock_repo
@@ -221,7 +221,7 @@ mod tests {
     #[tokio::test]
     async fn test_cannot_create_project_when_at_limit() {
         let mut mock_repo = MockProjectRepository::new();
-        let user_id = Uuid::new_v4();
+        let user_id = Uuid::now_v7();
 
         // Mock: user has 3 projects (at the limit)
         mock_repo
@@ -238,7 +238,7 @@ mod tests {
     #[tokio::test]
     async fn test_cannot_create_project_when_over_limit() {
         let mut mock_repo = MockProjectRepository::new();
-        let user_id = Uuid::new_v4();
+        let user_id = Uuid::now_v7();
 
         // Mock: user has 5 projects (over the limit)
         mock_repo
@@ -255,7 +255,7 @@ mod tests {
     #[tokio::test]
     async fn test_can_create_first_project() {
         let mut mock_repo = MockProjectRepository::new();
-        let user_id = Uuid::new_v4();
+        let user_id = Uuid::now_v7();
 
         // Mock: user has 0 projects
         mock_repo

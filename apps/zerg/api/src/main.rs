@@ -12,12 +12,11 @@ use domain_cloud_resources::{
 };
 use domain_projects::{handlers as projects_handlers, PgProjectRepository, ProjectService};
 use domain_users::{handlers as users_handlers, InMemoryUserRepository, UserService};
-use migration::{Migrator, MigratorTrait};
+use migration::Migrator;
 use rpc::tasks::{
     tasks_service_client::TasksServiceClient, CreateRequest, DeleteByIdRequest, GetByIdRequest,
     ListRequest,
 };
-use sea_orm::Database;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use tonic::transport::Channel;
@@ -25,7 +24,10 @@ use tracing::info;
 
 #[derive(Clone)]
 struct AppState {
+    config: zerg_api::config::Config,
     tasks_client: Arc<RwLock<TasksServiceClient<Channel>>>,
+    db: database::postgres::DatabaseConnection,
+    redis: database::redis::ConnectionManager,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,8 +50,61 @@ struct ErrorResponse {
     error: String,
 }
 
-async fn health() -> impl IntoResponse {
-    Json(serde_json::json!({ "status": "ok" }))
+// livenessProbe:
+// httpGet:
+// path: /health
+// port: 3000
+// initialDelaySeconds: 10
+// periodSeconds: 10
+//
+// readinessProbe:
+// httpGet:
+// path: /ready
+// port: 3000
+// initialDelaySeconds: 5
+// periodSeconds: 5
+
+/// Liveness probe - checks if the application is alive
+/// Kubernetes uses this to determine if the pod should be restarted
+async fn health(State(state): State<AppState>) -> impl IntoResponse {
+    Json(serde_json::json!({
+        "status": "ok",
+        "service": state.config.app.name,
+        "version": state.config.app.version
+    }))
+}
+
+/// Readiness probe - checks if the application is ready to serve traffic
+/// Kubernetes uses this to determine if the pod should receive traffic
+async fn ready(State(state): State<AppState>) -> impl IntoResponse {
+    // Check PostgreSQL health
+    let postgres_status = database::postgres::check_health_detailed(&state.db).await;
+
+    // Check Redis health
+    let mut redis_conn = state.redis.clone();
+    let redis_status = database::redis::check_health_detailed(&mut redis_conn).await;
+
+    let all_healthy = postgres_status.healthy && redis_status.healthy;
+
+    let response = serde_json::json!({
+        "status": if all_healthy { "ready" } else { "not_ready" },
+        "postgres": {
+            "healthy": postgres_status.healthy,
+            "response_time_ms": postgres_status.response_time_ms,
+            "message": postgres_status.message,
+        },
+        "redis": {
+            "healthy": redis_status.healthy,
+            "response_time_ms": redis_status.response_time_ms,
+            "message": redis_status.message,
+        }
+    });
+
+    if all_healthy {
+        (StatusCode::OK, Json(response))
+    } else {
+        (StatusCode::SERVICE_UNAVAILABLE, Json(response))
+    }
 }
 
 async fn list_tasks(State(state): State<AppState>) -> impl IntoResponse {
@@ -202,26 +257,31 @@ async fn main() -> eyre::Result<()> {
 
     let tasks_client = TasksServiceClient::connect(tasks_addr).await?;
 
-    let state = AppState {
-        tasks_client: Arc::new(RwLock::new(tasks_client)),
+    // Initialize database connections concurrently
+    info!("Connecting to PostgreSQL and Redis concurrently");
+
+    let postgres_future = async {
+        database::postgres::connect_from_config_with_retry(config.database.clone(), None)
+            .await
+            .map_err(|e| eyre::eyre!("PostgreSQL connection failed: {}", e))
     };
 
-    // Initialize database connection with Sea-ORM
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://myuser:mypassword@localhost/mydatabase".to_string());
+    let redis_future = async {
+        database::redis::connect_from_config_with_retry(config.redis.clone(), None)
+            .await
+            .map_err(|e| eyre::eyre!("Redis connection failed: {}", e))
+    };
 
-    info!("Connecting to database");
+    let (db, redis) = tokio::try_join!(postgres_future, redis_future)?;
 
-    let db = Database::connect(&database_url).await?;
+    info!("PostgreSQL and Redis connections established");
 
-    info!("Database connection established");
-
-    // Conditional migrations based on environment
+    // Conditional migrations based on environment (run BEFORE creating repos/state)
     // Set RUN_MIGRATIONS=true for development, or use the separate migrate binary for production
     if std::env::var("RUN_MIGRATIONS").is_ok() {
-        info!("Running database migrations (RUN_MIGRATIONS is set)");
-        Migrator::up(&db, None).await?;
-        info!("Migrations completed successfully");
+        database::postgres::run_migrations::<Migrator>(&db, "zerg_api")
+            .await
+            .map_err(|e| eyre::eyre!("Failed to run migrations: {}", e))?;
     } else {
         info!("Skipping automatic migrations. Use 'cargo run --bin migrate' to run migrations separately");
     }
@@ -238,8 +298,18 @@ async fn main() -> eyre::Result<()> {
     let users_repo = InMemoryUserRepository::new();
     let users_service = UserService::new(users_repo);
 
+    // Initialize the application state with database connections
+    // Move db and redis (no clone needed - we're done using them)
+    let state = AppState {
+        config,
+        tasks_client: Arc::new(RwLock::new(tasks_client)),
+        db,
+        redis,
+    };
+
     let app = Router::new()
         .route("/health", get(health))
+        .route("/ready", get(ready))
         .route("/tasks", get(list_tasks).post(create_task))
         .route("/tasks/{id}", get(get_task).delete(delete_task))
         .with_state(state)

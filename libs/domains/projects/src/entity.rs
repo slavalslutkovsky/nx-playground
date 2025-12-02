@@ -61,7 +61,7 @@ impl From<crate::models::CreateProject> for ActiveModel {
         let tags_json = serde_json::to_value(&input.tags).expect("Failed to serialize tags");
 
         ActiveModel {
-            id: Set(Uuid::new_v4()),
+            id: Set(Uuid::now_v7()),
             name: Set(input.name),
             user_id: Set(input.user_id),
             description: Set(input.description),

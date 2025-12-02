@@ -91,8 +91,8 @@ async fn test_duplicate_name_different_users() {
     let builder = TestDataBuilder::from_test_name("duplicate_diff_users");
 
     let name = builder.name("project", "shared");
-    let user1 = Uuid::new_v4();
-    let user2 = Uuid::new_v4();
+    let user1 = Uuid::now_v7();
+    let user2 = Uuid::now_v7();
 
     let input1 = CreateProject {
         name: name.clone(),
@@ -391,8 +391,8 @@ async fn test_service_authorization() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("authorization");
 
-    let owner = Uuid::new_v4();
-    let other_user = Uuid::new_v4();
+    let owner = Uuid::now_v7();
+    let other_user = Uuid::now_v7();
 
     let input = CreateProject {
         name: builder.name("project", "owned"),
@@ -582,8 +582,8 @@ async fn test_free_tier_limit_per_user() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("free_tier_per_user");
 
-    let user1 = Uuid::new_v4();
-    let user2 = Uuid::new_v4();
+    let user1 = Uuid::now_v7();
+    let user2 = Uuid::now_v7();
 
     // User 1 creates 3 projects
     for i in 0..3 {

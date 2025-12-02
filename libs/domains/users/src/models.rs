@@ -136,7 +136,7 @@ impl User {
     pub fn new(email: String, name: String, password_hash: String, roles: Vec<Role>) -> Self {
         let now = Utc::now();
         Self {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             email,
             name,
             password_hash,

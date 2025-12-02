@@ -5178,6 +5178,7 @@ dependencies = [
  "axum 0.8.7",
  "color-eyre",
  "core_config",
+ "database",
  "domain_cloud_resources",
  "domain_projects",
  "domain_users",

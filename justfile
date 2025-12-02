@@ -16,11 +16,16 @@ docker-down:
 run *args:
   bacon {{args}}
 
+# Migrations now handled by SeaORM (libs/migration)
+# Run via: cargo run --bin migration up
+# Or automatically on app start with RUN_MIGRATIONS=true
 _migration:
-  sqlx migrate run --database-url=postgres://myuser:mypassword@localhost/mydatabase --source manifests/migrations/postgres/
-  sea-orm
+  @echo "Using SeaORM migrations. Run: cargo run --bin migration up"
+  cargo run --bin migration up
+
+# TODO: Create seed data migration if needed
 _seed:
-  sqlx migrate run --ignore-missing --database-url=postgres://myuser:mypassword@localhost/mydatabase --source manifests/migrations/postgres/seeds
+  @echo "Seed data not yet implemented for new schema"
 
 sort-deps:
   cargo fmt

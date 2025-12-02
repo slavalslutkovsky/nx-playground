@@ -1,11 +1,49 @@
-pub mod database;
-pub mod mongodb;
-pub mod redis;
 pub mod server;
 pub mod tracing;
 
 use std::env;
 use thiserror::Error;
+
+/// Application metadata from Cargo.toml (compile-time)
+///
+/// This struct holds app name and version from the consuming crate's Cargo.toml.
+/// Use the `app_info!()` macro to create it, which ensures the values come from
+/// the correct crate at compile time.
+///
+/// # Example
+/// ```ignore
+/// use core_config::{AppInfo, app_info};
+///
+/// let app = app_info!();
+/// println!("Running {} v{}", app.name, app.version);
+/// ```
+#[derive(Clone, Debug)]
+pub struct AppInfo {
+    pub name: &'static str,
+    pub version: &'static str,
+}
+
+/// Create AppInfo from the consuming crate's Cargo.toml at compile time
+///
+/// This macro expands in the calling crate, so it reads CARGO_PKG_NAME and
+/// CARGO_PKG_VERSION from the correct Cargo.toml (not from core_config).
+///
+/// # Example
+/// ```ignore
+/// use core_config::app_info;
+///
+/// let info = app_info!();
+/// assert_eq!(info.name, "my_app");  // From my_app's Cargo.toml
+/// ```
+#[macro_export]
+macro_rules! app_info {
+    () => {
+        $crate::AppInfo {
+            name: env!("CARGO_PKG_NAME"),
+            version: env!("CARGO_PKG_VERSION"),
+        }
+    };
+}
 
 /// Configuration error type
 #[derive(Error, Debug)]

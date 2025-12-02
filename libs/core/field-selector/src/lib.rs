@@ -433,12 +433,12 @@ mod tests {
         assert!(anon.has_role(&UserRole::Anonymous));
         assert!(!anon.has_role(&UserRole::User));
 
-        let user = AuthContext::user(Uuid::new_v4(), "testuser".to_string());
+        let user = AuthContext::user(Uuid::now_v7(), "testuser".to_string());
         assert!(user.is_authenticated());
         assert!(user.has_role(&UserRole::User));
         assert!(!user.has_role(&UserRole::Admin));
 
-        let admin = AuthContext::admin(Uuid::new_v4(), "admin".to_string());
+        let admin = AuthContext::admin(Uuid::now_v7(), "admin".to_string());
         assert!(admin.is_authenticated());
         assert!(admin.has_role(&UserRole::Admin));
     }

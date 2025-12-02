@@ -188,7 +188,7 @@ async fn test_get_project_handler_returns_404_for_missing() {
     let service = ProjectService::new(repo);
     let app = handlers::router(service);
 
-    let missing_id = uuid::Uuid::new_v4();
+    let missing_id = uuid::Uuid::now_v7();
 
     let request = Request::builder()
         .method("GET")

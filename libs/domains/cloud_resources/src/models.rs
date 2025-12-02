@@ -116,7 +116,7 @@ impl CloudResource {
         let monthly_cost = input.cost_per_hour.map(|hourly| hourly * 24.0 * 30.0);
 
         Self {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             project_id: input.project_id,
             name: input.name,
             resource_type: input.resource_type,

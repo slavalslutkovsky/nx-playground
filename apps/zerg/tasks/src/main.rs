@@ -36,7 +36,7 @@ impl TasksService for TasksServiceImpl {
         request: Request<CreateRequest>,
     ) -> Result<Response<CreateResponse>, Status> {
         let req = request.into_inner();
-        let id = uuid::Uuid::new_v4().to_string();
+        let id = uuid::Uuid::now_v7().to_string();
 
         let task = Task {
             id: id.clone(),

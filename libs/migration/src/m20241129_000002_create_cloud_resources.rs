@@ -174,10 +174,28 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Add updated_at trigger
+        manager
+            .get_connection()
+            .execute_unprepared(
+                r#"
+                CREATE TRIGGER cloud_resources_touch_updated_at
+                    BEFORE UPDATE ON cloud_resources
+                    FOR EACH ROW
+                    EXECUTE FUNCTION util.touch_updated_at()
+                "#,
+            )
+            .await?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .get_connection()
+            .execute_unprepared("DROP TRIGGER IF EXISTS cloud_resources_touch_updated_at ON cloud_resources")
+            .await?;
+
         manager
             .drop_table(Table::drop().table(CloudResources::Table).to_owned())
             .await?;
