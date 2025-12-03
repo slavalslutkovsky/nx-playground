@@ -103,6 +103,18 @@ pub struct ForbiddenResponse(pub ErrorResponse);
 
 #[derive(ToResponse)]
 #[response(
+    description = "Conflict - Resource already exists",
+    content_type = "application/json",
+    example = json!({
+        "error": "Conflict",
+        "message": "Resource already exists",
+        "details": null
+    })
+)]
+pub struct ConflictResponse(pub ErrorResponse);
+
+#[derive(ToResponse)]
+#[response(
     description = "Service Unavailable",
     content_type = "application/json",
     example = json!({

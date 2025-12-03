@@ -6,6 +6,10 @@ use axum::{
     Json, Router,
 };
 use axum_helpers::{
+    errors::responses::{
+        BadRequestUuidResponse, BadRequestValidationResponse, ConflictResponse,
+        InternalServerErrorResponse, NotFoundResponse,
+    },
     extract_ip_from_headers, extract_user_agent, AuditEvent, AuditOutcome, UuidPath, ValidatedJson,
 };
 use core_proc_macros::ApiResource;
@@ -33,7 +37,14 @@ use crate::service::ProjectService;
         archive_project,
     ),
     components(
-        schemas(Project, CreateProject, UpdateProject, ProjectFilter)
+        schemas(Project, CreateProject, UpdateProject, ProjectFilter),
+        responses(
+            NotFoundResponse,
+            BadRequestValidationResponse,
+            BadRequestUuidResponse,
+            ConflictResponse,
+            InternalServerErrorResponse
+        )
     ),
     tags(
         (name = entity::Model::TAG, description = "Project management endpoints")
@@ -65,7 +76,7 @@ pub fn router<R: ProjectRepository + 'static>(service: ProjectService<R>) -> Rou
     params(ProjectFilter),
     responses(
         (status = 200, description = "List of projects", body = Vec<Project>),
-        (status = 500, description = "Internal server error")
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn list_projects<R: ProjectRepository>(
@@ -84,8 +95,9 @@ async fn list_projects<R: ProjectRepository>(
     request_body = CreateProject,
     responses(
         (status = 201, description = "Project created successfully", body = Project),
-        (status = 400, description = "Bad request - validation failed"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestValidationResponse),
+        (status = 409, response = ConflictResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn create_project<R: ProjectRepository>(
@@ -125,8 +137,9 @@ async fn create_project<R: ProjectRepository>(
     ),
     responses(
         (status = 200, description = "Project found", body = Project),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn get_project<R: ProjectRepository>(
@@ -148,9 +161,9 @@ async fn get_project<R: ProjectRepository>(
     request_body = UpdateProject,
     responses(
         (status = 200, description = "Project updated successfully", body = Project),
-        (status = 400, description = "Bad request - validation failed"),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestValidationResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn update_project<R: ProjectRepository>(
@@ -172,8 +185,9 @@ async fn update_project<R: ProjectRepository>(
     ),
     responses(
         (status = 204, description = "Project deleted successfully"),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn delete_project<R: ProjectRepository>(
@@ -207,8 +221,9 @@ async fn delete_project<R: ProjectRepository>(
     ),
     responses(
         (status = 200, description = "Project activated successfully", body = Project),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn activate_project<R: ProjectRepository>(
@@ -229,8 +244,9 @@ async fn activate_project<R: ProjectRepository>(
     ),
     responses(
         (status = 200, description = "Project suspended successfully", body = Project),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn suspend_project<R: ProjectRepository>(
@@ -251,8 +267,9 @@ async fn suspend_project<R: ProjectRepository>(
     ),
     responses(
         (status = 200, description = "Project archived successfully", body = Project),
-        (status = 404, description = "Project not found"),
-        (status = 500, description = "Internal server error")
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
     )
 )]
 async fn archive_project<R: ProjectRepository>(

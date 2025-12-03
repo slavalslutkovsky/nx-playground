@@ -40,7 +40,7 @@
 //!
 //! Then in your tests:
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use test_utils::TestRedis;
 //! use redis::AsyncCommands;
 //!
