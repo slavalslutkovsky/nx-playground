@@ -185,7 +185,10 @@ pub async fn create_task(
     ),
     tag = "tasks"
 )]
-pub async fn delete_task(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
+pub async fn delete_task(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
     let mut client = state.tasks_client.write().await;
 
     match client.delete_by_id(DeleteByIdRequest { id }).await {

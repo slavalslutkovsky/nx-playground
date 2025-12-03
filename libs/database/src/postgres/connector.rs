@@ -108,12 +108,8 @@ pub async fn connect_with_retry(
     let url = database_url.to_string();
 
     match retry_config {
-        Some(config) => {
-            retry_with_backoff(|| connect(&url), config).await
-        }
-        None => {
-            retry(|| connect(&url)).await
-        }
+        Some(config) => retry_with_backoff(|| connect(&url), config).await,
+        None => retry(|| connect(&url)).await,
     }
 }
 

@@ -84,12 +84,8 @@ pub async fn connect_with_retry(
     let url_owned = url.to_string();
 
     match retry_config {
-        Some(config) => {
-            retry_with_backoff(|| connect(&url_owned), config).await
-        }
-        None => {
-            retry(|| connect(&url_owned)).await
-        }
+        Some(config) => retry_with_backoff(|| connect(&url_owned), config).await,
+        None => retry(|| connect(&url_owned)).await,
     }
 }
 
@@ -148,8 +144,8 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires actual Redis
     async fn test_connect() {
-        let redis_url = std::env::var("REDIS_URL")
-            .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
+        let redis_url =
+            std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
 
         let result = connect(&redis_url).await;
         assert!(result.is_ok());
@@ -158,8 +154,8 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires actual Redis
     async fn test_redis_connector() {
-        let redis_url = std::env::var("REDIS_URL")
-            .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
+        let redis_url =
+            std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
 
         let connector = RedisConnector::new(&redis_url).await;
         assert!(connector.is_ok());

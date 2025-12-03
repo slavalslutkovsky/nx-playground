@@ -23,12 +23,11 @@ use zerg_api::config::Config;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
-    color_eyre::install()?;
-    // tracing_error::install()?;
     // Load configuration from environment variables
     let config = Config::from_env()?;
 
-    // Initialize tracing with environment-aware configuration
+    // Initialize tracing with color-eyre and ErrorLayer for span trace capture
+    // This sets up both error display and span trace logging
     init_tracing(&config.environment);
 
     let tasks_addr =

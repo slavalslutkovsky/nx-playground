@@ -88,7 +88,11 @@ impl PostgresConfig {
     ///     10   // min connections
     /// );
     /// ```
-    pub fn with_pool_size(url: impl Into<String>, max_connections: u32, min_connections: u32) -> Self {
+    pub fn with_pool_size(
+        url: impl Into<String>,
+        max_connections: u32,
+        min_connections: u32,
+    ) -> Self {
         Self {
             url: url.into(),
             max_connections,
@@ -266,14 +270,18 @@ mod tests {
     #[cfg(feature = "config")]
     #[test]
     fn test_postgres_config_from_env_minimal() {
-        temp_env::with_var("DATABASE_URL", Some("postgresql://localhost/testdb"), || {
-            let config = PostgresConfig::from_env();
-            assert!(config.is_ok());
-            let config = config.unwrap();
-            assert_eq!(config.url, "postgresql://localhost/testdb");
-            assert_eq!(config.max_connections, 100); // default
-            assert_eq!(config.min_connections, 5);   // default
-        });
+        temp_env::with_var(
+            "DATABASE_URL",
+            Some("postgresql://localhost/testdb"),
+            || {
+                let config = PostgresConfig::from_env();
+                assert!(config.is_ok());
+                let config = config.unwrap();
+                assert_eq!(config.url, "postgresql://localhost/testdb");
+                assert_eq!(config.max_connections, 100); // default
+                assert_eq!(config.min_connections, 5); // default
+            },
+        );
     }
 
     #[cfg(feature = "config")]

@@ -150,9 +150,7 @@ impl FromEnv for RedisConfig {
         // Try REDIS_URL first, fall back to REDIS_HOST (for compatibility)
         let url = std::env::var("REDIS_URL")
             .or_else(|_| std::env::var("REDIS_HOST"))
-            .map_err(|_| {
-                ConfigError::MissingEnvVar("REDIS_URL or REDIS_HOST".to_string())
-            })?;
+            .map_err(|_| ConfigError::MissingEnvVar("REDIS_URL or REDIS_HOST".to_string()))?;
 
         let database = if let Ok(db_str) = std::env::var("REDIS_DATABASE") {
             Some(db_str.parse().map_err(|e| ConfigError::ParseError {

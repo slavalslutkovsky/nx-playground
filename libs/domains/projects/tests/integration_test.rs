@@ -6,8 +6,8 @@
 //! - Transactions behave as expected
 //! - Concurrent operations are handled properly
 
-use test_utils::{assertions::*, TestDatabase, TestDataBuilder};
 use domain_projects::*;
+use test_utils::{assertions::*, TestDataBuilder, TestDatabase};
 use uuid::Uuid;
 
 // ============================================================================
@@ -213,10 +213,26 @@ async fn test_list_projects_with_filters() {
 
     // Create multiple projects with different attributes
     let projects = vec![
-        (CloudProvider::Aws, Environment::Development, ProjectStatus::Provisioning),
-        (CloudProvider::Aws, Environment::Production, ProjectStatus::Active),
-        (CloudProvider::Gcp, Environment::Development, ProjectStatus::Active),
-        (CloudProvider::Azure, Environment::Staging, ProjectStatus::Suspended),
+        (
+            CloudProvider::Aws,
+            Environment::Development,
+            ProjectStatus::Provisioning,
+        ),
+        (
+            CloudProvider::Aws,
+            Environment::Production,
+            ProjectStatus::Active,
+        ),
+        (
+            CloudProvider::Gcp,
+            Environment::Development,
+            ProjectStatus::Active,
+        ),
+        (
+            CloudProvider::Azure,
+            Environment::Staging,
+            ProjectStatus::Suspended,
+        ),
     ];
 
     for (i, (provider, env, status)) in projects.into_iter().enumerate() {
@@ -423,11 +439,15 @@ async fn test_service_authorization() {
         description: Some("Updated".to_string()),
         ..Default::default()
     };
-    let result = service.update_project_for_user(project.id, owner, update.clone()).await;
+    let result = service
+        .update_project_for_user(project.id, owner, update.clone())
+        .await;
     assert!(result.is_ok(), "owner should be able to update project");
 
     // Other user cannot update
-    let result = service.update_project_for_user(project.id, other_user, update).await;
+    let result = service
+        .update_project_for_user(project.id, other_user, update)
+        .await;
     assert!(
         matches!(result, Err(ProjectError::Unauthorized(_))),
         "other user should not be able to update"

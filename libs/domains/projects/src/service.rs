@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use tracing::instrument;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -20,6 +21,7 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 
     /// Create a new project with validation and limit checking
+    #[instrument(skip(self, input), fields(user_id = %input.user_id, project_name = %input.name))]
     pub async fn create_project(&self, input: CreateProject) -> ProjectResult<Project> {
         // Validate input
         input
@@ -37,6 +39,7 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 
     /// Check if a user can create more projects (free tier: 3 projects max)
+    #[instrument(skip(self), fields(user_id = %user_id))]
     pub async fn can_user_create_project(&self, user_id: Uuid) -> ProjectResult<bool> {
         const FREE_TIER_LIMIT: usize = 3;
 
@@ -45,6 +48,7 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 
     /// Get a project by ID
+    #[instrument(skip(self), fields(project_id = %id))]
     pub async fn get_project(&self, id: Uuid) -> ProjectResult<Project> {
         self.repository
             .get_by_id(id)
@@ -69,6 +73,7 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 
     /// Update a project
+    #[instrument(skip(self, input), fields(project_id = %id))]
     pub async fn update_project(&self, id: Uuid, input: UpdateProject) -> ProjectResult<Project> {
         // Validate input
         input
@@ -95,6 +100,7 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 
     /// Delete a project
+    #[instrument(skip(self), fields(project_id = %id))]
     pub async fn delete_project(&self, id: Uuid) -> ProjectResult<()> {
         let deleted = self.repository.delete(id).await?;
 
@@ -215,7 +221,10 @@ mod tests {
         let service = ProjectService::new(mock_repo);
         let can_create = service.can_user_create_project(user_id).await.unwrap();
 
-        assert!(can_create, "User with 2 projects should be able to create more");
+        assert!(
+            can_create,
+            "User with 2 projects should be able to create more"
+        );
     }
 
     #[tokio::test]
@@ -232,7 +241,10 @@ mod tests {
         let service = ProjectService::new(mock_repo);
         let can_create = service.can_user_create_project(user_id).await.unwrap();
 
-        assert!(!can_create, "User with 3 projects should not be able to create more");
+        assert!(
+            !can_create,
+            "User with 3 projects should not be able to create more"
+        );
     }
 
     #[tokio::test]
@@ -249,7 +261,10 @@ mod tests {
         let service = ProjectService::new(mock_repo);
         let can_create = service.can_user_create_project(user_id).await.unwrap();
 
-        assert!(!can_create, "User with 5 projects should not be able to create more");
+        assert!(
+            !can_create,
+            "User with 5 projects should not be able to create more"
+        );
     }
 
     #[tokio::test]
@@ -266,6 +281,9 @@ mod tests {
         let service = ProjectService::new(mock_repo);
         let can_create = service.can_user_create_project(user_id).await.unwrap();
 
-        assert!(can_create, "User with 0 projects should be able to create their first");
+        assert!(
+            can_create,
+            "User with 0 projects should be able to create their first"
+        );
     }
 }

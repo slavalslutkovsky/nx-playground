@@ -385,7 +385,10 @@ mod tests {
     #[test]
     fn test_snake_case_to_title_case() {
         assert_eq!(snake_case_to_title_case("projects"), "Projects");
-        assert_eq!(snake_case_to_title_case("cloud_resources"), "Cloud Resources");
+        assert_eq!(
+            snake_case_to_title_case("cloud_resources"),
+            "Cloud Resources"
+        );
         assert_eq!(snake_case_to_title_case("user_profiles"), "User Profiles");
         assert_eq!(snake_case_to_title_case("api_keys"), "Api Keys");
     }

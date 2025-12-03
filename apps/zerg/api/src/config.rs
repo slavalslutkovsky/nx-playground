@@ -1,4 +1,3 @@
-
 use core_config::{app_info, server::ServerConfig, AppInfo, FromEnv};
 
 // Import database configs from the database library

@@ -1,11 +1,7 @@
 // CSRF protection implementation
 // This is a placeholder for future CSRF implementation with Redis backing
 
-use axum::{
-    extract::Request,
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, middleware::Next, response::Response};
 
 /// Middleware for CSRF token validation.
 ///

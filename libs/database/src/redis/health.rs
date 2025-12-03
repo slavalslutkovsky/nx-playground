@@ -31,12 +31,9 @@ pub async fn check_health(conn: &mut ConnectionManager) -> Result<(), DatabaseEr
     debug!("Running Redis health check");
 
     // Execute PING command
-    let response: String = redis::cmd("PING")
-        .query_async(conn)
-        .await
-        .map_err(|e| {
-            DatabaseError::HealthCheckFailed(format!("Redis health check failed: {}", e))
-        })?;
+    let response: String = redis::cmd("PING").query_async(conn).await.map_err(|e| {
+        DatabaseError::HealthCheckFailed(format!("Redis health check failed: {}", e))
+    })?;
 
     if response != "PONG" {
         return Err(DatabaseError::HealthCheckFailed(format!(

@@ -15,15 +15,26 @@ static ALPHANUMERIC_HYPHEN_UNDERSCORE: LazyLock<Regex> =
 /// Custom validator for project names
 fn validate_project_name(name: &str) -> Result<(), validator::ValidationError> {
     if !ALPHANUMERIC_HYPHEN_UNDERSCORE.is_match(name) {
-        return Err(validator::ValidationError::new(
-            "invalid_project_name",
-        ));
+        return Err(validator::ValidationError::new("invalid_project_name"));
     }
     Ok(())
 }
 
 /// Supported cloud providers
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, DeriveActiveEnum, EnumIter, ToSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    EnumString,
+    DeriveActiveEnum,
+    EnumIter,
+    ToSchema,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "cloud_provider")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -37,7 +48,21 @@ pub enum CloudProvider {
 }
 
 /// Project deployment status
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter, ToSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    EnumString,
+    Default,
+    DeriveActiveEnum,
+    EnumIter,
+    ToSchema,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "project_status")]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -61,7 +86,21 @@ pub enum ProjectStatus {
 }
 
 /// Environment type for the project
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter, ToSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    EnumString,
+    Default,
+    DeriveActiveEnum,
+    EnumIter,
+    ToSchema,
+)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "environment")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]

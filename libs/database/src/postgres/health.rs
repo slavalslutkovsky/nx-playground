@@ -32,11 +32,9 @@ pub async fn check_health(db: &DatabaseConnection) -> Result<(), DatabaseError> 
 
     // Execute a simple SELECT 1 query using raw SQL
     let stmt = Statement::from_string(DatabaseBackend::Postgres, "SELECT 1".to_owned());
-    db.query_one_raw(stmt)
-        .await
-        .map_err(|e| {
-            DatabaseError::HealthCheckFailed(format!("PostgreSQL health check failed: {}", e))
-        })?;
+    db.query_one_raw(stmt).await.map_err(|e| {
+        DatabaseError::HealthCheckFailed(format!("PostgreSQL health check failed: {}", e))
+    })?;
 
     debug!("PostgreSQL health check passed");
     Ok(())
@@ -65,7 +63,10 @@ pub async fn check_health_with_query(
     db: &DatabaseConnection,
     query: &str,
 ) -> Result<(), DatabaseError> {
-    debug!("Running PostgreSQL health check with custom query: {}", query);
+    debug!(
+        "Running PostgreSQL health check with custom query: {}",
+        query
+    );
 
     let stmt = Statement::from_string(DatabaseBackend::Postgres, query.to_owned());
     db.query_one_raw(stmt).await.map_err(|e| {

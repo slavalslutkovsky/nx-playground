@@ -2,7 +2,6 @@
 ///
 /// This module provides helpers for properly closing database connections
 /// during graceful shutdown.
-
 use tracing::{error, info};
 
 /// Cleanup handler for PostgreSQL connections (SeaORM).

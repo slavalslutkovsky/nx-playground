@@ -25,12 +25,12 @@ impl FromEnv for ServerConfig {
     /// - PORT: defaults to 8080
     fn from_env() -> Result<Self, ConfigError> {
         let host = env_or_default("HOST", &Ipv4Addr::UNSPECIFIED.to_string());
-        let port = env_or_default("PORT", "8080").parse().map_err(|e| {
-            ConfigError::ParseError {
+        let port = env_or_default("PORT", "8080")
+            .parse()
+            .map_err(|e| ConfigError::ParseError {
                 key: "PORT".to_string(),
                 details: format!("{}", e),
-            }
-        })?;
+            })?;
 
         Ok(Self { host, port })
     }

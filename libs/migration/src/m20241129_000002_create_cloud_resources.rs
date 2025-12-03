@@ -193,7 +193,9 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .get_connection()
-            .execute_unprepared("DROP TRIGGER IF EXISTS cloud_resources_touch_updated_at ON cloud_resources")
+            .execute_unprepared(
+                "DROP TRIGGER IF EXISTS cloud_resources_touch_updated_at ON cloud_resources",
+            )
             .await?;
 
         manager

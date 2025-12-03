@@ -20,10 +20,7 @@ pub fn routes(state: &crate::AppState) -> Router {
 
     Router::new()
         .merge(tasks::router(state.clone()))
-        .nest(
-            domain_projects::entity::Model::URL,
-            projects::router(state),
-        )
+        .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,
             cloud_resources::router(state),

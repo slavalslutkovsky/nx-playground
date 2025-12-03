@@ -27,9 +27,7 @@ pub type ProjectResult<T> = Result<T, ProjectError>;
 impl From<ProjectError> for AppError {
     fn from(err: ProjectError) -> Self {
         match err {
-            ProjectError::NotFound(id) => {
-                AppError::NotFound(format!("Project {} not found", id))
-            }
+            ProjectError::NotFound(id) => AppError::NotFound(format!("Project {} not found", id)),
             ProjectError::DuplicateName(name) => {
                 AppError::Conflict(format!("Project with name '{}' already exists", name))
             }

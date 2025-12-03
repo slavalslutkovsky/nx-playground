@@ -14,7 +14,7 @@ use axum::http::{Request, StatusCode};
 use domain_projects::*;
 use http_body_util::BodyExt;
 use serde_json::json;
-use test_utils::{TestDatabase, TestDataBuilder};
+use test_utils::{TestDataBuilder, TestDatabase};
 use tower::ServiceExt; // For oneshot()
 
 // Helper to parse JSON response body
@@ -252,7 +252,9 @@ async fn test_list_projects_handler_with_filters() {
 
     let projects: Vec<Project> = json_body(response.into_body()).await;
     assert_eq!(projects.len(), 2);
-    assert!(projects.iter().all(|p| p.cloud_provider == CloudProvider::Aws));
+    assert!(projects
+        .iter()
+        .all(|p| p.cloud_provider == CloudProvider::Aws));
 }
 
 #[tokio::test]

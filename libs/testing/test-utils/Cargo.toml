@@ -3,13 +3,19 @@ name = "test-utils"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["postgres"]
+postgres = ["dep:migration", "dep:sea-orm"]
+redis = ["dep:redis"]
+all = ["postgres", "redis"]
+
 [dependencies]
 # Postgres dependencies (optional, enabled by default)
 migration = { workspace = true, optional = true }
-sea-orm = { workspace = true, optional = true }
 
 # Redis dependencies (optional)
 redis = { workspace = true, optional = true }
+sea-orm = { workspace = true, optional = true }
 
 # Testcontainers (always available)
 testcontainers = { workspace = true }
@@ -17,9 +23,3 @@ testcontainers-modules = { workspace = true, features = ["postgres", "redis"] }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
-
-[features]
-default = ["postgres"]
-postgres = ["dep:migration", "dep:sea-orm"]
-redis = ["dep:redis"]
-all = ["postgres", "redis"]

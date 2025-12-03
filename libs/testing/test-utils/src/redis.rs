@@ -55,8 +55,8 @@ impl TestRedis {
 
         let connection_string = format!("redis://127.0.0.1:{}", host_port);
 
-        let client = Client::open(connection_string.clone())
-            .expect("Failed to create Redis client");
+        let client =
+            Client::open(connection_string.clone()).expect("Failed to create Redis client");
 
         let connection = client
             .get_multiplexed_async_connection()

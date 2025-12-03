@@ -88,10 +88,7 @@ impl Default for RetryConfig {
 ///     config
 /// ).await?;
 /// ```
-pub async fn retry_with_backoff<F, Fut, T, E>(
-    mut operation: F,
-    config: RetryConfig,
-) -> Result<T, E>
+pub async fn retry_with_backoff<F, Fut, T, E>(mut operation: F, config: RetryConfig) -> Result<T, E>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, E>>,
@@ -128,17 +125,14 @@ where
 
                 debug!(
                     "Operation failed (attempt {}/{}): {}. Retrying in {}ms...",
-                    attempt,
-                    config.max_retries,
-                    e,
-                    current_delay
+                    attempt, config.max_retries, e, current_delay
                 );
 
                 tokio::time::sleep(Duration::from_millis(current_delay)).await;
 
                 // Exponential backoff for next iteration
-                delay = ((delay as f64 * config.backoff_multiplier) as u64)
-                    .min(config.max_delay_ms);
+                delay =
+                    ((delay as f64 * config.backoff_multiplier) as u64).min(config.max_delay_ms);
             }
         }
     }
@@ -210,9 +204,7 @@ mod tests {
         let counter = Arc::new(AtomicU32::new(0));
         let counter_clone = counter.clone();
 
-        let config = RetryConfig::new()
-            .with_initial_delay(10)
-            .without_jitter();
+        let config = RetryConfig::new().with_initial_delay(10).without_jitter();
 
         let result = retry_with_backoff(
             || {

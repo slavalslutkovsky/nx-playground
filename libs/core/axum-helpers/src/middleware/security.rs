@@ -17,14 +17,8 @@ pub async fn security_headers(request: Request, next: Next) -> Response {
     let mut response = next.run(request).await;
 
     let headers = response.headers_mut();
-    headers.insert(
-        header::X_CONTENT_TYPE_OPTIONS,
-        "nosniff".parse().unwrap(),
-    );
-    headers.insert(
-        header::X_FRAME_OPTIONS,
-        "DENY".parse().unwrap(),
-    );
+    headers.insert(header::X_CONTENT_TYPE_OPTIONS, "nosniff".parse().unwrap());
+    headers.insert(header::X_FRAME_OPTIONS, "DENY".parse().unwrap());
     headers.insert(
         HeaderName::from_static("x-xss-protection"),
         "1; mode=block".parse().unwrap(),
