@@ -4,6 +4,7 @@ resolver = '2'
 members = [
     'apps/zerg/api',
     'apps/zerg/tasks',
+    'libs/core/axum-helpers',
     'libs/core/config',
     'libs/core/proc_macros',
     'libs/core/proc_macros/api_resource',
@@ -24,6 +25,7 @@ members = [
 [workspace.dependencies]
 api_resource = { path = 'libs/core/proc_macros/api_resource' }
 apis_bike = { path = 'libs/apis/bike' }
+axum-helpers = { path = 'libs/core/axum-helpers' }
 apis_car = { path = 'libs/apis/car' }
 apis_project = { path = 'libs/apis/project' }
 app = { path = 'libs/app' }

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 async-trait = { workspace = true }
 axum = { workspace = true }
+axum-helpers = { workspace = true }
 chrono = { workspace = true }
 core_proc_macros = { workspace = true, features = ["sea_orm_resource"] }
 database = { workspace = true }
