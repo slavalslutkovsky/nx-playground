@@ -20,10 +20,28 @@
 //! }
 //!
 //! // Auto-generated constants (using table_name):
+//! // - Underscores in table names are converted to hyphens in URLs
+//! // - Snake_case is converted to Title Case for tags
 //! assert_eq!(Model::COLLECTION, "projects");
 //! assert_eq!(Model::URL, "/projects");
-//! assert_eq!(Model::URL_WITH_ID, "/projects/{id}");
+//! assert_eq!(Model::API_URL, "/api/projects");
 //! assert_eq!(Model::TAG, "Projects");
+//! ```
+//!
+//! With underscores in table name:
+//!
+//! ```ignore
+//! #[derive(Clone, Debug, DeriveEntityModel, SeaOrmResource)]
+//! #[sea_orm(table_name = "cloud_resources")]
+//! pub struct Model {
+//!     #[sea_orm(primary_key)]
+//!     pub id: Uuid,
+//! }
+//!
+//! assert_eq!(Model::COLLECTION, "cloud_resources");
+//! assert_eq!(Model::URL, "/cloud-resources");  // Hyphen for URL
+//! assert_eq!(Model::API_URL, "/api/cloud-resources");
+//! assert_eq!(Model::TAG, "Cloud Resources");  // Title Case
 //! ```
 //!
 //! Customizing resource configuration:
@@ -35,7 +53,7 @@
 //! #[derive(Clone, Debug, DeriveEntityModel, SeaOrmResource)]
 //! #[sea_orm(table_name = "projects")]
 //! #[sea_orm_resource(
-//!     url = "/api/v1/projects",
+//!     url = "/v1/projects",
 //!     tag = "Project Management"
 //! )]
 //! pub struct Model {
@@ -44,8 +62,8 @@
 //! }
 //!
 //! assert_eq!(Model::COLLECTION, "projects");
-//! assert_eq!(Model::URL, "/api/v1/projects");
-//! assert_eq!(Model::URL_WITH_ID, "/api/v1/projects/{id}");
+//! assert_eq!(Model::URL, "/v1/projects");
+//! assert_eq!(Model::API_URL, "/api/v1/projects");
 //! assert_eq!(Model::TAG, "Project Management");
 //! ```
 
@@ -83,7 +101,7 @@ struct SeaOrmResourceInput {
 /// # Generated Constants
 ///
 /// - `URL`: The base URL path for this resource (plural, e.g., "/projects")
-/// - `URL_WITH_ID`: The URL path with an `{id}` parameter appended
+/// - `API_URL`: The full API URL path including /api prefix (e.g., "/api/projects")
 /// - `COLLECTION`: The database collection or table name
 /// - `TAG`: The API documentation tag
 ///
@@ -104,7 +122,7 @@ struct SeaOrmResourceInput {
 ///
 /// assert_eq!(Model::COLLECTION, "users");
 /// assert_eq!(Model::URL, "/users");
-/// assert_eq!(Model::URL_WITH_ID, "/users/{id}");
+/// assert_eq!(Model::API_URL, "/api/users");
 /// assert_eq!(Model::TAG, "Users");
 /// ```
 #[proc_macro_derive(SeaOrmResource, attributes(sea_orm_resource))]
@@ -136,6 +154,21 @@ fn capitalize_first_letter(input: &str) -> String {
             }
             acc
         })
+}
+
+/// Convert underscores to hyphens for URL-friendly paths
+fn underscores_to_hyphens(input: &str) -> String {
+    input.replace('_', "-")
+}
+
+/// Convert snake_case to Title Case for tags
+/// Example: "cloud_resources" -> "Cloud Resources"
+fn snake_case_to_title_case(input: &str) -> String {
+    input
+        .split('_')
+        .map(capitalize_first_letter)
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn extract_table_name(attrs: &[syn::Attribute]) -> Option<String> {
@@ -176,21 +209,24 @@ fn impl_sea_orm_resource(receiver: SeaOrmResourceInput) -> syn::Result<proc_macr
     // Generate defaults based on table_name
     let collection = receiver.collection.unwrap_or_else(|| table_name.clone());
 
-    // URL uses plural (table_name is already plural by convention)
+    // URL uses plural with hyphens (table_name is already plural by convention)
+    // Convert underscores to hyphens for URL-friendly paths
+    // No /api prefix - that's added by the router layer
     let url = receiver
         .url
-        .unwrap_or_else(|| format!("/api/{}", table_name));
+        .unwrap_or_else(|| format!("/{}", underscores_to_hyphens(&table_name)));
 
+    // Convert snake_case to Title Case for better API documentation
     let tag = receiver
         .tag
-        .unwrap_or_else(|| capitalize_first_letter(&collection));
+        .unwrap_or_else(|| snake_case_to_title_case(&collection));
 
-    let url_with_id = format!("{}/{{id}}", url);
+    let api_url = format!("/api{}", url);
 
     Ok(quote! {
         impl core_proc_macros::ApiResource for #ident {
             const URL: &'static str = #url;
-            const URL_WITH_ID: &'static str = #url_with_id;
+            const API_URL: &'static str = #api_url;
             const COLLECTION: &'static str = #collection;
             const TAG: &'static str = #tag;
         }
@@ -248,8 +284,8 @@ mod tests {
 
         assert!(output_str.contains("impl core_proc_macros :: ApiResource for Model"));
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "projects""#));
-        assert!(output_str.contains(r#"const URL : & 'static str = "/api/projects""#));
-        assert!(output_str.contains(r#"const URL_WITH_ID : & 'static str = "/api/projects/{id}""#));
+        assert!(output_str.contains(r#"const URL : & 'static str = "/projects""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/projects""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Projects""#));
     }
 
@@ -257,7 +293,7 @@ mod tests {
     fn test_custom_url() {
         let input = quote! {
             #[sea_orm(table_name = "projects")]
-            #[sea_orm_resource(url = "/api/v1/projects")]
+            #[sea_orm_resource(url = "/v1/projects")]
             pub struct Model {
                 id: String,
             }
@@ -268,10 +304,8 @@ mod tests {
         let output = impl_sea_orm_resource(receiver).unwrap();
         let output_str = output.to_string();
 
-        assert!(output_str.contains(r#"const URL : & 'static str = "/api/v1/projects""#));
-        assert!(
-            output_str.contains(r#"const URL_WITH_ID : & 'static str = "/api/v1/projects/{id}""#)
-        );
+        assert!(output_str.contains(r#"const URL : & 'static str = "/v1/projects""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/v1/projects""#));
     }
 
     #[test]
@@ -298,7 +332,7 @@ mod tests {
             #[sea_orm(table_name = "projects")]
             #[sea_orm_resource(
                 collection = "project_items",
-                url = "/api/v1/projects",
+                url = "/v1/projects",
                 tag = "Project Catalog"
             )]
             pub struct Model {
@@ -312,10 +346,8 @@ mod tests {
         let output_str = output.to_string();
 
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "project_items""#));
-        assert!(output_str.contains(r#"const URL : & 'static str = "/api/v1/projects""#));
-        assert!(
-            output_str.contains(r#"const URL_WITH_ID : & 'static str = "/api/v1/projects/{id}""#)
-        );
+        assert!(output_str.contains(r#"const URL : & 'static str = "/v1/projects""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/v1/projects""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Project Catalog""#));
     }
 
@@ -340,5 +372,41 @@ mod tests {
         assert_eq!(capitalize_first_letter("a"), "A");
         assert_eq!(capitalize_first_letter("projects"), "Projects");
         assert_eq!(capitalize_first_letter("users"), "Users");
+    }
+
+    #[test]
+    fn test_underscores_to_hyphens() {
+        assert_eq!(underscores_to_hyphens("projects"), "projects");
+        assert_eq!(underscores_to_hyphens("cloud_resources"), "cloud-resources");
+        assert_eq!(underscores_to_hyphens("user_profiles"), "user-profiles");
+        assert_eq!(underscores_to_hyphens("a_b_c"), "a-b-c");
+    }
+
+    #[test]
+    fn test_snake_case_to_title_case() {
+        assert_eq!(snake_case_to_title_case("projects"), "Projects");
+        assert_eq!(snake_case_to_title_case("cloud_resources"), "Cloud Resources");
+        assert_eq!(snake_case_to_title_case("user_profiles"), "User Profiles");
+        assert_eq!(snake_case_to_title_case("api_keys"), "Api Keys");
+    }
+
+    #[test]
+    fn test_snake_case_with_underscores() {
+        let input = quote! {
+            #[sea_orm(table_name = "cloud_resources")]
+            pub struct Model {
+                id: String,
+            }
+        };
+
+        let ast: DeriveInput = syn::parse2(input).unwrap();
+        let receiver = SeaOrmResourceInput::from_derive_input(&ast).unwrap();
+        let output = impl_sea_orm_resource(receiver).unwrap();
+        let output_str = output.to_string();
+
+        assert!(output_str.contains(r#"const COLLECTION : & 'static str = "cloud_resources""#));
+        assert!(output_str.contains(r#"const URL : & 'static str = "/cloud-resources""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/cloud-resources""#));
+        assert!(output_str.contains(r#"const TAG : & 'static str = "Cloud Resources""#));
     }
 }

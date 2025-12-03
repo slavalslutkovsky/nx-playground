@@ -5,9 +5,7 @@ edition = "2021"
 
 [features]
 default = []
-postgres = ["sea-orm"]
 redis = ["dep:redis"]
-database = ["postgres", "redis"]
 
 [dependencies]
 axum.workspace = true
@@ -33,8 +31,11 @@ utoipa-scalar.workspace = true
 # Internal dependencies
 core_config = { workspace = true }
 
+# Database dependencies - required for error handling
+sea-orm = { workspace = true }
+sea-orm-migration = { workspace = true }
+
 # Optional database dependencies
-sea-orm = { workspace = true, optional = true }
 redis = { workspace = true, optional = true }
 
 [dev-dependencies]

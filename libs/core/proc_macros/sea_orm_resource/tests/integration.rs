@@ -20,8 +20,8 @@ impl ActiveModelBehavior for ActiveModel {}
 
 #[test]
 fn test_generated_constants() {
-    assert_eq!(Model::URL, "/api/projects");
-    assert_eq!(Model::URL_WITH_ID, "/api/projects/{id}");
+    assert_eq!(Model::URL, "/projects");
+    assert_eq!(Model::API_URL, "/api/projects");
     assert_eq!(Model::COLLECTION, "projects");
     assert_eq!(Model::TAG, "Projects");
 }
@@ -34,7 +34,7 @@ mod custom {
         Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, SeaOrmResource,
     )]
     #[sea_orm(table_name = "users")]
-    #[sea_orm_resource(url = "/api/v2/users", tag = "User Management")]
+    #[sea_orm_resource(url = "/v2/users", tag = "User Management")]
     pub struct Model {
         #[sea_orm(primary_key)]
         pub id: i32,
@@ -48,8 +48,8 @@ mod custom {
 
     #[test]
     fn test_custom_url_and_tag() {
-        assert_eq!(Model::URL, "/api/v2/users");
-        assert_eq!(Model::URL_WITH_ID, "/api/v2/users/{id}");
+        assert_eq!(Model::URL, "/v2/users");
+        assert_eq!(Model::API_URL, "/api/v2/users");
         assert_eq!(Model::COLLECTION, "users");
         assert_eq!(Model::TAG, "User Management");
     }
@@ -78,6 +78,6 @@ mod custom_collection {
     #[test]
     fn test_custom_collection() {
         assert_eq!(Model::COLLECTION, "inventory_items");
-        assert_eq!(Model::TAG, "Inventory_items"); // Capitalized collection
+        assert_eq!(Model::TAG, "Inventory Items"); // Snake case to title case
     }
 }

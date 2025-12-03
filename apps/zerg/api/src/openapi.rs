@@ -1,3 +1,4 @@
+use domain_projects::ApiResource;
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
@@ -12,7 +13,7 @@ use utoipa::OpenApi;
         schemas(
             crate::api::tasks::TaskDto,
             crate::api::tasks::CreateTaskDto,
-            crate::api::tasks::ErrorResponse
+            axum_helpers::ErrorResponse
         )
     ),
     tags(
@@ -25,6 +26,9 @@ use utoipa::OpenApi;
     ),
     servers(
         (url = "/api", description = "API base path")
+    ),
+    nest(
+        (path = domain_projects::entity::Model::API_URL, api = domain_projects::ApiDoc)
     )
 )]
 pub struct ApiDoc;

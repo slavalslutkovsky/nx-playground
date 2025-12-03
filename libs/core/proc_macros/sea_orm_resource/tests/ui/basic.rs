@@ -21,7 +21,7 @@ impl ActiveModelBehavior for ActiveModel {}
 fn main() {
     // Verify constants are accessible
     let _url = Model::URL;
-    let _url_with_id = Model::URL_WITH_ID;
+    let _api_url = Model::API_URL;
     let _collection = Model::COLLECTION;
     let _tag = Model::TAG;
 }

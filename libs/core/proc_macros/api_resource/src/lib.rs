@@ -175,12 +175,12 @@ fn impl_api_resource(receiver: ApiResourceInput) -> proc_macro2::TokenStream {
         .tag
         .unwrap_or_else(|| capitalize_first_letter(&collection));
 
-    let url_with_id = format!("{}/{{id}}", url);
+    let api_url = format!("/api{}", url);
 
     quote! {
         impl core_proc_macros::ApiResource for #ident {
             const URL: &'static str = #url;
-            const URL_WITH_ID: &'static str = #url_with_id;
+            const API_URL: &'static str = #api_url;
             const COLLECTION: &'static str = #collection;
             const TAG: &'static str = #tag;
         }
@@ -209,7 +209,7 @@ mod tests {
         assert!(output_str.contains("impl core_proc_macros :: ApiResource for User"));
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "users""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/user""#));
-        assert!(output_str.contains(r#"const URL_WITH_ID : & 'static str = "/user/{id}""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/user""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Users""#));
     }
 
@@ -246,7 +246,7 @@ mod tests {
         let output_str = output.to_string();
 
         assert!(output_str.contains(r#"const URL : & 'static str = "/api/users""#));
-        assert!(output_str.contains(r#"const URL_WITH_ID : & 'static str = "/api/users/{id}""#));
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/api/users""#));
     }
 
     #[test]
@@ -286,9 +286,7 @@ mod tests {
 
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "product_items""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/api/v1/products""#));
-        assert!(
-            output_str.contains(r#"const URL_WITH_ID : & 'static str = "/api/v1/products/{id}""#)
-        );
+        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/api/v1/products""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Product Catalog""#));
     }
 

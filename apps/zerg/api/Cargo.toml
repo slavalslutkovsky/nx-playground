@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true }
-axum-helpers = { workspace = true, features = ["database"] }
+axum-helpers = { workspace = true, features = ["redis"] }
 color-eyre = { workspace = true }
 core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }

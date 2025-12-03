@@ -56,6 +56,7 @@ pub mod service;
 
 // Re-export commonly used types
 pub use error::{ProjectError, ProjectResult};
+pub use handlers::ApiDoc;
 pub use models::{
     CloudProvider, CreateProject, Environment, Project, ProjectFilter, ProjectStatus, Tag,
     UpdateProject,
@@ -63,3 +64,6 @@ pub use models::{
 pub use postgres::PgProjectRepository;
 pub use repository::ProjectRepository;
 pub use service::ProjectService;
+
+// Re-export ApiResource trait for accessing generated constants
+pub use core_proc_macros::ApiResource;

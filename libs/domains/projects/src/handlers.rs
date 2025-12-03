@@ -1,17 +1,45 @@
 use axum::{
-    extract::{Path, Query, State},
-    http::StatusCode,
+    extract::{Query, State},
+    http::{HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
+use axum_helpers::{
+    extract_ip_from_headers, extract_user_agent, AuditEvent, AuditOutcome, UuidPath, ValidatedJson,
+};
+use core_proc_macros::ApiResource;
+use serde_json::json;
 use std::sync::Arc;
-use uuid::Uuid;
+use utoipa::OpenApi;
 
+use crate::entity;
 use crate::error::ProjectResult;
 use crate::models::{CreateProject, Project, ProjectFilter, UpdateProject};
 use crate::repository::ProjectRepository;
 use crate::service::ProjectService;
+
+/// OpenAPI documentation for Projects API
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        list_projects,
+        create_project,
+        get_project,
+        update_project,
+        delete_project,
+        activate_project,
+        suspend_project,
+        archive_project,
+    ),
+    components(
+        schemas(Project, CreateProject, UpdateProject, ProjectFilter)
+    ),
+    tags(
+        (name = entity::Model::TAG, description = "Project management endpoints")
+    )
+)]
+pub struct ApiDoc;
 
 /// Create the project router with all HTTP endpoints
 pub fn router<R: ProjectRepository + 'static>(service: ProjectService<R>) -> Router {
@@ -30,8 +58,16 @@ pub fn router<R: ProjectRepository + 'static>(service: ProjectService<R>) -> Rou
 }
 
 /// List projects with optional filters
-///
-/// GET /projects?user_id=xxx&cloud_provider=aws&limit=10
+#[utoipa::path(
+    get,
+    path = "",
+    tag = entity::Model::TAG,
+    params(ProjectFilter),
+    responses(
+        (status = 200, description = "List of projects", body = Vec<Project>),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn list_projects<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
     Query(filter): Query<ProjectFilter>,
@@ -41,78 +77,187 @@ async fn list_projects<R: ProjectRepository>(
 }
 
 /// Create a new project
-///
-/// POST /projects
+#[utoipa::path(
+    post,
+    path = "",
+    tag = entity::Model::TAG,
+    request_body = CreateProject,
+    responses(
+        (status = 201, description = "Project created successfully", body = Project),
+        (status = 400, description = "Bad request - validation failed"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn create_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Json(input): Json<CreateProject>,
+    headers: HeaderMap,
+    ValidatedJson(input): ValidatedJson<CreateProject>,
 ) -> ProjectResult<impl IntoResponse> {
     let project = service.create_project(input).await?;
+
+    // Audit log successful creation
+    AuditEvent::new(
+        Some(project.user_id.to_string()),
+        "project.create",
+        Some(format!("project:{}", project.id)),
+        AuditOutcome::Success,
+    )
+    .with_ip(extract_ip_from_headers(&headers))
+    .with_user_agent(extract_user_agent(&headers))
+    .with_details(json!({
+        "project_name": project.name,
+        "cloud_provider": project.cloud_provider.to_string(),
+        "region": project.region,
+        "environment": project.environment.to_string(),
+    }))
+    .log();
+
     Ok((StatusCode::CREATED, Json(project)))
 }
 
 /// Get a project by ID
-///
-/// GET /projects/:id
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 200, description = "Project found", body = Project),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn get_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
+    UuidPath(id): UuidPath,
 ) -> ProjectResult<Json<Project>> {
     let project = service.get_project(id).await?;
     Ok(Json(project))
 }
 
 /// Update a project
-///
-/// PUT /projects/:id
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    request_body = UpdateProject,
+    responses(
+        (status = 200, description = "Project updated successfully", body = Project),
+        (status = 400, description = "Bad request - validation failed"),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn update_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
-    Json(input): Json<UpdateProject>,
+    UuidPath(id): UuidPath,
+    ValidatedJson(input): ValidatedJson<UpdateProject>,
 ) -> ProjectResult<Json<Project>> {
     let project = service.update_project(id, input).await?;
     Ok(Json(project))
 }
 
 /// Delete a project
-///
-/// DELETE /projects/:id
+#[utoipa::path(
+    delete,
+    path = "/{id}",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 204, description = "Project deleted successfully"),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn delete_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
+    headers: HeaderMap,
+    UuidPath(id): UuidPath,
 ) -> ProjectResult<impl IntoResponse> {
     service.delete_project(id).await?;
+
+    // Audit log successful deletion
+    AuditEvent::new(
+        None, // TODO: Add user_id when authentication is implemented
+        "project.delete",
+        Some(format!("project:{}", id)),
+        AuditOutcome::Success,
+    )
+    .with_ip(extract_ip_from_headers(&headers))
+    .with_user_agent(extract_user_agent(&headers))
+    .log();
+
     Ok(StatusCode::NO_CONTENT)
 }
 
 /// Activate a project
-///
-/// POST /projects/:id/activate
+#[utoipa::path(
+    post,
+    path = "/{id}/activate",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 200, description = "Project activated successfully", body = Project),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn activate_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
+    UuidPath(id): UuidPath,
 ) -> ProjectResult<Json<Project>> {
     let project = service.activate_project(id).await?;
     Ok(Json(project))
 }
 
 /// Suspend a project
-///
-/// POST /projects/:id/suspend
+#[utoipa::path(
+    post,
+    path = "/{id}/suspend",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 200, description = "Project suspended successfully", body = Project),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn suspend_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
+    UuidPath(id): UuidPath,
 ) -> ProjectResult<Json<Project>> {
     let project = service.suspend_project(id).await?;
     Ok(Json(project))
 }
 
 /// Archive a project
-///
-/// POST /projects/:id/archive
+#[utoipa::path(
+    post,
+    path = "/{id}/archive",
+    tag = entity::Model::TAG,
+    params(
+        ("id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 200, description = "Project archived successfully", body = Project),
+        (status = 404, description = "Project not found"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn archive_project<R: ProjectRepository>(
     State(service): State<Arc<ProjectService<R>>>,
-    Path(id): Path<Uuid>,
+    UuidPath(id): UuidPath,
 ) -> ProjectResult<Json<Project>> {
     let project = service.archive_project(id).await?;
     Ok(Json(project))

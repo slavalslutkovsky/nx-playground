@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use migration::Migrator;
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use tokio::sync::RwLock;
 use tonic::transport::Channel;
@@ -40,8 +39,6 @@ async fn main() -> eyre::Result<()> {
     let tasks_client = TasksServiceClient::connect(tasks_addr).await?;
 
     // Initialize database connections concurrently
-    info!("Connecting to PostgreSQL and Redis concurrently");
-
     let postgres_future = async {
         database::postgres::connect_from_config_with_retry(config.database.clone(), None)
             .await
@@ -55,18 +52,6 @@ async fn main() -> eyre::Result<()> {
     };
 
     let (db, redis) = tokio::try_join!(postgres_future, redis_future)?;
-
-    info!("PostgreSQL and Redis connections established");
-
-    // Conditional migrations based on environment (run BEFORE creating repos/state)
-    // Set RUN_MIGRATIONS=true for development, or use the separate migrate binary for production
-    if std::env::var("RUN_MIGRATIONS").is_ok() {
-        database::postgres::run_migrations::<Migrator>(&db, "zerg_api")
-            .await
-            .map_err(|e| eyre::eyre!("Failed to run migrations: {}", e))?;
-    } else {
-        info!("Skipping automatic migrations. Use 'cargo run --bin migrate' to run migrations separately");
-    }
 
     // Initialize the application state with database connections
     let state = AppState {

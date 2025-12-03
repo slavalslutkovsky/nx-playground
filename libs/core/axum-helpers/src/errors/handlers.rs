@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 
-use super::ErrorResponse;
+use super::{messages, ErrorResponse};
 
 /// Handler for 404 Not Found errors.
 ///
@@ -14,6 +14,7 @@ pub async fn not_found() -> Response {
         error: "NotFound".to_string(),
         message: "The requested resource was not found".to_string(),
         details: None,
+        code: Some(messages::CODE_NOT_FOUND),
     });
 
     (StatusCode::NOT_FOUND, body).into_response()
@@ -25,6 +26,7 @@ pub async fn method_not_allowed() -> Response {
         error: "MethodNotAllowed".to_string(),
         message: "The HTTP method is not allowed for this resource".to_string(),
         details: None,
+        code: Some(messages::CODE_INTERNAL),
     });
 
     (StatusCode::METHOD_NOT_ALLOWED, body).into_response()

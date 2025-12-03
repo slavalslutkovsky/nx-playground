@@ -134,7 +134,7 @@ name = "api_resource"
 version = "0.1.0"
 dependencies = [
  "core_proc_macros",
- "darling 0.21.3",
+ "darling 0.23.0",
  "pluralizer",
  "proc-macro2",
  "quote",
@@ -398,6 +398,7 @@ dependencies = [
  "futures",
  "redis",
  "sea-orm",
+ "sea-orm-migration",
  "serde",
  "serde_json",
  "thiserror",
@@ -956,6 +957,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25ae13da2f202d56bd7f91c25fba009e7717a1e4a1cc98a76d844b65ae912e9d"
+dependencies = [
+ "darling_core 0.23.0",
+ "darling_macro 0.23.0",
+]
+
+[[package]]
 name = "darling_core"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -984,6 +995,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling_core"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9865a50f7c335f53564bb694ef660825eb8610e0a53d3e11bf1b0d3df31e03b0"
+dependencies = [
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn 2.0.111",
+]
+
+[[package]]
 name = "darling_macro"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1001,6 +1025,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d38308df82d1080de0afee5d069fa14b0326a88c14f15c5ccda35b4a6c414c81"
 dependencies = [
  "darling_core 0.21.3",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac3984ec7bd6cfa798e62b4a642426a5be0e68f9401cfc2a01e3fa9ea2fcdb8d"
+dependencies = [
+ "darling_core 0.23.0",
  "quote",
  "syn 2.0.111",
 ]
@@ -1142,6 +1177,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum 0.8.7",
+ "axum-helpers",
  "chrono",
  "core_proc_macros",
  "database",
@@ -1159,6 +1195,7 @@ dependencies = [
  "tokio",
  "tower 0.5.2",
  "tracing",
+ "utoipa",
  "uuid",
  "validator",
 ]
@@ -3354,7 +3391,7 @@ name = "sea_orm_resource"
 version = "0.1.0"
 dependencies = [
  "core_proc_macros",
- "darling 0.21.3",
+ "darling 0.23.0",
  "proc-macro2",
  "quote",
  "sea-orm",
@@ -3397,7 +3434,7 @@ name = "selectable_fields"
 version = "0.1.0"
 dependencies = [
  "core_proc_macros",
- "darling 0.21.3",
+ "darling 0.23.0",
  "field-selector",
  "proc-macro2",
  "quote",
@@ -4947,13 +4984,13 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.18.1"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
+checksum = "e2e054861b4bd027cd373e18e8d8d8e6548085000e41290d95ce0c373a654b4a"
 dependencies = [
  "getrandom 0.3.4",
  "js-sys",
- "serde",
+ "serde_core",
  "wasm-bindgen",
 ]
 

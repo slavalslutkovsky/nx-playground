@@ -4,6 +4,7 @@ use sea_orm::{DeriveActiveEnum, EnumIter};
 use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
 use strum::{Display, EnumString};
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -22,7 +23,7 @@ fn validate_project_name(name: &str) -> Result<(), validator::ValidationError> {
 }
 
 /// Supported cloud providers
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, DeriveActiveEnum, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, DeriveActiveEnum, EnumIter, ToSchema)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "cloud_provider")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -36,7 +37,7 @@ pub enum CloudProvider {
 }
 
 /// Project deployment status
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter, ToSchema)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "project_status")]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -60,7 +61,7 @@ pub enum ProjectStatus {
 }
 
 /// Environment type for the project
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default, DeriveActiveEnum, EnumIter, ToSchema)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "environment")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -75,7 +76,7 @@ pub enum Environment {
 }
 
 /// Project entity - represents a cloud project
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Project {
     /// Unique identifier
     pub id: Uuid,
@@ -106,7 +107,7 @@ pub struct Project {
 }
 
 /// Key-value tag for project organization
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Validate, ToSchema)]
 pub struct Tag {
     #[validate(length(min = 1))]
     pub key: String,
@@ -114,7 +115,7 @@ pub struct Tag {
 }
 
 /// DTO for creating a new project
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct CreateProject {
     #[validate(length(min = 1, max = 100), custom(function = "validate_project_name"))]
     pub name: String,
@@ -134,7 +135,7 @@ pub struct CreateProject {
 }
 
 /// DTO for updating an existing project
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct UpdateProject {
     #[validate(length(min = 1, max = 100), custom(function = "validate_project_name"))]
     pub name: Option<String>,
@@ -150,7 +151,7 @@ pub struct UpdateProject {
 }
 
 /// Query filters for listing projects
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
 pub struct ProjectFilter {
     pub user_id: Option<Uuid>,
     pub cloud_provider: Option<CloudProvider>,

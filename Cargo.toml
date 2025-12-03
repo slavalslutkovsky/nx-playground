@@ -24,11 +24,7 @@ members = [
 
 [workspace.dependencies]
 api_resource = { path = 'libs/core/proc_macros/api_resource' }
-apis_bike = { path = 'libs/apis/bike' }
 axum-helpers = { path = 'libs/core/axum-helpers' }
-apis_car = { path = 'libs/apis/car' }
-apis_project = { path = 'libs/apis/project' }
-app = { path = 'libs/app' }
 argon2 = '0.5'
 async-stream = '0.3'
 async-trait = '0.1'
@@ -42,16 +38,15 @@ clap = { version = '4.5', features = ['derive'] }
 color-eyre = '0.6'
 core_config = { path = 'libs/core/config' }
 csv = '1.4'
-darling = '0.21'
+darling = '0.23.0'
 database = { path = 'libs/database' }
 domain_cloud_resources = { path = 'libs/domains/cloud_resources' }
 domain_projects = { path = 'libs/domains/projects' }
 domain_users = { path = 'libs/domains/users' }
 eyre = { version = '0.6', features = ['default'] }
 field-selector = { path = 'libs/core/field-selector' }
-flagsmith = { version = '2.0.0', features = [] }
+flagsmith = { version = '2.1.0', features = [] }
 futures = '0.3'
-general = { path = 'libs/general' }
 hex = '0.4'
 http = { version = '1.4' }
 jsonwebtoken = { version = '10.2', features = ['aws_lc_rs'] }
@@ -59,7 +54,6 @@ k8s-openapi = { version = '0.26', features = ['v1_34'] }
 kube = { version = '2.0', features = ['derive', 'runtime'] }
 migration = { path = 'libs/migration' }
 mockall = '0.14'
-models_project = { path = 'libs/models/project' }
 mongodb = '3.4'
 oauth2 = '5.0'
 pluralizer = '0.5'
@@ -80,7 +74,6 @@ sea_orm_resource = { path = 'libs/core/proc_macros/sea_orm_resource' }
 selectable_fields = { path = 'libs/core/proc_macros/selectable_fields' }
 serde = { version = '1.0', features = ['derive'] }
 serde_json = { version = '1.0' }
-services = { path = 'libs/services' }
 sha2 = '0.10'
 sqlx = { version = '0.9.0-alpha.1', default-features = false, features = ['postgres', 'macros', 'uuid', 'chrono', 'migrate'] }
 strum = { version = '0.27', features = ['derive'] }
@@ -108,7 +101,7 @@ utoipa-rapidoc = { version = '6.0', features = ['axum'] }
 utoipa-redoc = { version = '6.0', features = ['axum'] }
 utoipa-scalar = { version = '0.3', features = ['axum'] }
 utoipa-swagger-ui = { version = '9.0', features = ['axum'] }
-uuid = { version = '1.18', features = ['serde', 'v4', 'v7'] }
+uuid = { version = '1.19', features = ['serde', 'v4', 'v7'] }
 validator = { version = '0.20', features = ['derive'] }
 walkdir = '2.5'
 

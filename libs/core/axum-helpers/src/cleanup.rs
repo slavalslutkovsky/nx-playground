@@ -17,7 +17,6 @@ use tracing::{error, info};
 ///
 /// close_postgres(db, "main").await;
 /// ```
-#[cfg(feature = "postgres")]
 pub async fn close_postgres(db: sea_orm::DatabaseConnection, name: &str) {
     match db.close().await {
         Ok(_) => info!("PostgreSQL connection '{}' closed successfully", name),

@@ -1,6 +1,6 @@
 //! JSON extractor with automatic validation using the validator crate.
 
-use crate::errors::ErrorResponse;
+use crate::errors::{messages, ErrorResponse};
 use axum::{
     extract::{FromRequest, Json, Request},
     http::StatusCode,
@@ -74,6 +74,7 @@ where
                 error: "BadRequest".to_string(),
                 message: "Request validation failed".to_string(),
                 details: Some(serde_json::Value::Object(details)),
+                code: Some(messages::CODE_VALIDATION),
             };
 
             (StatusCode::BAD_REQUEST, axum::Json(error_response)).into_response()
