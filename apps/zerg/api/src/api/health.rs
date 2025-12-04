@@ -1,6 +1,6 @@
 //! Application-specific health check handlers with real database/redis checks.
 
-use crate::AppState;
+use crate::state::AppState;
 use axum::{
     extract::State,
     response::{IntoResponse, Response},

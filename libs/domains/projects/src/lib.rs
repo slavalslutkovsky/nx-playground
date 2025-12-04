@@ -33,10 +33,10 @@
 //! use sea_orm::Database;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! // Create database connection
+//! // Create a database connection
 //! let db = Database::connect("postgres://...").await?;
 //!
-//! // Create repository and service
+//! // Create a repository and service
 //! let repository = PgProjectRepository::new(db);
 //! let service = ProjectService::new(repository);
 //!

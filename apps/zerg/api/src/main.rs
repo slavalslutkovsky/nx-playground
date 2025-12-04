@@ -1,25 +1,18 @@
-use std::sync::Arc;
-
+use axum_helpers::server::create_production_app;
+use core_config::tracing::init_tracing;
 use rpc::tasks::tasks_service_client::TasksServiceClient;
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::RwLock;
-use tonic::transport::Channel;
 use tracing::info;
 
 mod api;
+mod config;
 mod openapi;
+mod state;
 
-#[derive(Clone)]
-pub struct AppState {
-    pub config: zerg_api::config::Config,
-    pub tasks_client: Arc<RwLock<TasksServiceClient<Channel>>>,
-    pub db: database::postgres::DatabaseConnection,
-    pub redis: database::redis::ConnectionManager,
-}
-
-use axum_helpers::server::create_production_app;
-use core_config::tracing::init_tracing;
-use std::time::Duration;
-use zerg_api::config::Config;
+use config::Config;
+use state::AppState;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {

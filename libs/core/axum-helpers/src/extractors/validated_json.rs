@@ -1,6 +1,6 @@
 //! JSON extractor with automatic validation using the validator crate.
 
-use crate::errors::{messages, ErrorResponse};
+use crate::errors::{ErrorCode, ErrorResponse};
 use axum::{
     extract::{FromRequest, Json, Request},
     http::StatusCode,
@@ -71,10 +71,10 @@ where
                 .collect::<serde_json::Map<_, _>>();
 
             let error_response = ErrorResponse {
-                error: "BadRequest".to_string(),
-                message: "Request validation failed".to_string(),
+                code: ErrorCode::ValidationError.code(),
+                error: ErrorCode::ValidationError.as_str().to_string(),
+                message: ErrorCode::ValidationError.default_message().to_string(),
                 details: Some(serde_json::Value::Object(details)),
-                code: Some(messages::CODE_VALIDATION),
             };
 
             (StatusCode::BAD_REQUEST, axum::Json(error_response)).into_response()

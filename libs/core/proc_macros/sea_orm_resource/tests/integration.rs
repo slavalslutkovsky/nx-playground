@@ -21,7 +21,6 @@ impl ActiveModelBehavior for ActiveModel {}
 #[test]
 fn test_generated_constants() {
     assert_eq!(Model::URL, "/projects");
-    assert_eq!(Model::API_URL, "/api/projects");
     assert_eq!(Model::COLLECTION, "projects");
     assert_eq!(Model::TAG, "Projects");
 }
@@ -49,7 +48,6 @@ mod custom {
     #[test]
     fn test_custom_url_and_tag() {
         assert_eq!(Model::URL, "/v2/users");
-        assert_eq!(Model::API_URL, "/api/v2/users");
         assert_eq!(Model::COLLECTION, "users");
         assert_eq!(Model::TAG, "User Management");
     }

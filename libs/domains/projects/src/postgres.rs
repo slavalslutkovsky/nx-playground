@@ -38,7 +38,7 @@ impl ProjectRepository for PgProjectRepository {
         // Convert CreateProject to ActiveModel
         let active_model: entity::ActiveModel = input.into();
 
-        // Insert using base repository
+        // Insert using a base repository
         let model = self
             .base
             .insert(active_model)

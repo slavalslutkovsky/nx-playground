@@ -49,7 +49,7 @@ pub mod shutdown;
 
 // Re-export commonly used types
 pub use cleanup::CleanupCoordinator;
-pub use errors::{AppError, ErrorResponse};
+pub use errors::{AppError, ErrorCode, ErrorResponse};
 pub use health::{HealthResponse, ReadyResponse};
 pub use server::{create_app, create_production_app, create_router};
 pub use shutdown::{shutdown_signal, ShutdownCoordinator};

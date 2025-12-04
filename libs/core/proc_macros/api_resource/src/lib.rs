@@ -20,7 +20,6 @@
 //! // Auto-generated constants:
 //! assert_eq!(User::COLLECTION, "users");
 //! assert_eq!(User::URL, "/user");
-//! assert_eq!(User::URL_WITH_ID, "/user/{id}");
 //! assert_eq!(User::TAG, "Users");
 //! ```
 //!
@@ -41,7 +40,6 @@
 //!
 //! assert_eq!(User::COLLECTION, "people");
 //! assert_eq!(User::URL, "/api/users");
-//! assert_eq!(User::URL_WITH_ID, "/api/users/{id}");
 //! assert_eq!(User::TAG, "User Management");
 //! ```
 
@@ -79,7 +77,6 @@ struct ApiResourceInput {
 /// # Generated Constants
 ///
 /// - `URL`: The base URL path for this resource
-/// - `URL_WITH_ID`: The URL path with an `{id}` parameter appended
 /// - `COLLECTION`: The database collection or table name
 /// - `TAG`: The API documentation tag
 ///
@@ -100,7 +97,6 @@ struct ApiResourceInput {
 ///
 /// assert_eq!(Product::COLLECTION, "products");
 /// assert_eq!(Product::URL, "/product");
-/// assert_eq!(Product::URL_WITH_ID, "/product/{id}");
 /// assert_eq!(Product::TAG, "Products");
 /// ```
 ///
@@ -175,12 +171,9 @@ fn impl_api_resource(receiver: ApiResourceInput) -> proc_macro2::TokenStream {
         .tag
         .unwrap_or_else(|| capitalize_first_letter(&collection));
 
-    let api_url = format!("/api{}", url);
-
     quote! {
         impl core_proc_macros::ApiResource for #ident {
             const URL: &'static str = #url;
-            const API_URL: &'static str = #api_url;
             const COLLECTION: &'static str = #collection;
             const TAG: &'static str = #tag;
         }
@@ -209,7 +202,6 @@ mod tests {
         assert!(output_str.contains("impl core_proc_macros :: ApiResource for User"));
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "users""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/user""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/user""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Users""#));
     }
 
@@ -246,7 +238,6 @@ mod tests {
         let output_str = output.to_string();
 
         assert!(output_str.contains(r#"const URL : & 'static str = "/api/users""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/api/users""#));
     }
 
     #[test]
@@ -286,7 +277,6 @@ mod tests {
 
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "product_items""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/api/v1/products""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/api/v1/products""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Product Catalog""#));
     }
 

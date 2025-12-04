@@ -30,8 +30,6 @@ pub use sea_orm_resource::SeaOrmResource;
 pub trait ApiResource {
     /// The base URL path for this resource (e.g., "/user")
     const URL: &'static str;
-    /// The full API URL path including /api prefix (e.g., "/api/user")
-    const API_URL: &'static str;
     /// The database collection or table name (e.g., "users")
     const COLLECTION: &'static str;
     /// The API documentation tag (e.g., "Users")

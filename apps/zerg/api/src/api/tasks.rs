@@ -1,4 +1,4 @@
-use crate::AppState;
+use crate::state::AppState;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -209,7 +209,7 @@ pub async fn delete_task(
     }
 }
 
-pub fn router(state: crate::AppState) -> Router {
+pub fn router(state: crate::state::AppState) -> Router {
     Router::new()
         .route("/tasks", get(list_tasks).post(create_task))
         .route("/tasks/{id}", get(get_task).delete(delete_task))

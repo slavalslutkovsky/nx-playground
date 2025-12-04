@@ -24,7 +24,6 @@
 //! // - Snake_case is converted to Title Case for tags
 //! assert_eq!(Model::COLLECTION, "projects");
 //! assert_eq!(Model::URL, "/projects");
-//! assert_eq!(Model::API_URL, "/api/projects");
 //! assert_eq!(Model::TAG, "Projects");
 //! ```
 //!
@@ -40,7 +39,6 @@
 //!
 //! assert_eq!(Model::COLLECTION, "cloud_resources");
 //! assert_eq!(Model::URL, "/cloud-resources");  // Hyphen for URL
-//! assert_eq!(Model::API_URL, "/api/cloud-resources");
 //! assert_eq!(Model::TAG, "Cloud Resources");  // Title Case
 //! ```
 //!
@@ -63,7 +61,6 @@
 //!
 //! assert_eq!(Model::COLLECTION, "projects");
 //! assert_eq!(Model::URL, "/v1/projects");
-//! assert_eq!(Model::API_URL, "/api/v1/projects");
 //! assert_eq!(Model::TAG, "Project Management");
 //! ```
 
@@ -101,7 +98,6 @@ struct SeaOrmResourceInput {
 /// # Generated Constants
 ///
 /// - `URL`: The base URL path for this resource (plural, e.g., "/projects")
-/// - `API_URL`: The full API URL path including /api prefix (e.g., "/api/projects")
 /// - `COLLECTION`: The database collection or table name
 /// - `TAG`: The API documentation tag
 ///
@@ -122,7 +118,6 @@ struct SeaOrmResourceInput {
 ///
 /// assert_eq!(Model::COLLECTION, "users");
 /// assert_eq!(Model::URL, "/users");
-/// assert_eq!(Model::API_URL, "/api/users");
 /// assert_eq!(Model::TAG, "Users");
 /// ```
 #[proc_macro_derive(SeaOrmResource, attributes(sea_orm_resource))]
@@ -221,12 +216,9 @@ fn impl_sea_orm_resource(receiver: SeaOrmResourceInput) -> syn::Result<proc_macr
         .tag
         .unwrap_or_else(|| snake_case_to_title_case(&collection));
 
-    let api_url = format!("/api{}", url);
-
     Ok(quote! {
         impl core_proc_macros::ApiResource for #ident {
             const URL: &'static str = #url;
-            const API_URL: &'static str = #api_url;
             const COLLECTION: &'static str = #collection;
             const TAG: &'static str = #tag;
         }
@@ -285,7 +277,6 @@ mod tests {
         assert!(output_str.contains("impl core_proc_macros :: ApiResource for Model"));
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "projects""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/projects""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/projects""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Projects""#));
     }
 
@@ -305,7 +296,6 @@ mod tests {
         let output_str = output.to_string();
 
         assert!(output_str.contains(r#"const URL : & 'static str = "/v1/projects""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/v1/projects""#));
     }
 
     #[test]
@@ -347,7 +337,6 @@ mod tests {
 
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "project_items""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/v1/projects""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/v1/projects""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Project Catalog""#));
     }
 
@@ -409,7 +398,6 @@ mod tests {
 
         assert!(output_str.contains(r#"const COLLECTION : & 'static str = "cloud_resources""#));
         assert!(output_str.contains(r#"const URL : & 'static str = "/cloud-resources""#));
-        assert!(output_str.contains(r#"const API_URL : & 'static str = "/api/cloud-resources""#));
         assert!(output_str.contains(r#"const TAG : & 'static str = "Cloud Resources""#));
     }
 }

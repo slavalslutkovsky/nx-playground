@@ -14,7 +14,7 @@ pub mod users;
 /// Only Arc pointer clones remain when domains extract db connections (cheap).
 ///
 /// Uses generated constants from SeaOrmResource proc macro to avoid hardcoded paths.
-pub fn routes(state: &crate::AppState) -> Router {
+pub fn routes(state: &crate::state::AppState) -> Router {
     // Import ApiResource trait to access URL constants
     use domain_projects::ApiResource;
 
@@ -32,7 +32,7 @@ pub fn routes(state: &crate::AppState) -> Router {
 ///
 /// This router has state applied and can be merged with the stateless app router
 /// from `create_router`. The /ready endpoint checks database and redis connections.
-pub fn ready_router(state: crate::AppState) -> Router {
+pub fn ready_router(state: crate::state::AppState) -> Router {
     use axum::routing::get;
 
     Router::new()

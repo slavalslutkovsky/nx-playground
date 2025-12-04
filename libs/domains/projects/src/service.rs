@@ -28,7 +28,7 @@ impl<R: ProjectRepository> ProjectService<R> {
             .validate()
             .map_err(|e| ProjectError::Validation(e.to_string()))?;
 
-        // Check if user can create more projects
+        // Check if the user can create more projects
         if !self.can_user_create_project(input.user_id).await? {
             return Err(ProjectError::Validation(
                 "Free tier limit reached: maximum 3 projects per user".to_string(),

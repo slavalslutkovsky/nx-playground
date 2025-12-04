@@ -28,7 +28,7 @@ use utoipa::OpenApi;
         (url = "/api", description = "API base path")
     ),
     nest(
-        (path = domain_projects::entity::Model::API_URL, api = domain_projects::ApiDoc)
+        (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc)
     )
 )]
 pub struct ApiDoc;

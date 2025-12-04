@@ -16,7 +16,6 @@ members = [
     'libs/domains/projects',
     'libs/domains/users',
     'libs/migration',
-    #    'libs/proc_macros',
     'libs/rpc',
     'libs/testing/test-utils',
 ]
@@ -62,13 +61,13 @@ prost = '0.14'
 quote = '1.0'
 r2d2 = { version = '0.8', features = [] }
 rand = '0.10.0-rc.5'
-redis = { version = '1.0.0-rc.4', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
+redis = { version = '1.0.0-rc.5', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 regex = '1.11'
 reqwest = { version = '0.12', features = ['json', 'rustls-tls'], default-features = false }
 rpc = { path = 'libs/rpc' }
 schemars = '1.1'
-sea-orm = { version = '2.0.0-rc.19', features = ['sqlx-postgres', 'runtime-tokio-rustls', 'macros', 'with-uuid', 'with-chrono', 'mock', 'debug-print', 'with-json'] }
-sea-orm-migration = { version = '2.0.0-rc.19', features = ['sqlx-postgres', 'runtime-tokio-rustls'] }
+sea-orm = { version = '2.0.0-rc.20', features = ['sqlx-postgres', 'runtime-tokio-rustls', 'macros', 'with-uuid', 'with-chrono', 'mock', 'debug-print', 'with-json'] }
+sea-orm-migration = { version = '2.0.0-rc.20', features = ['sqlx-postgres', 'runtime-tokio-rustls'] }
 sea_orm_resource = { path = 'libs/core/proc_macros/sea_orm_resource' }
 selectable_fields = { path = 'libs/core/proc_macros/selectable_fields' }
 serde = { version = '1.0', features = ['derive'] }
@@ -79,8 +78,8 @@ strum = { version = '0.27', features = ['derive'] }
 syn = { version = '2.0', features = ['full', 'extra-traits', 'visit'] }
 tabled = '0.20'
 test-utils = { path = 'libs/testing/test-utils' }
-testcontainers = '0.25'
-testcontainers-modules = { version = '0.13', features = ['postgres', 'mongo', 'redis'] }
+testcontainers = '0.26'
+testcontainers-modules = { version = '0.14', features = ['postgres', 'mongo', 'redis'] }
 thiserror = '2.0'
 tokio = { version = '1.48', features = ['full'] }
 tokio-stream = { version = '0.1', features = ['sync'] }

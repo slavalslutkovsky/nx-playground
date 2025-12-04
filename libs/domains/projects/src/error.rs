@@ -42,7 +42,7 @@ impl From<ProjectError> for AppError {
 
 impl IntoResponse for ProjectError {
     fn into_response(self) -> Response {
-        // Convert to AppError for standardized error response format
+        // Convert to AppError for the standardized error response format
         let app_error: AppError = self.into();
         app_error.into_response()
     }

@@ -26,7 +26,6 @@ pub struct Story {
 fn test_basic_user() {
     assert_eq!(User::COLLECTION, "users");
     assert_eq!(User::URL, "/user");
-    assert_eq!(User::API_URL, "/api/user");
     assert_eq!(User::TAG, "Users");
 }
 
@@ -34,7 +33,6 @@ fn test_basic_user() {
 fn test_custom_attributes() {
     assert_eq!(Person::COLLECTION, "people");
     assert_eq!(Person::URL, "/api/users");
-    assert_eq!(Person::API_URL, "/api/api/users"); // Note: double /api since URL already has it
     assert_eq!(Person::TAG, "User Management");
 }
 

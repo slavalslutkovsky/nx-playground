@@ -1,6 +1,9 @@
+pub mod codes;
 pub mod handlers;
 pub mod messages;
 pub mod responses;
+
+pub use codes::ErrorCode;
 
 use axum::{
     extract::rejection::JsonRejection,
@@ -17,15 +20,35 @@ use uuid::Error as UuidError;
 use validator::ValidationErrors;
 
 /// Standard error response structure.
+///
+/// This structure is returned for all error responses, providing consistent
+/// error information to clients including
+/// - `code`: Integer error code for logging/monitoring (e.g., 1008)
+/// - `error`: Machine-readable error identifier (e.g., "CONFLICT")
+/// - `message`: Human-readable error message
+/// - `details`: Optional additional error details (e.g., validation errors)
+///
+/// # JSON Example
+///
+/// ```json
+/// {
+///   "code": 1008,
+///   "error": "CONFLICT",
+///   "message": "Resource already exists",
+///   "details": null
+/// }
+/// ```
 #[derive(Serialize, ToSchema)]
 pub struct ErrorResponse {
+    /// Integer error code for logging and monitoring
+    pub code: i32,
+    /// Machine-readable error identifier for programmatic handling
     pub error: String,
+    /// Human-readable error message
     pub message: String,
+    /// Optional structured error details (e.g., validation field errors)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<serde_json::Value>,
-    /// Custom error code for debugging and monitoring
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub code: Option<i32>,
 }
 
 /// Application error type that can be converted to HTTP responses.
@@ -83,49 +106,49 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let (status, error_type, message, details, code) = match self {
+        let (status, _error_type, message, details, code) = match self {
             AppError::SerdeJson(e) => {
                 tracing::error!(
-                    error_code = messages::CODE_SERDE_JSON,
+                    error_code = ErrorCode::SerdeJsonError.code(),
                     "JSON parsing error: {:?}",
                     e
                 );
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "InternalServerError",
-                    messages::INVALID_JSON.to_string(),
+                    ErrorCode::SerdeJsonError.default_message().to_string(),
                     None,
-                    messages::CODE_SERDE_JSON,
+                    ErrorCode::SerdeJsonError,
                 )
             }
             AppError::Database(e) => map_sqlx_error(&e),
             AppError::Migration(e) => {
                 tracing::error!(
-                    error_code = messages::CODE_MIGRATION,
+                    error_code = ErrorCode::MigrationError.code(),
                     "Database migration error: {:?}",
                     e
                 );
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "InternalServerError",
-                    messages::DB_MIGRATION_ERROR.to_string(),
+                    ErrorCode::MigrationError.default_message().to_string(),
                     None,
-                    messages::CODE_MIGRATION,
+                    ErrorCode::MigrationError,
                 )
             }
             AppError::Io(e) => {
-                tracing::error!(error_code = messages::CODE_IO, "I/O error: {:?}", e);
+                tracing::error!(error_code = ErrorCode::IoError.code(), "I/O error: {:?}", e);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "InternalServerError",
-                    messages::INTERNAL_ERROR.to_string(),
+                    ErrorCode::IoError.default_message().to_string(),
                     None,
-                    messages::CODE_IO,
+                    ErrorCode::IoError,
                 )
             }
             AppError::JsonExtractorRejection(e) => {
                 tracing::warn!(
-                    error_code = messages::CODE_JSON_EXTRACTION,
+                    error_code = ErrorCode::JsonExtraction.code(),
                     "JSON extraction error: {:?}",
                     e
                 );
@@ -134,31 +157,35 @@ impl IntoResponse for AppError {
                     "BadRequest",
                     e.body_text(),
                     None,
-                    messages::CODE_JSON_EXTRACTION,
+                    ErrorCode::JsonExtraction,
                 )
             }
             AppError::ValidationError(e) => {
                 tracing::info!(
-                    error_code = messages::CODE_VALIDATION,
+                    error_code = ErrorCode::ValidationError.code(),
                     "Validation error: {:?}",
                     e
                 );
                 (
                     StatusCode::BAD_REQUEST,
                     "BadRequest",
-                    messages::VALIDATION_FAILED.to_string(),
+                    ErrorCode::ValidationError.default_message().to_string(),
                     Some(serde_json::to_value(&e).unwrap_or(serde_json::json!(null))),
-                    messages::CODE_VALIDATION,
+                    ErrorCode::ValidationError,
                 )
             }
             AppError::UuidError(e) => {
-                tracing::warn!(error_code = messages::CODE_UUID, "UUID error: {:?}", e);
+                tracing::warn!(
+                    error_code = ErrorCode::InvalidUuid.code(),
+                    "UUID error: {:?}",
+                    e
+                );
                 (
                     StatusCode::BAD_REQUEST,
                     "BadRequest",
-                    messages::INVALID_UUID.to_string(),
+                    ErrorCode::InvalidUuid.default_message().to_string(),
                     None,
-                    messages::CODE_UUID,
+                    ErrorCode::InvalidUuid,
                 )
             }
             AppError::BadRequest(msg) => {
@@ -168,7 +195,7 @@ impl IntoResponse for AppError {
                     "BadRequest",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::InternalError,
                 )
             }
             AppError::Unauthorized(msg) => {
@@ -178,7 +205,7 @@ impl IntoResponse for AppError {
                     "Unauthorized",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::Unauthorized,
                 )
             }
             AppError::Forbidden(msg) => {
@@ -188,17 +215,21 @@ impl IntoResponse for AppError {
                     "Forbidden",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::Forbidden,
                 )
             }
             AppError::NotFound(msg) => {
-                tracing::info!(error_code = messages::CODE_NOT_FOUND, "Not found: {}", msg);
+                tracing::info!(
+                    error_code = ErrorCode::NotFound.code(),
+                    "Not found: {}",
+                    msg
+                );
                 (
                     StatusCode::NOT_FOUND,
                     "NotFound",
                     msg,
                     None,
-                    messages::CODE_NOT_FOUND,
+                    ErrorCode::NotFound,
                 )
             }
             AppError::Conflict(msg) => {
@@ -208,7 +239,7 @@ impl IntoResponse for AppError {
                     "Conflict",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::Conflict,
                 )
             }
             AppError::UnprocessableEntity(msg) => {
@@ -218,12 +249,12 @@ impl IntoResponse for AppError {
                     "UnprocessableEntity",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::UnprocessableEntity,
                 )
             }
             AppError::InternalServerError(msg) => {
                 tracing::error!(
-                    error_code = messages::CODE_INTERNAL,
+                    error_code = ErrorCode::InternalError.code(),
                     "Internal server error: {}",
                     msg
                 );
@@ -232,7 +263,7 @@ impl IntoResponse for AppError {
                     "InternalServerError",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::InternalError,
                 )
             }
             AppError::ServiceUnavailable(msg) => {
@@ -242,16 +273,16 @@ impl IntoResponse for AppError {
                     "ServiceUnavailable",
                     msg,
                     None,
-                    messages::CODE_INTERNAL,
+                    ErrorCode::ServiceUnavailable,
                 )
             }
         };
 
         let body = Json(ErrorResponse {
-            error: error_type.to_string(),
+            code: code.code(),
+            error: code.as_str().to_string(),
             message,
             details,
-            code: Some(code),
         });
 
         (status, body).into_response()
@@ -269,109 +300,111 @@ fn map_sqlx_error(
     &'static str,
     String,
     Option<serde_json::Value>,
-    i32,
+    ErrorCode,
 ) {
     match error {
         SqlxError::RowNotFound => {
             tracing::info!(
-                error_code = messages::CODE_SQLX_NOT_FOUND,
+                error_code = ErrorCode::DatabaseNotFound.code(),
                 "Database row not found"
             );
             (
                 StatusCode::NOT_FOUND,
                 "NotFound",
-                messages::NOT_FOUND_RESOURCE.to_string(),
+                ErrorCode::DatabaseNotFound.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_NOT_FOUND,
+                ErrorCode::DatabaseNotFound,
             )
         }
         SqlxError::Configuration(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_CONFIG,
+                error_code = ErrorCode::DatabaseConfig.code(),
                 "Database configuration error: {:?}",
                 e
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_CONFIG_ERROR.to_string(),
+                ErrorCode::DatabaseConfig.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_CONFIG,
+                ErrorCode::DatabaseConfig,
             )
         }
         SqlxError::Database(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_DATABASE,
+                error_code = ErrorCode::DatabaseError.code(),
                 "Database error: {:?}",
                 e
             );
             (
                 StatusCode::BAD_GATEWAY,
                 "BadGateway",
-                messages::DB_ERROR.to_string(),
+                ErrorCode::DatabaseError.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_DATABASE,
+                ErrorCode::DatabaseError,
             )
         }
         SqlxError::Io(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_IO,
+                error_code = ErrorCode::DatabaseIo.code(),
                 "Database I/O error: {:?}",
                 e
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_IO_ERROR.to_string(),
+                ErrorCode::DatabaseIo.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_IO,
+                ErrorCode::DatabaseIo,
             )
         }
         SqlxError::Tls(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_TLS,
+                error_code = ErrorCode::DatabaseTls.code(),
                 "Database TLS error: {:?}",
                 e
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_TLS_ERROR.to_string(),
+                ErrorCode::DatabaseTls.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_TLS,
+                ErrorCode::DatabaseTls,
             )
         }
         SqlxError::Protocol(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_PROTOCOL,
+                error_code = ErrorCode::DatabaseProtocol.code(),
                 "Database protocol error: {:?}",
                 e
             );
             (
                 StatusCode::BAD_GATEWAY,
                 "BadGateway",
-                messages::DB_PROTOCOL_ERROR.to_string(),
+                ErrorCode::DatabaseProtocol.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_PROTOCOL,
+                ErrorCode::DatabaseProtocol,
             )
         }
         SqlxError::TypeNotFound { type_name } => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_TYPE_NOT_FOUND,
+                error_code = ErrorCode::DatabaseTypeNotFound.code(),
                 "Database type not found: type_name={}",
                 type_name
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_TYPE_NOT_FOUND.to_string(),
+                ErrorCode::DatabaseTypeNotFound
+                    .default_message()
+                    .to_string(),
                 None,
-                messages::CODE_SQLX_TYPE_NOT_FOUND,
+                ErrorCode::DatabaseTypeNotFound,
             )
         }
         SqlxError::ColumnIndexOutOfBounds { index, len } => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_COLUMN_INDEX,
+                error_code = ErrorCode::DatabaseColumnIndex.code(),
                 "Database column index out of bounds: index={}, len={}",
                 index,
                 len
@@ -379,149 +412,161 @@ fn map_sqlx_error(
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_INTERNAL_ERROR.to_string(),
+                ErrorCode::DatabaseColumnIndex.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_COLUMN_INDEX,
+                ErrorCode::DatabaseColumnIndex,
             )
         }
         SqlxError::ColumnNotFound(column) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_COLUMN_NOT_FOUND,
+                error_code = ErrorCode::DatabaseColumnNotFound.code(),
                 "Database column not found: {}",
                 column
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_INTERNAL_ERROR.to_string(),
+                ErrorCode::DatabaseColumnNotFound
+                    .default_message()
+                    .to_string(),
                 None,
-                messages::CODE_SQLX_COLUMN_NOT_FOUND,
+                ErrorCode::DatabaseColumnNotFound,
             )
         }
         SqlxError::Decode(e) => {
             tracing::warn!(
-                error_code = messages::CODE_SQLX_DECODE,
+                error_code = ErrorCode::DatabaseDecode.code(),
                 "Database decode error: {:?}",
                 e
             );
             (
                 StatusCode::BAD_REQUEST,
                 "BadRequest",
-                messages::DB_DECODE_ERROR.to_string(),
+                ErrorCode::DatabaseDecode.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_DECODE,
+                ErrorCode::DatabaseDecode,
             )
         }
         SqlxError::Encode(e) => {
             tracing::warn!(
-                error_code = messages::CODE_SQLX_ENCODE,
+                error_code = ErrorCode::DatabaseEncode.code(),
                 "Database encode error: {:?}",
                 e
             );
             (
                 StatusCode::BAD_REQUEST,
                 "BadRequest",
-                messages::DB_ENCODE_ERROR.to_string(),
+                ErrorCode::DatabaseEncode.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_ENCODE,
+                ErrorCode::DatabaseEncode,
             )
         }
         SqlxError::AnyDriverError(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_DRIVER,
+                error_code = ErrorCode::DatabaseDriver.code(),
                 "Database driver error: {:?}",
                 e
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_DRIVER_ERROR.to_string(),
+                ErrorCode::DatabaseDriver.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_DRIVER,
+                ErrorCode::DatabaseDriver,
             )
         }
         SqlxError::PoolTimedOut => {
             tracing::warn!(
-                error_code = messages::CODE_SQLX_POOL_TIMEOUT,
+                error_code = ErrorCode::DatabasePoolTimeout.code(),
                 "Database connection pool timed out"
             );
             (
                 StatusCode::SERVICE_UNAVAILABLE,
                 "ServiceUnavailable",
-                messages::DB_POOL_TIMEOUT.to_string(),
+                ErrorCode::DatabasePoolTimeout.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_POOL_TIMEOUT,
+                ErrorCode::DatabasePoolTimeout,
             )
         }
         SqlxError::PoolClosed => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_POOL_CLOSED,
+                error_code = ErrorCode::DatabasePoolClosed.code(),
                 "Database connection pool has been closed"
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_POOL_CLOSED.to_string(),
+                ErrorCode::DatabasePoolClosed.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_POOL_CLOSED,
+                ErrorCode::DatabasePoolClosed,
             )
         }
         SqlxError::WorkerCrashed => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_WORKER_CRASHED,
+                error_code = ErrorCode::DatabaseWorkerCrashed.code(),
                 "Database connection pool worker crashed"
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_WORKER_CRASHED.to_string(),
+                ErrorCode::DatabaseWorkerCrashed
+                    .default_message()
+                    .to_string(),
                 None,
-                messages::CODE_SQLX_WORKER_CRASHED,
+                ErrorCode::DatabaseWorkerCrashed,
             )
         }
         SqlxError::Migrate(e) => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_MIGRATE,
+                error_code = ErrorCode::DatabaseMigration.code(),
                 "Database migration error: {:?}",
                 e
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_MIGRATION_ERROR.to_string(),
+                ErrorCode::DatabaseMigration.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_MIGRATE,
+                ErrorCode::DatabaseMigration,
             )
         }
         _ => {
             tracing::error!(
-                error_code = messages::CODE_SQLX_UNHANDLED,
+                error_code = ErrorCode::DatabaseUnhandled.code(),
                 "Unhandled database error: {:?}",
                 error
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "InternalServerError",
-                messages::DB_ERROR.to_string(),
+                ErrorCode::DatabaseUnhandled.default_message().to_string(),
                 None,
-                messages::CODE_SQLX_UNHANDLED,
+                ErrorCode::DatabaseUnhandled,
             )
         }
     }
 }
 
 /// Helper function to create error responses.
-pub fn error_response(
-    status: StatusCode,
-    error: &str,
-    message: String,
-    code: Option<i32>,
-) -> Response {
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use axum_helpers::errors::{error_response, ErrorCode};
+/// use axum::http::StatusCode;
+///
+/// let response = error_response(
+///     StatusCode::BAD_REQUEST,
+///     "Invalid input".to_string(),
+///     ErrorCode::ValidationError,
+/// );
+/// ```
+pub fn error_response(status: StatusCode, message: String, error_code: ErrorCode) -> Response {
     let body = Json(ErrorResponse {
-        error: error.to_string(),
+        code: error_code.code(),
+        error: error_code.as_str().to_string(),
         message,
         details: None,
-        code,
     });
 
     (status, body).into_response()
