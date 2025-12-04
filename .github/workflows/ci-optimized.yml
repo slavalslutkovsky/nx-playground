@@ -39,11 +39,11 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      # Cache Rust dependencies and custom target directory in GitHub Actions cache
+      # Cache Rust dependencies in GitHub Actions cache (NOT build artifacts - sccache handles those)
       - uses: Swatinem/rust-cache@v2
         with:
           cache-all-crates: true
-          cache-directories: "dist/target"
+          save-if: false  # Don't save target/ dirs - let sccache handle compilation cache
 
       - uses: oven-sh/setup-bun@v2
         with:
