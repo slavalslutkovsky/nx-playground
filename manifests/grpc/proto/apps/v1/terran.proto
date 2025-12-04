@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package terran.v1;
+
+option go_package = "grpc/terran/v1";
+
+service TerranService {
+  rpc Healthcheck(HealthcheckRequest) returns (HealthcheckResponse) {}
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {}
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {}
+  rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
+  rpc StreamProjects(StreamProjectsRequest) returns (stream ProjectStreamResponse) {}
+}
+
+message HealthcheckRequest {}
+
+message HealthcheckResponse {
+  string status = 1;
+  string version = 2;
+  int64 timestamp = 3;
+}
+
+message Project {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string status = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message ListProjectsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string filter = 3;
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetProjectRequest {
+  string id = 1;
+}
+
+message GetProjectResponse {
+  Project project = 1;
+}
+
+message CreateProjectRequest {
+  string name = 1;
+  string description = 2;
+  string status = 3;
+}
+
+message CreateProjectResponse {
+  Project project = 1;
+}
+
+message UpdateProjectRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string status = 4;
+}
+
+message UpdateProjectResponse {
+  Project project = 1;
+}
+
+message DeleteProjectRequest {
+  string id = 1;
+}
+
+message DeleteProjectResponse {
+  bool success = 1;
+}
+
+message StreamProjectsRequest {
+  string filter = 1;
+}
+
+message ProjectStreamResponse {
+  Project project = 1;
+}
+
+service CodeGraphService {
+  rpc InitGraph(InitGraphRequest) returns (InitGraphResponse) {}
+  rpc ScanWorkspace(ScanWorkspaceRequest) returns (stream ScanProgressResponse) {}
+  rpc ClearGraph(ClearGraphRequest) returns (ClearGraphResponse) {}
+  rpc QueryGraph(QueryGraphRequest) returns (QueryGraphResponse) {}
+  rpc GetGraphStats(GetGraphStatsRequest) returns (GetGraphStatsResponse) {}
+}
+
+message InitGraphRequest {}
+
+message InitGraphResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ScanWorkspaceRequest {
+  string workspace_path = 1;
+}
+
+message ScanProgressResponse {
+  string stage = 1;
+  int32 current = 2;
+  int32 total = 3;
+  string message = 4;
+}
+
+message ClearGraphRequest {}
+
+message ClearGraphResponse {
+  bool success = 1;
+  int32 nodes_deleted = 2;
+  int32 relationships_deleted = 3;
+}
+
+message QueryGraphRequest {
+  string cypher_query = 1;
+}
+
+message QueryGraphResponse {
+  string result = 1;
+}
+
+message GetGraphStatsRequest {}
+
+message GetGraphStatsResponse {
+  int32 total_projects = 1;
+  int32 total_files = 2;
+  int32 total_functions = 3;
+  int32 total_structs = 4;
+  int32 total_traits = 5;
+}

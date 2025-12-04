@@ -61,6 +61,78 @@ Nx Console is an editor extension that enriches your developer experience. It le
 
 [Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
+## Project Setup
+
+### Environment Variables
+
+This project uses `direnv` for automatic environment variable loading.
+
+**Setup:**
+```bash
+# 1. Install direnv
+brew install direnv  # macOS
+# or
+apt install direnv   # Ubuntu/Debian
+
+# 2. Add to your shell (~/.zshrc or ~/.bashrc)
+eval "$(direnv hook zsh)"  # or bash
+
+# 3. Copy environment template
+cp .env.example .env
+
+# 4. Edit .env with your actual values
+vim .env
+
+# 5. Allow direnv
+direnv allow
+```
+
+Now environment variables automatically load when you `cd` into the project!
+
+### Database Migrations
+
+This project uses [SeaORM](https://www.sea-ql.org/SeaORM/) with `sea-orm-cli` for database migrations.
+
+**Quick Start:**
+```bash
+# Install sea-orm-cli
+cargo install sea-orm-cli
+
+# Run migrations (with direnv setup)
+sea-orm-cli migrate up
+
+# Or without direnv
+DATABASE_URL=postgres://user:pass@localhost/db \
+  sea-orm-cli migrate -d libs/migration up
+```
+
+**Common Commands:**
+```bash
+sea-orm-cli migrate up              # Run pending migrations
+sea-orm-cli migrate down            # Rollback last migration
+sea-orm-cli migrate status          # Check migration status
+sea-orm-cli migrate fresh           # Drop all & re-run (dev only!)
+```
+
+**Create New Migration:**
+```bash
+cd libs/migration
+sea-orm-cli migrate -d . generate <migration_name>
+```
+
+For complete documentation, see [libs/migration/README.md](libs/migration/README.md)
+
+### Running the API
+
+```bash
+# Development (with auto-migration)
+RUN_MIGRATIONS=true cargo run -p zerg_api
+
+# Production (run migrations separately first)
+sea-orm-cli migrate up
+cargo run -p zerg_api
+```
+
 ## Useful links
 
 Learn more:

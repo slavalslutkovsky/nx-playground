@@ -1,0 +1,289 @@
+use std::sync::Arc;
+use tracing::instrument;
+use uuid::Uuid;
+use validator::Validate;
+
+use crate::error::{ProjectError, ProjectResult};
+use crate::models::{CreateProject, Project, ProjectFilter, ProjectStatus, UpdateProject};
+use crate::repository::ProjectRepository;
+
+/// Service layer for Project business logic
+#[derive(Clone)]
+pub struct ProjectService<R: ProjectRepository> {
+    repository: Arc<R>,
+}
+
+impl<R: ProjectRepository> ProjectService<R> {
+    pub fn new(repository: R) -> Self {
+        Self {
+            repository: Arc::new(repository),
+        }
+    }
+
+    /// Create a new project with validation and limit checking
+    #[instrument(skip(self, input), fields(user_id = %input.user_id, project_name = %input.name))]
+    pub async fn create_project(&self, input: CreateProject) -> ProjectResult<Project> {
+        // Validate input
+        input
+            .validate()
+            .map_err(|e| ProjectError::Validation(e.to_string()))?;
+
+        // Check if the user can create more projects
+        if !self.can_user_create_project(input.user_id).await? {
+            return Err(ProjectError::Validation(
+                "Free tier limit reached: maximum 3 projects per user".to_string(),
+            ));
+        }
+
+        self.repository.create(input).await
+    }
+
+    /// Check if a user can create more projects (free tier: 3 projects max)
+    #[instrument(skip(self), fields(user_id = %user_id))]
+    pub async fn can_user_create_project(&self, user_id: Uuid) -> ProjectResult<bool> {
+        const FREE_TIER_LIMIT: usize = 3;
+
+        let count = self.repository.count_by_user(user_id).await?;
+        Ok(count < FREE_TIER_LIMIT)
+    }
+
+    /// Get a project by ID
+    #[instrument(skip(self), fields(project_id = %id))]
+    pub async fn get_project(&self, id: Uuid) -> ProjectResult<Project> {
+        self.repository
+            .get_by_id(id)
+            .await?
+            .ok_or(ProjectError::NotFound(id))
+    }
+
+    /// Get a project by ID, verifying user ownership
+    pub async fn get_project_for_user(&self, id: Uuid, user_id: Uuid) -> ProjectResult<Project> {
+        let project = self.get_project(id).await?;
+
+        if project.user_id != user_id {
+            return Err(ProjectError::Unauthorized(id));
+        }
+
+        Ok(project)
+    }
+
+    /// List projects with filters
+    pub async fn list_projects(&self, filter: ProjectFilter) -> ProjectResult<Vec<Project>> {
+        self.repository.list(filter).await
+    }
+
+    /// Update a project
+    #[instrument(skip(self, input), fields(project_id = %id))]
+    pub async fn update_project(&self, id: Uuid, input: UpdateProject) -> ProjectResult<Project> {
+        // Validate input
+        input
+            .validate()
+            .map_err(|e| ProjectError::Validation(e.to_string()))?;
+
+        self.repository.update(id, input).await
+    }
+
+    /// Update a project, verifying user ownership
+    pub async fn update_project_for_user(
+        &self,
+        id: Uuid,
+        user_id: Uuid,
+        input: UpdateProject,
+    ) -> ProjectResult<Project> {
+        let project = self.get_project(id).await?;
+
+        if project.user_id != user_id {
+            return Err(ProjectError::Unauthorized(id));
+        }
+
+        self.update_project(id, input).await
+    }
+
+    /// Delete a project
+    #[instrument(skip(self), fields(project_id = %id))]
+    pub async fn delete_project(&self, id: Uuid) -> ProjectResult<()> {
+        let deleted = self.repository.delete(id).await?;
+
+        if !deleted {
+            return Err(ProjectError::NotFound(id));
+        }
+
+        Ok(())
+    }
+
+    /// Delete a project, verifying user ownership
+    pub async fn delete_project_for_user(&self, id: Uuid, user_id: Uuid) -> ProjectResult<()> {
+        let project = self.get_project(id).await?;
+
+        if project.user_id != user_id {
+            return Err(ProjectError::Unauthorized(id));
+        }
+
+        self.delete_project(id).await
+    }
+
+    /// Activate a project (change status to Active)
+    pub async fn activate_project(&self, id: Uuid) -> ProjectResult<Project> {
+        let project = self.get_project(id).await?;
+
+        if project.status == ProjectStatus::Active {
+            return Ok(project);
+        }
+
+        if project.status == ProjectStatus::Deleting {
+            return Err(ProjectError::Validation(
+                "Cannot activate a project being deleted".to_string(),
+            ));
+        }
+
+        self.repository
+            .update(
+                id,
+                UpdateProject {
+                    status: Some(ProjectStatus::Active),
+                    ..Default::default()
+                },
+            )
+            .await
+    }
+
+    /// Suspend a project
+    pub async fn suspend_project(&self, id: Uuid) -> ProjectResult<Project> {
+        let project = self.get_project(id).await?;
+
+        if project.status == ProjectStatus::Suspended {
+            return Ok(project);
+        }
+
+        if project.status != ProjectStatus::Active {
+            return Err(ProjectError::Validation(
+                "Only active projects can be suspended".to_string(),
+            ));
+        }
+
+        self.repository
+            .update(
+                id,
+                UpdateProject {
+                    status: Some(ProjectStatus::Suspended),
+                    ..Default::default()
+                },
+            )
+            .await
+    }
+
+    /// Archive a project
+    pub async fn archive_project(&self, id: Uuid) -> ProjectResult<Project> {
+        self.repository
+            .update(
+                id,
+                UpdateProject {
+                    status: Some(ProjectStatus::Archived),
+                    enabled: Some(false),
+                    ..Default::default()
+                },
+            )
+            .await
+    }
+}
+
+impl Default for UpdateProject {
+    fn default() -> Self {
+        Self {
+            name: None,
+            description: None,
+            region: None,
+            environment: None,
+            status: None,
+            budget_limit: None,
+            tags: None,
+            enabled: None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::repository::MockProjectRepository;
+
+    #[tokio::test]
+    async fn test_can_create_project_when_under_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::now_v7();
+
+        // Mock: user has 2 projects (under the 3-project limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(2));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(
+            can_create,
+            "User with 2 projects should be able to create more"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_cannot_create_project_when_at_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::now_v7();
+
+        // Mock: user has 3 projects (at the limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(3));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(
+            !can_create,
+            "User with 3 projects should not be able to create more"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_cannot_create_project_when_over_limit() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::now_v7();
+
+        // Mock: user has 5 projects (over the limit)
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(5));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(
+            !can_create,
+            "User with 5 projects should not be able to create more"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_can_create_first_project() {
+        let mut mock_repo = MockProjectRepository::new();
+        let user_id = Uuid::now_v7();
+
+        // Mock: user has 0 projects
+        mock_repo
+            .expect_count_by_user()
+            .with(mockall::predicate::eq(user_id))
+            .returning(|_| Ok(0));
+
+        let service = ProjectService::new(mock_repo);
+        let can_create = service.can_user_create_project(user_id).await.unwrap();
+
+        assert!(
+            can_create,
+            "User with 0 projects should be able to create their first"
+        );
+    }
+}

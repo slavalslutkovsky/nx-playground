@@ -1,0 +1,12 @@
+version: v2
+managed:
+  enabled: true
+plugins:
+  # Rust - prost for message types
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: ../../libs/rpc/src/gen
+  # Rust - tonic for gRPC client/server
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+    out: ../../libs/rpc/src/gen
+inputs:
+  - directory: proto

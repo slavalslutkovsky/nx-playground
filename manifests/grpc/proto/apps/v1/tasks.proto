@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package tasks;
+
+option go_package = "grpc/tasks";
+
+// Declare a service for each controller you have
+service TasksService {
+  // Declare an rpc for each method that is called via gRPC
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  //  my get user method
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
+  rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {}
+  rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
+}
+
+message GetByIdResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string completed = 4;
+}
+
+message UpdateByIdResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string completed = 4;
+}
+
+message ListStreamResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string completed = 4;
+}
+message ListStreamRequest {
+  string limit = 1;
+  repeated string projection = 2;
+}
+
+message ListRequest {
+  string limit = 1;
+  repeated string projection = 2;
+}
+
+message UpdateByIdRequest {
+  string id = 1;
+}
+
+message DeleteByIdResponse {}
+message DeleteByIdRequest {
+  string id = 1;
+}
+
+message GetByIdRequest {
+  string id = 1;
+  repeated string projection = 2;
+}
+
+message CreateRequest {
+  string title = 1;
+  string description = 2;
+  string completed = 3;
+}
+
+message CreateResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string completed = 4;
+}
+
+message ListResponse {
+  repeated CreateResponse data = 1;
+}

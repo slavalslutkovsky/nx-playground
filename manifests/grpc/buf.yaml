@@ -1,0 +1,21 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+modules:
+  - path: ./proto
+lint:
+  use:
+    - STANDARD
+  except:
+    # Allow multiple packages in same directory (flexible structure)
+    - PACKAGE_DIRECTORY_MATCH
+    - DIRECTORY_SAME_PACKAGE
+    # Allow packages without version suffix
+    - PACKAGE_VERSION_SUFFIX
+    # Allow flexible RPC response naming
+    - RPC_RESPONSE_STANDARD_NAME
+  ignore:
+    - grpc/proto/google/type/datetime.proto
+    - grpc/proto/commons.proto
+breaking:
+  use:
+    - FILE

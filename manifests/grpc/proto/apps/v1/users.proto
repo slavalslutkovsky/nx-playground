@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package users;
+
+option go_package = "grpc/users";
+
+service UserService {
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
+  rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {}
+  rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
+}
+
+// User response message - matches SQL schema
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string roles = 4;
+  bool email_verified = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// Create
+message CreateRequest {
+  string email = 1;
+  string name = 2;
+  string password = 3; // Plain password, will be hashed server-side
+  repeated string roles = 4;
+}
+
+message CreateResponse {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string roles = 4;
+  bool email_verified = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// GetById
+message GetByIdRequest {
+  string id = 1;
+  repeated string projection = 2;
+}
+
+message GetByIdResponse {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string roles = 4;
+  bool email_verified = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// DeleteById
+message DeleteByIdRequest {
+  string id = 1;
+}
+
+message DeleteByIdResponse {}
+
+// UpdateById
+message UpdateByIdRequest {
+  string id = 1;
+  optional string email = 2;
+  optional string name = 3;
+  optional string password = 4; // Plain password, will be hashed server-side
+  repeated string roles = 5;
+  optional bool email_verified = 6;
+}
+
+message UpdateByIdResponse {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string roles = 4;
+  bool email_verified = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// List
+message ListRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  repeated string projection = 3;
+}
+
+message ListResponse {
+  repeated User data = 1;
+  int32 total = 2;
+}
+
+// ListStream
+message ListStreamRequest {
+  int32 limit = 1;
+  repeated string projection = 2;
+}
+
+message ListStreamResponse {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string roles = 4;
+  bool email_verified = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
