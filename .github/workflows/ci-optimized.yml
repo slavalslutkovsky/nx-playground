@@ -59,16 +59,6 @@ jobs:
 
       - run: bun install --no-cache
 
-      # Test sccache with direct cargo (bypass nx to isolate the issue)
-      - name: Test sccache with direct cargo build
-        run: |
-          echo "::group::Direct cargo build test"
-          cargo build -p zerg_api --release
-          echo "::endgroup::"
-          echo "::group::sccache stats after direct build"
-          sccache --show-stats
-          echo "::endgroup::"
-
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: bun nx-cloud record -- echo Hello World
       - run: bun nx run-many -t lint test build
