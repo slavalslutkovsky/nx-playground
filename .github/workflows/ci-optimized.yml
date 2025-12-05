@@ -15,9 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: 0        # Disable incremental compilation in CI
+      RUSTC_WRAPPER: sccache      # Explicitly set wrapper
       SCCACHE_GCS_BUCKET: ${{ vars.SCCACHE_GCS_BUCKET }}
       SCCACHE_GCS_RW_MODE: READ_WRITE
       SCCACHE_GCS_KEY_PREFIX: sccache
+      SCCACHE_LOG: debug          # Enable debug logging
     steps:
       - uses: actions/checkout@v4
         with:
