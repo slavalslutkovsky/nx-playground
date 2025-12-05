@@ -59,8 +59,25 @@ jobs:
 
       - run: bun install --no-cache
 
+      # Free up disk space before building
+      - name: Clean up disk space
+        run: |
+          df -h
+          rm -rf dist/target
+          docker system prune -af || true
+          df -h
+
       # Run nx affected for remaining tasks (lint, test, etc.)
       - run: bun nx run-many -t lint test build
+
+      # Clean up build artifacts to free space
+      - name: Clean up after build
+        if: always()
+        run: |
+          df -h
+          du -sh dist/target 2>/dev/null || true
+          rm -rf dist/target
+          df -h
 
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
       - run: bun nx fix-ci
