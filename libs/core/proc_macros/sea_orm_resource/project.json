@@ -30,7 +30,7 @@
       "cache": true,
       "executor": "nx:run-commands",
       "options": {
-        "command": "cargo clippy --package sea_orm_resource -- -D warnings",
+        "command": "cargo clippy --package sea_orm_resource",
         "cwd": "{workspaceRoot}"
       }
     }

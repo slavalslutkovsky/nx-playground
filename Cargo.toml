@@ -22,7 +22,7 @@ members = [
 
 [workspace.dependencies]
 api_resource = { path = 'libs/core/proc_macros/api_resource' }
-argon2 = '0.5'
+argon2 = { version = '0.5', features = ['std'] }
 async-stream = '0.3'
 async-trait = '0.1'
 axum = { version = '0.8', features = ['default', 'tracing', 'ws'] }

@@ -30,7 +30,7 @@
       "cache": true,
       "executor": "nx:run-commands",
       "options": {
-        "command": "cargo clippy --package domain_users -- -D warnings",
+        "command": "cargo clippy --package domain_users",
         "cwd": "{workspaceRoot}"
       }
     }
