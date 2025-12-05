@@ -22,6 +22,18 @@ jobs:
       SCCACHE_GCS_KEY_PREFIX: sccache
       SCCACHE_LOG: error          # Only show errors
     steps:
+      # Free up disk space FIRST - remove unused software
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -67,7 +79,7 @@ jobs:
           docker system prune -af || true
           df -h
 
-      # Run nx affected for remaining tasks (lint, test, etc.)
+      # Run nx for remaining tasks (lint, test, etc.)
       - run: bun nx run-many -t lint test build
 
       # Clean up build artifacts to free space
