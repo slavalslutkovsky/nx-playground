@@ -32,10 +32,10 @@ jobs:
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-directories: "dist/target"
-          cache-all-crates: true
+#      - uses: Swatinem/rust-cache@v2
+#        with:
+#          cache-directories: "dist/target"
+#          cache-all-crates: true
       # Authenticate to GCP using a service account key
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
