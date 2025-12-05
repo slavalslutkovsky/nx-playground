@@ -31,21 +31,21 @@ jobs:
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
-      # Authenticate to GCP using a service account key
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      # Setup sccache for compiled artifacts (stored in GCS)
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.9
-
-      # Cache Rust dependencies in GitHub Actions cache (NOT build artifacts - sccache handles those)
       - uses: Swatinem/rust-cache@v2
         with:
+          cache-directories: "dist/target"
           cache-all-crates: true
-          save-if: false  # Don't save target/ dirs - let sccache handle compilation cache
+
+      # Authenticate to GCP using a service account key
+#      - name: Authenticate to Google Cloud
+#        uses: google-github-actions/auth@v3
+#        with:
+#          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Setup sccache for compiled artifacts (stored in GCS)
+#      - name: Setup sccache
+#        uses: mozilla-actions/sccache-action@v0.0.9
+
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -59,8 +59,7 @@ jobs:
 
       - run: bun install --no-cache
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: bun nx-cloud record -- echo Hello World
+      # Run nx affected for remaining tasks (lint, test, etc.)
       - run: bun nx run-many -t lint test build
 
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
