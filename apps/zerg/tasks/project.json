@@ -6,55 +6,48 @@
   "targets": {
     "build": {
       "cache": true,
-      "executor": "@monodon/rust:build",
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/zerg_tasks"
+        "command": "cargo build --package zerg_tasks",
+        "cwd": "{workspaceRoot}"
       },
       "configurations": {
         "production": {
-          "release": true
+          "command": "cargo build --package zerg_tasks --release"
         }
       }
     },
     "test": {
       "cache": true,
-      "executor": "@monodon/rust:test",
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/zerg_tasks"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
+        "command": "cargo test --package zerg_tasks",
+        "cwd": "{workspaceRoot}"
       }
     },
     "lint": {
       "cache": true,
-      "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/zerg_tasks"
+        "command": "cargo clippy --package zerg_tasks -- -D warnings",
+        "cwd": "{workspaceRoot}"
       }
     },
     "run": {
-      "executor": "@monodon/rust:run",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/zerg_tasks"
+        "command": "cargo run --package zerg_tasks",
+        "cwd": "{workspaceRoot}"
       },
       "configurations": {
         "production": {
-          "release": true
+          "command": "cargo run --package zerg_tasks --release"
         }
       }
     }

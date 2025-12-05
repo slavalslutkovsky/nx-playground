@@ -20,7 +20,7 @@ jobs:
       SCCACHE_GCS_BUCKET: ${{ vars.SCCACHE_GCS_BUCKET }}
       SCCACHE_GCS_RW_MODE: READ_WRITE
       SCCACHE_GCS_KEY_PREFIX: sccache
-      SCCACHE_LOG: debug          # Enable debug logging
+      SCCACHE_LOG: error          # Only show errors
     steps:
       - uses: actions/checkout@v4
         with:

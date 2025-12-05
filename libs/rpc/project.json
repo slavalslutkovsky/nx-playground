@@ -5,37 +5,33 @@
   "sourceRoot": "libs/rpc/src",
   "targets": {
     "build": {
-      "executor": "@monodon/rust:check",
+      "cache": true,
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/rpc"
+        "command": "cargo check --package rpc",
+        "cwd": "{workspaceRoot}"
       }
     },
     "test": {
       "cache": true,
-      "executor": "@monodon/rust:test",
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/rpc"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
+        "command": "cargo test --package rpc",
+        "cwd": "{workspaceRoot}"
       }
     },
     "lint": {
       "cache": true,
-      "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/rpc"
+        "command": "cargo clippy --package rpc -- -D warnings",
+        "cwd": "{workspaceRoot}"
       }
     }
   },

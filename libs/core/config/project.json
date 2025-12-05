@@ -5,37 +5,33 @@
   "sourceRoot": "libs/core/config/src",
   "targets": {
     "build": {
-      "executor": "@monodon/rust:check",
+      "cache": true,
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/core_config"
+        "command": "cargo check --package core_config",
+        "cwd": "{workspaceRoot}"
       }
     },
     "test": {
       "cache": true,
-      "executor": "@monodon/rust:test",
+      "executor": "nx:run-commands",
       "outputs": [
-        "{options.target-dir}"
+        "{workspaceRoot}/dist/target"
       ],
       "options": {
-        "target-dir": "dist/target/core_config"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
+        "command": "cargo test --package core_config",
+        "cwd": "{workspaceRoot}"
       }
     },
     "lint": {
       "cache": true,
-      "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
+      "executor": "nx:run-commands",
       "options": {
-        "target-dir": "dist/target/core_config"
+        "command": "cargo clippy --package core_config -- -D warnings",
+        "cwd": "{workspaceRoot}"
       }
     }
   },
