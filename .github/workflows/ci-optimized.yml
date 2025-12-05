@@ -23,21 +23,21 @@ jobs:
       SCCACHE_LOG: error          # Only show errors
     steps:
       # Free up disk space FIRST - remove unused software
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+#      - name: Free Disk Space
+#        uses: jlumbroso/free-disk-space@main
+#        with:
+#          tool-cache: false
+#          android: true
+#          dotnet: true
+#          haskell: true
+#          large-packages: true
+#          docker-images: true
+#          swap-storage: true
 
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          filter: tree:0
+#          filter: tree:0
 
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
@@ -61,13 +61,13 @@ jobs:
 
       - run: bun install --no-cache
 
-      # Free up disk space before linting
-      - name: Clean up disk space
-        run: |
-          df -h
-          rm -rf dist/target
-          docker system prune -af || true
-          df -h
+#      # Free up disk space before linting
+#      - name: Clean up disk space
+#        run: |
+#          df -h
+#          rm -rf dist/target
+#          docker system prune -af || true
+#          df -h
 
       # Run lint
       - run: bun nx run-many -t lint
@@ -91,17 +91,17 @@ jobs:
       SCCACHE_GCS_KEY_PREFIX: sccache
       SCCACHE_LOG: error          # Only show errors
     steps:
-      # Free up disk space FIRST - remove unused software
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+#      # Free up disk space FIRST - remove unused software
+#      - name: Free Disk Space
+#        uses: jlumbroso/free-disk-space@main
+#        with:
+#          tool-cache: false
+#          android: true
+#          dotnet: true
+#          haskell: true
+#          large-packages: true
+#          docker-images: true
+#          swap-storage: true
 
       - uses: actions/checkout@v4
         with:
@@ -130,12 +130,12 @@ jobs:
       - run: bun install --no-cache
 
       # Free up disk space before testing
-      - name: Clean up disk space
-        run: |
-          df -h
-          rm -rf dist/target
-          docker system prune -af || true
-          df -h
+#      - name: Clean up disk space
+#        run: |
+#          df -h
+#          rm -rf dist/target
+#          docker system prune -af || true
+#          df -h
 
       # Run tests
       - run: bun nx run-many -t test
@@ -160,16 +160,16 @@ jobs:
       SCCACHE_LOG: error          # Only show errors
     steps:
       # Free up disk space FIRST - remove unused software
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+#      - name: Free Disk Space
+#        uses: jlumbroso/free-disk-space@main
+#        with:
+#          tool-cache: false
+#          android: true
+#          dotnet: true
+#          haskell: true
+#          large-packages: true
+#          docker-images: true
+#          swap-storage: true
 
       - uses: actions/checkout@v4
         with:
@@ -198,12 +198,12 @@ jobs:
       - run: bun install --no-cache
 
       # Free up disk space before building
-      - name: Clean up disk space
-        run: |
-          df -h
-          rm -rf dist/target
-          docker system prune -af || true
-          df -h
+#      - name: Clean up disk space
+#        run: |
+#          df -h
+#          rm -rf dist/target
+#          docker system prune -af || true
+#          df -h
 
       # Run build
       - run: bun nx run-many -t build
