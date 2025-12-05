@@ -70,16 +70,16 @@ jobs:
 #          df -h
 
       # Run lint
-      - run: bun nx run-many -t lint
+      - run: bun nx affected -t lint
 
       # Clean up build artifacts to free space
-      - name: Clean up after lint
-        if: always()
-        run: |
-          df -h
-          du -sh dist/target 2>/dev/null || true
-          rm -rf dist/target
-          df -h
+#      - name: Clean up after lint
+#        if: always()
+#        run: |
+#          df -h
+#          du -sh dist/target 2>/dev/null || true
+#          rm -rf dist/target
+#          df -h
 
   test:
     runs-on: ubuntu-latest
@@ -138,16 +138,16 @@ jobs:
 #          df -h
 
       # Run tests
-      - run: bun nx run-many -t test
+      - run: bun nx affected -t test
 
       # Clean up build artifacts to free space
-      - name: Clean up after test
-        if: always()
-        run: |
-          df -h
-          du -sh dist/target 2>/dev/null || true
-          rm -rf dist/target
-          df -h
+#      - name: Clean up after test
+#        if: always()
+#        run: |
+#          df -h
+#          du -sh dist/target 2>/dev/null || true
+#          rm -rf dist/target
+#          df -h
 
   build:
     runs-on: ubuntu-latest
@@ -206,16 +206,16 @@ jobs:
 #          df -h
 
       # Run build
-      - run: bun nx run-many -t build
+      - run: bun nx affected -t build
 
       # Clean up build artifacts to free space
-      - name: Clean up after build
-        if: always()
-        run: |
-          df -h
-          du -sh dist/target 2>/dev/null || true
-          rm -rf dist/target
-          df -h
+#      - name: Clean up after build
+#        if: always()
+#        run: |
+#          df -h
+#          du -sh dist/target 2>/dev/null || true
+#          rm -rf dist/target
+#          df -h
 
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
       - run: bun nx fix-ci
