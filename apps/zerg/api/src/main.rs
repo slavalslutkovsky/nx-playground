@@ -26,7 +26,7 @@ async fn main() -> eyre::Result<()> {
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
 
-    info!("Connecting to TasksService at {}", tasks_addr);
+    info!("Connecting to TasksService at {}!", tasks_addr);
 
     let tasks_client = TasksServiceClient::connect(tasks_addr).await?;
 
