@@ -1,0 +1,21 @@
+local_resource(
+    'build-zerg-web',
+    dir="../../..",
+    cmd='bun nx run zerg-web:build',
+    deps=['apps/zerg/web/src', 'apps/zerg/web/project.json'],
+    ignore=["k8s"],
+    labels=['bun'],
+    resource_deps=[],
+)
+
+docker_build(
+  'yurikrupnik/zerg-web',
+  "../../..",
+  target="nginx",
+  dockerfile="../../../manifests/dockers/Dockerfile",
+  build_args={"DIST_PATH":"apps/zerg/web/dist"},
+)
+
+k8s_yaml(kustomize('k8s/kustomize/overlays/dev'))
+
+k8s_resource("zerg-web", port_forwards="5206:80", resource_deps=['build-zerg-web'])

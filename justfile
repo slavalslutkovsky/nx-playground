@@ -16,6 +16,10 @@ docker-down:
 run *args:
   bacon {{args}}
 
+# Run zerg web dev server
+web:
+  cd apps/zerg/web && bun run dev
+
 # Migrations now handled by SeaORM (libs/migration)
 # Run via: cargo run --bin migration up
 # Or automatically on app start with RUN_MIGRATIONS=true
@@ -45,6 +49,8 @@ schema:
 #  docker rm $(docker ps -aq) -f
 test-all:
   cargo nextest run --workspace
+kompose:
+  kompose convert --file /Users/yurikrupnik/projects/playground/manifests/dockers/compose.yaml -o k8s-manifests/
 # Proto/gRPC workflow (using buf)
 # Directory containing buf configuration
 proto_dir := "manifests/grpc"

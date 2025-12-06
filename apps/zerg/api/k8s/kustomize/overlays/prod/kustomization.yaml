@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PORT
+            value: "8080"
+          - name: RUST_LOG
+            value: "info,zerg1_api=info"
+          - name: DATABASE_URL
+            value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+          - name: REDIS_HOST
+            value: "redis://redis.dbs.svc.cluster.local"
+          - name: CORS_ALLOWED_ORIGIN
+            value: "https://your-production-domain.com"
+          - name: REDIRECT_BASE_URL
+            value: "https://api.your-production-domain.com"
+          - name: FRONTEND_URL
+            value: "https://your-production-domain.com"
+          - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
+            value: "false"
+          - name: JWT_SECRET
+            value: "CHANGE-ME-use-k8s-secret"
+          - name: GOOGLE_CLIENT_ID
+            value: "CHANGE-ME-use-k8s-secret"
+          - name: GOOGLE_CLIENT_SECRET
+            value: "CHANGE-ME-use-k8s-secret"
+          - name: GITHUB_CLIENT_ID
+            value: "CHANGE-ME-use-k8s-secret"
+          - name: GITHUB_CLIENT_SECRET
+            value: "CHANGE-ME-use-k8s-secret"
+          - name: FLAGSMITH_API_URL
+            value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
+          - name: FLAGSMITH_ENVIRONMENT_KEY
+            value: "CHANGE-ME-use-k8s-secret"
+    target:
+      kind: Deployment
+      name: zerg-api
