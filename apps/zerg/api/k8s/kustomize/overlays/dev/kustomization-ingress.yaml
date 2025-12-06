@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PORT
+            value: "8080"
+          - name: RUST_LOG
+            value: "info,zerg1_api=debug"
+          - name: DATABASE_URL
+            value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+          - name: REDIS_HOST
+            value: "redis://redis.dbs.svc.cluster.local"
+          # For local dev with Ingress (not port-forward)
+          - name: CORS_ALLOWED_ORIGIN
+            value: "http://zerg.local"
+          - name: REDIRECT_BASE_URL
+            value: "http://api.zerg.local"
+          - name: FRONTEND_URL
+            value: "http://zerg.local"
+          - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
+            value: "true"
+          - name: JWT_SECRET
+            value: "dev-secret-change-in-production"
+          - name: GOOGLE_CLIENT_ID
+            value: "your-google-client-id"
+          - name: GOOGLE_CLIENT_SECRET
+            value: "your-google-client-secret"
+          - name: GITHUB_CLIENT_ID
+            value: "your-github-client-id"
+          - name: GITHUB_CLIENT_SECRET
+            value: "your-github-client-secret"
+          - name: FLAGSMITH_API_URL
+            value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
+          - name: FLAGSMITH_ENVIRONMENT_KEY
+            value: "your-flagsmith-key"
+    target:
+      kind: Deployment
+      name: zerg-api

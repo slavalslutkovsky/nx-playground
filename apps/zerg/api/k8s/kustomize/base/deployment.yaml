@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-api
+  labels:
+    app: zerg-api
+#    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zerg-api
+  template:
+    metadata:
+      labels:
+        app: zerg-api
+#        tier: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      containers:
+        - name: zerg-api
+          image: yurikrupnik/zerg-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: RUST_LOG
+              value: "info,zerg1_api=debug"
+            - name: DATABASE_URL
+              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+            - name: REDIS_HOST
+              value: "redis://redis.dbs.svc.cluster.local"
+            - name: CORS_ALLOWED_ORIGIN
+              value: "http://localhost:3000"
+#                - name: MONGO_URI
+#                    value: "mongodb://mongodb-service.dbs.svc.cluster.local"
+#                      - name: REDIS_HOST
+#                        value: "redis-service.dbs.svc.cluster.local"
+#                      - name: DATABASE_URL
+#                        value: "postgres://myuser:mypassword@postgres-service.dbs.svc.cluster.local"
+#              value: "redis://redis.redis.svc.cluster.local:6379"
+#              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local:5432/mydatabase"
+#              valueFrom:
+#                secretKeyRef:
+#                  name: postgres-secret
+#                  key: DATABASE_URL
+#          livenessProbe:
+#            httpGet:
+#              path: /health
+#              port: 8080
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#            timeoutSeconds: 3
+#          readinessProbe:
+#            httpGet:
+#              path: /ready
+#              port: 8080
+#            initialDelaySeconds: 5
+#            periodSeconds: 5
+#            timeoutSeconds: 2
+#          resources:
+#            requests:
+#              memory: "64Mi"
+#              cpu: "100m"
+#            limits:
+#              memory: "128Mi"
+#              cpu: "200m"
+#          securityContext:
+#            allowPrivilegeEscalation: false
+#            readOnlyRootFilesystem: false
+#            runAsNonRoot: true
+#            runAsUser: 65534
+#            capabilities:
+#              drop:
+#              - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      restartPolicy: Always
