@@ -40,6 +40,7 @@
 
 pub mod entity;
 pub mod error;
+pub mod handlers;
 pub mod models;
 pub mod postgres;
 pub mod repository;
@@ -47,6 +48,7 @@ pub mod service;
 
 // Re-export commonly used types
 pub use error::{TaskError, TaskResult};
+pub use handlers::{DirectApiDoc, GrpcApiDoc};
 pub use models::{
     CreateTask, Task, TaskFilter, TaskPriority, TaskResponse, TaskStatus, UpdateTask,
 };

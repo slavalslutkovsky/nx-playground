@@ -3,21 +3,8 @@ use utoipa::OpenApi;
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(
-        crate::api::tasks::list_tasks,
-        crate::api::tasks::get_task,
-        crate::api::tasks::create_task,
-        crate::api::tasks::delete_task,
-    ),
     components(
-        schemas(
-            crate::api::tasks::TaskDto,
-            crate::api::tasks::CreateTaskDto,
-            axum_helpers::ErrorResponse
-        )
-    ),
-    tags(
-        (name = "tasks", description = "Task management endpoints")
+        schemas(axum_helpers::ErrorResponse)
     ),
     info(
         title = "Zerg API",
@@ -28,6 +15,7 @@ use utoipa::OpenApi;
         (url = "/api", description = "API base path")
     ),
     nest(
+        (path = "/tasks", api = domain_tasks::GrpcApiDoc),
         (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc)
     )
 )]

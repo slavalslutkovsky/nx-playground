@@ -20,8 +20,8 @@ pub fn routes(state: &crate::state::AppState) -> Router {
     use domain_projects::ApiResource;
 
     Router::new()
-        .merge(tasks::router(state.clone()))
-        .merge(tasks_direct::router(state.clone()))
+        .nest("/tasks", tasks::router(state.clone()))
+        .nest("/tasks-direct", tasks_direct::router(&state))
         .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,

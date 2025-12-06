@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package tasks;
+
+option go_package = "grpc/tasks";
+
+// Declare a service for each controller you have
+service TasksService {
+  // Declare an rpc for each method that is called via gRPC
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  //  my get user method
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
+  rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {}
+  rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
+}
+
+message CreateRequest {
+  string title = 1;
+  string description = 2;
+  optional string project_id = 3;
+  string priority = 4;  // low, medium, high, urgent
+  string status = 5;    // todo, in_progress, done
+  optional string due_date = 6;  // ISO8601 timestamp
+}
+
+message CreateResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional string project_id = 5;
+  string priority = 6;
+  string status = 7;
+  optional string due_date = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message GetByIdRequest {
+  string id = 1;
+  repeated string projection = 2;
+}
+
+message GetByIdResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional string project_id = 5;
+  string priority = 6;
+  string status = 7;
+  optional string due_date = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message UpdateByIdRequest {
+  string id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  optional bool completed = 4;
+  optional string project_id = 5;
+  optional string priority = 6;
+  optional string status = 7;
+  optional string due_date = 8;
+}
+
+message UpdateByIdResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional string project_id = 5;
+  string priority = 6;
+  string status = 7;
+  optional string due_date = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message DeleteByIdRequest {
+  string id = 1;
+}
+
+message DeleteByIdResponse {}
+
+message ListRequest {
+  optional string project_id = 1;
+  optional string status = 2;
+  optional string priority = 3;
+  optional bool completed = 4;
+  string limit = 5;
+  string offset = 6;
+  repeated string projection = 7;
+}
+
+message ListResponse {
+  repeated CreateResponse data = 1;
+}
+
+message ListStreamRequest {
+  optional string project_id = 1;
+  optional string status = 2;
+  optional string priority = 3;
+  optional bool completed = 4;
+  string limit = 5;
+  repeated string projection = 6;
+}
+
+message ListStreamResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional string project_id = 5;
+  string priority = 6;
+  string status = 7;
+  optional string due_date = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
