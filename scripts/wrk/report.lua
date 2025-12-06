@@ -1,0 +1,17 @@
+-- Enhanced wrk reporting script
+done = function(summary, latency, requests)
+  io.write("------------------------------\n")
+  io.write(string.format("Requests:      %d\n", summary.requests))
+  io.write(string.format("Duration:      %.2fs\n", summary.duration / 1000000))
+  io.write(string.format("Requests/sec:  %.2f\n", summary.requests / (summary.duration / 1000000)))
+  io.write(string.format("Avg latency:   %.2fms\n", latency.mean / 1000))
+  io.write(string.format("Stdev latency: %.2fms\n", latency.stdev / 1000))
+  io.write(string.format("Max latency:   %.2fms\n", latency.max / 1000))
+  io.write("\nLatency Distribution:\n")
+  io.write(string.format("  50%%:  %.2fms\n", latency:percentile(50) / 1000))
+  io.write(string.format("  75%%:  %.2fms\n", latency:percentile(75) / 1000))
+  io.write(string.format("  90%%:  %.2fms\n", latency:percentile(90) / 1000))
+  io.write(string.format("  99%%:  %.2fms\n", latency:percentile(99) / 1000))
+  io.write(string.format("  99.9%%: %.2fms\n", latency:percentile(99.9) / 1000))
+  io.write("------------------------------\n")
+end

@@ -11,3 +11,7 @@ tonic = "0.12"
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
+domain_tasks = { path = "../../../libs/domains/tasks" }
+database = { workspace = true, features = ["config"] }
+core_config = { workspace = true }
+chrono = { workspace = true }

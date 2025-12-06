@@ -4,6 +4,7 @@ pub mod cloud_resources;
 pub mod health;
 pub mod projects;
 pub mod tasks;
+pub mod tasks_direct;
 pub mod users;
 
 /// Creates the API routes without the `/api` prefix.
@@ -20,6 +21,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
 
     Router::new()
         .merge(tasks::router(state.clone()))
+        .merge(tasks_direct::router(state.clone()))
         .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,

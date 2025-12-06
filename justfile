@@ -86,6 +86,59 @@ proto: proto-fmt proto-lint proto-build proto-gen proto-check
 # Alias for backward compatibility
 buf: proto
 
+# Benchmark tasks API endpoints with wrk
+# Directory containing wrk scripts
+wrk_dir := "scripts/wrk"
+api_url := "http://localhost:8080/api"
+
+# Benchmark GET /api/tasks (gRPC endpoint)
+bench-tasks-grpc:
+    @echo "=== Benchmarking gRPC Tasks Endpoint (GET) ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url}}/tasks
+
+# Benchmark GET /api/tasks-direct (Direct DB endpoint)
+bench-tasks-direct:
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (GET) ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url}}/tasks-direct
+
+# Benchmark POST /api/tasks (gRPC endpoint)
+bench-tasks-grpc-post:
+    @echo "=== Benchmarking gRPC Tasks Endpoint (POST) ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url}}/tasks
+
+# Benchmark POST /api/tasks-direct (Direct DB endpoint)
+bench-tasks-direct-post:
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (POST) ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url}}/tasks-direct
+
+# Run all benchmarks and compare
+bench-tasks-compare:
+    @echo "======================================"
+    @echo "  Tasks API Benchmark Comparison"
+    @echo "======================================"
+    @echo ""
+    just bench-tasks-grpc
+    @echo ""
+    just bench-tasks-direct
+    @echo ""
+    @echo "======================================"
+    @echo "  POST Benchmarks"
+    @echo "======================================"
+    @echo ""
+    just bench-tasks-grpc-post
+    @echo ""
+    just bench-tasks-direct-post
+    @echo ""
+    @echo "Benchmark complete!"
+
+# Quick benchmark (10s duration, lighter load)
+bench-tasks-quick:
+    @echo "=== Quick Benchmark: gRPC GET ==="
+    wrk -t2 -c10 -d10s --latency {{api_url}}/tasks
+    @echo ""
+    @echo "=== Quick Benchmark: Direct DB GET ==="
+    wrk -t2 -c10 -d10s --latency {{api_url}}/tasks-direct
+
 backstage-dev:
   kubectl apply -k manifests/kustomize/backstage/overlays/dev
 

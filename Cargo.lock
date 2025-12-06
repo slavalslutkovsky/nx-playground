@@ -1203,6 +1203,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_tasks"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum 0.8.7",
+ "axum-helpers",
+ "chrono",
+ "core_proc_macros",
+ "database",
+ "futures",
+ "http-body-util",
+ "mockall",
+ "regex",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "sqlx 0.9.0-alpha.1",
+ "strum",
+ "test-utils",
+ "thiserror",
+ "tokio",
+ "tower 0.5.2",
+ "tracing",
+ "utoipa",
+ "uuid",
+ "validator",
+]
+
+[[package]]
 name = "domain_users"
 version = "0.1.0"
 dependencies = [
@@ -5582,11 +5611,13 @@ version = "0.1.0"
 dependencies = [
  "axum 0.8.7",
  "axum-helpers",
+ "chrono",
  "color-eyre",
  "core_config",
  "database",
  "domain_cloud_resources",
  "domain_projects",
+ "domain_tasks",
  "domain_users",
  "eyre",
  "migration",
@@ -5602,12 +5633,17 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "utoipa",
+ "uuid",
 ]
 
 [[package]]
 name = "zerg_tasks"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "core_config",
+ "database",
+ "domain_tasks",
  "rpc",
  "tokio",
  "tokio-stream",
