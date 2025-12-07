@@ -38,6 +38,7 @@
 //! # }
 //! ```
 
+pub mod conversions;
 pub mod entity;
 pub mod error;
 pub mod handlers;

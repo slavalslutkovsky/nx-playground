@@ -21,6 +21,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tonic = "0.12"
 tracing = { workspace = true }
+ts-rs = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
 validator = { workspace = true }

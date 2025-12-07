@@ -1,7 +1,7 @@
-//! Proto conversion helpers for gRPC handlers
+//! Proto conversion helpers
 //!
 //! These functions convert between proto types and domain types.
-//! Copied from apps/zerg/tasks/src/conversions.rs to avoid cyclic dependency.
+//! Single source of truth for all proto ↔ domain conversions.
 
 use chrono::{DateTime, Utc};
 use rpc::tasks::{Priority, Status};
@@ -46,6 +46,10 @@ pub fn proto_priority_to_domain(priority: i32) -> Result<TaskPriority, String> {
     }
 }
 
+pub fn opt_proto_priority_to_domain(priority: Option<i32>) -> Result<Option<TaskPriority>, String> {
+    priority.map(proto_priority_to_domain).transpose()
+}
+
 // Status conversions
 pub fn domain_status_to_proto(status: &TaskStatus) -> i32 {
     match status {
@@ -62,6 +66,10 @@ pub fn proto_status_to_domain(status: i32) -> Result<TaskStatus, String> {
         Ok(Status::Done) => Ok(TaskStatus::Done),
         _ => Err(format!("Invalid status: {}", status)),
     }
+}
+
+pub fn opt_proto_status_to_domain(status: Option<i32>) -> Result<Option<TaskStatus>, String> {
+    status.map(proto_status_to_domain).transpose()
 }
 
 // Timestamp conversions

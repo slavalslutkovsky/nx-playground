@@ -1,36 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+import type { CreateTask, Task, UpdateTask } from '@domain/tasks';
 
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  completed: boolean;
-  project_id?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'todo' | 'in_progress' | 'done';
-  due_date?: string;
-  created_at: string;
-  updated_at: string;
-}
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-export interface CreateTaskInput {
-  title: string;
-  description?: string;
-  project_id?: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  status?: 'todo' | 'in_progress' | 'done';
-  due_date?: string;
-}
-
-export interface UpdateTaskInput {
-  title?: string;
-  description?: string;
-  completed?: boolean;
-  project_id?: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  status?: 'todo' | 'in_progress' | 'done';
-  due_date?: string;
-}
+// Re-export types for convenience
+export type {
+  Task,
+  CreateTask as CreateTaskInput,
+  UpdateTask as UpdateTaskInput,
+};
 
 export const tasksApi = {
   list: async (): Promise<Task[]> => {
@@ -45,7 +23,7 @@ export const tasksApi = {
     return response.json();
   },
 
-  create: async (input: CreateTaskInput): Promise<Task> => {
+  create: async (input: CreateTask): Promise<Task> => {
     const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,7 +33,7 @@ export const tasksApi = {
     return response.json();
   },
 
-  update: async (id: string, input: UpdateTaskInput): Promise<Task> => {
+  update: async (id: string, input: UpdateTask): Promise<Task> => {
     const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

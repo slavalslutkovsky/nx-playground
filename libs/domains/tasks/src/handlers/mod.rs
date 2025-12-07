@@ -1,6 +1,5 @@
 mod direct;
 mod grpc;
-mod proto_conversions;
 
 use axum::{routing::get, Router};
 use rpc::tasks::tasks_service_client::TasksServiceClient;

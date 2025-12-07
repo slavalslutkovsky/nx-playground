@@ -18,6 +18,7 @@ export const TodoList = () => {
       <div>
         <input placeholder="new todo here" ref={input} />
         <button
+          type="button"
           onClick={() => {
             if (!input.value.trim()) return;
             addTodo(input.value);

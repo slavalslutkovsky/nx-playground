@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use sea_orm::{DeriveActiveEnum, EnumIter};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use ts_rs::TS;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 use validator::Validate;
@@ -21,7 +22,9 @@ use validator::Validate;
     DeriveActiveEnum,
     EnumIter,
     ToSchema,
+    TS,
 )]
+#[ts(export)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "task_priority")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -53,7 +56,9 @@ pub enum TaskPriority {
     DeriveActiveEnum,
     EnumIter,
     ToSchema,
+    TS,
 )]
+#[ts(export)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "task_status")]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -71,9 +76,11 @@ pub enum TaskStatus {
 }
 
 /// Task entity - represents a task
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, TS)]
+#[ts(export)]
 pub struct Task {
     /// Unique identifier
+    #[ts(as = "String")]
     pub id: Uuid,
     /// Task title
     pub title: String,
@@ -82,44 +89,54 @@ pub struct Task {
     /// Whether the task is completed
     pub completed: bool,
     /// Optional project association
+    #[ts(as = "Option<String>")]
     pub project_id: Option<Uuid>,
     /// Task priority
     pub priority: TaskPriority,
     /// Task status
     pub status: TaskStatus,
     /// Optional due date
+    #[ts(as = "Option<String>")]
     pub due_date: Option<DateTime<Utc>>,
     /// Creation timestamp
+    #[ts(as = "String")]
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
+    #[ts(as = "String")]
     pub updated_at: DateTime<Utc>,
 }
 
 /// DTO for creating a new task
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema, TS)]
+#[ts(export)]
 pub struct CreateTask {
     #[validate(length(min = 1, max = 255))]
     pub title: String,
     #[serde(default)]
     pub description: String,
+    #[ts(as = "Option<String>")]
     pub project_id: Option<Uuid>,
     #[serde(default)]
     pub priority: TaskPriority,
     #[serde(default)]
     pub status: TaskStatus,
+    #[ts(as = "Option<String>")]
     pub due_date: Option<DateTime<Utc>>,
 }
 
 /// DTO for updating an existing task
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema, Default)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema, Default, TS)]
+#[ts(export)]
 pub struct UpdateTask {
     #[validate(length(min = 1, max = 255))]
     pub title: Option<String>,
     pub description: Option<String>,
     pub completed: Option<bool>,
+    #[ts(as = "Option<Option<String>>")]
     pub project_id: Option<Option<Uuid>>,
     pub priority: Option<TaskPriority>,
     pub status: Option<TaskStatus>,
+    #[ts(as = "Option<Option<String>>")]
     pub due_date: Option<Option<DateTime<Utc>>>,
 }
 

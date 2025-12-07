@@ -1,21 +1,21 @@
 import './index.css';
-import { render } from 'solid-js/web';
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
 import {
-  RouterProvider,
-  createRouter,
   createRootRoute,
   createRoute,
+  createRouter,
   Outlet,
+  RouterProvider,
 } from '@tanstack/solid-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
+import { render } from 'solid-js/web';
 import 'solid-devtools';
 
-import { TasksListPage } from './pages/tasks-list';
 import { TaskDetailPage } from './pages/task-detail';
+import { TasksListPage } from './pages/tasks-list';
 
 const queryClient = new QueryClient();
 
-// Create root route
+// Create a root route
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
 });
@@ -47,11 +47,13 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(
-  () => (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  ),
-  root!
-);
+if (root) {
+  render(
+    () => (
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    ),
+    root,
+  );
+}

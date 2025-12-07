@@ -1,6 +1,7 @@
-import { createQuery, createMutation, useQueryClient } from '@tanstack/solid-query';
-import { useParams, useNavigate } from '@tanstack/solid-router';
-import { Show, createSignal } from 'solid-js';
+import type { TaskPriority, TaskStatus } from '@domain/tasks';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/solid-query';
+import { useNavigate, useParams } from '@tanstack/solid-router';
+import { createSignal, createUniqueId, Show } from 'solid-js';
 import { tasksApi, type UpdateTaskInput } from '../lib/api-client';
 
 export function TaskDetailPage() {
@@ -8,22 +9,37 @@ export function TaskDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const taskQuery = createQuery(() => ({
-    queryKey: ['tasks', params.id],
-    queryFn: () => tasksApi.getById(params.id),
+  // Generate unique IDs for form fields
+  const titleId = createUniqueId();
+  const descriptionId = createUniqueId();
+  const statusId = createUniqueId();
+  const priorityId = createUniqueId();
+  const completedId = createUniqueId();
+
+  const taskQuery = useQuery(() => ({
+    queryKey: ['tasks', params().id],
+    queryFn: () => tasksApi.getById(params().id),
   }));
 
-  const updateMutation = createMutation(() => ({
+  const updateMutation = useMutation(() => ({
     mutationFn: ({ id, input }: { id: string; input: UpdateTaskInput }) =>
       tasksApi.update(id, input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks', params.id] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      await queryClient.invalidateQueries({ queryKey: ['tasks', params().id] });
     },
   }));
 
   const [editing, setEditing] = createSignal(false);
-  const [formData, setFormData] = createSignal<UpdateTaskInput>({});
+  const [formData, setFormData] = createSignal<UpdateTaskInput>({
+    title: null,
+    description: null,
+    completed: null,
+    project_id: null,
+    priority: null,
+    status: null,
+    due_date: null,
+  });
 
   const handleEdit = () => {
     const task = taskQuery.data;
@@ -33,6 +49,9 @@ export function TaskDetailPage() {
         description: task.description,
         status: task.status,
         priority: task.priority,
+        completed: task.completed,
+        project_id: task.project_id,
+        due_date: task.due_date,
       });
       setEditing(true);
     }
@@ -40,12 +59,12 @@ export function TaskDetailPage() {
 
   const handleSave = () => {
     updateMutation.mutate(
-      { id: params.id, input: formData() },
+      { id: params().id, input: formData() },
       {
         onSuccess: () => {
           setEditing(false);
         },
-      }
+      },
     );
   };
 
@@ -59,6 +78,7 @@ export function TaskDetailPage() {
           <div>
             <div class="flex justify-between items-center mb-6">
               <button
+                type="button"
                 onClick={() => navigate({ to: '/tasks' })}
                 class="text-blue-500 hover:text-blue-700"
               >
@@ -66,6 +86,7 @@ export function TaskDetailPage() {
               </button>
               <Show when={!editing()}>
                 <button
+                  type="button"
                   onClick={handleEdit}
                   class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
@@ -83,7 +104,9 @@ export function TaskDetailPage() {
                   <div class="flex gap-4 mb-4 flex-wrap">
                     <div>
                       <span class="font-semibold">Status: </span>
-                      <span class="capitalize">{task().status.replace('_', ' ')}</span>
+                      <span class="capitalize">
+                        {task().status.replace('_', ' ')}
+                      </span>
                     </div>
                     <div>
                       <span class="font-semibold">Priority: </span>
@@ -94,44 +117,74 @@ export function TaskDetailPage() {
                       <span>{task().completed ? 'Yes' : 'No'}</span>
                     </div>
                   </div>
-                  {task().due_date && (
-                    <div class="mb-4">
-                      <span class="font-semibold">Due Date: </span>
-                      <span>{new Date(task().due_date!).toLocaleDateString()}</span>
-                    </div>
-                  )}
+                  <Show when={task().due_date}>
+                    {(dueDate) => (
+                      <div class="mb-4">
+                        <span class="font-semibold">Due Date: </span>
+                        <span>{new Date(dueDate()).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </Show>
                   <div class="text-sm text-gray-500 space-y-1">
-                    <div>Created: {new Date(task().created_at).toLocaleString()}</div>
-                    <div>Updated: {new Date(task().updated_at).toLocaleString()}</div>
+                    <div>
+                      Created: {new Date(task().created_at).toLocaleString()}
+                    </div>
+                    <div>
+                      Updated: {new Date(task().updated_at).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               }
             >
               <div class="bg-white rounded-lg shadow p-6 space-y-4">
                 <div>
-                  <label class="block font-semibold mb-1">Title</label>
+                  <label for={titleId} class="block font-semibold mb-1">
+                    Title
+                  </label>
                   <input
+                    id={titleId}
                     type="text"
                     value={formData().title || ''}
-                    onInput={(e) => setFormData({ ...formData(), title: e.currentTarget.value })}
+                    onInput={(e) =>
+                      setFormData({
+                        ...formData(),
+                        title: e.currentTarget.value,
+                      })
+                    }
                     class="w-full border rounded px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label class="block font-semibold mb-1">Description</label>
+                  <label for={descriptionId} class="block font-semibold mb-1">
+                    Description
+                  </label>
                   <textarea
+                    id={descriptionId}
                     value={formData().description || ''}
-                    onInput={(e) => setFormData({ ...formData(), description: e.currentTarget.value })}
+                    onInput={(e) =>
+                      setFormData({
+                        ...formData(),
+                        description: e.currentTarget.value,
+                      })
+                    }
                     class="w-full border rounded px-3 py-2"
                     rows={4}
                   />
                 </div>
                 <div class="flex gap-4">
                   <div class="flex-1">
-                    <label class="block font-semibold mb-1">Status</label>
+                    <label for={statusId} class="block font-semibold mb-1">
+                      Status
+                    </label>
                     <select
+                      id={statusId}
                       value={formData().status || ''}
-                      onChange={(e) => setFormData({ ...formData(), status: e.currentTarget.value as any })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData(),
+                          status: e.currentTarget.value as TaskStatus,
+                        })
+                      }
                       class="w-full border rounded px-3 py-2"
                     >
                       <option value="todo">To Do</option>
@@ -140,10 +193,18 @@ export function TaskDetailPage() {
                     </select>
                   </div>
                   <div class="flex-1">
-                    <label class="block font-semibold mb-1">Priority</label>
+                    <label for={priorityId} class="block font-semibold mb-1">
+                      Priority
+                    </label>
                     <select
+                      id={priorityId}
                       value={formData().priority || ''}
-                      onChange={(e) => setFormData({ ...formData(), priority: e.currentTarget.value as any })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData(),
+                          priority: e.currentTarget.value as TaskPriority,
+                        })
+                      }
                       class="w-full border rounded px-3 py-2"
                     >
                       <option value="low">Low</option>
@@ -155,15 +216,22 @@ export function TaskDetailPage() {
                 </div>
                 <div class="flex items-center gap-2">
                   <input
+                    id={completedId}
                     type="checkbox"
                     checked={formData().completed || false}
-                    onChange={(e) => setFormData({ ...formData(), completed: e.currentTarget.checked })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData(),
+                        completed: e.currentTarget.checked,
+                      })
+                    }
                     class="rounded"
                   />
-                  <label>Mark as completed</label>
+                  <label for={completedId}>Mark as completed</label>
                 </div>
                 <div class="flex gap-2">
                   <button
+                    type="button"
                     onClick={handleSave}
                     disabled={updateMutation.isPending}
                     class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
@@ -171,6 +239,7 @@ export function TaskDetailPage() {
                     {updateMutation.isPending ? 'Saving...' : 'Save'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => setEditing(false)}
                     class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                   >

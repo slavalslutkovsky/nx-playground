@@ -13,7 +13,7 @@ use crate::error::{TaskError, TaskResult};
 use crate::models::{CreateTask, Task, UpdateTask};
 
 // Import proto conversion helpers
-use super::proto_conversions::*;
+use crate::conversions::*;
 
 /// List tasks via gRPC
 #[utoipa::path(
