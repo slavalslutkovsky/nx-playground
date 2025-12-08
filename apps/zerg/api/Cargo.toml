@@ -11,6 +11,7 @@ core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }
 domain_cloud_resources = { workspace = true }
 domain_projects = { workspace = true }
+domain_tasks = { path = "../../../libs/domains/tasks" }
 domain_users = { workspace = true }
 eyre = { workspace = true }
 migration = { workspace = true }
@@ -26,3 +27,5 @@ tower-http = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 utoipa = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }

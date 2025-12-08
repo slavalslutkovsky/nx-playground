@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "target": "ESNext",
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    "strict": true,
+    "types": ["vite/client", "@testing-library/jest-dom"],
+
+    "baseUrl": ".",
+    "paths": {
+      "@nx-playground/shared-types": [
+        "../../../libs/shared/types/src/index.ts"
+      ],
+      "@nx-playground/shared-types/*": [
+        "../../../libs/shared/types/src/*/index.ts"
+      ]
+    }
+  }
+}

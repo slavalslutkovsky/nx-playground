@@ -4,11 +4,9 @@ package tasks;
 
 option go_package = "grpc/tasks";
 
-// Declare a service for each controller you have
+// Optimized TasksService with binary serialization
 service TasksService {
-  // Declare an rpc for each method that is called via gRPC
   rpc Create(CreateRequest) returns (CreateResponse) {}
-  //  my get user method
   rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
   rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
   rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
@@ -16,63 +14,123 @@ service TasksService {
   rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
 }
 
-message GetByIdResponse {
-  string id = 1;
-  string title = 2;
-  string description = 3;
-  string completed = 4;
+// Enums use 1 byte instead of 4-6 bytes for strings
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+  URGENT = 4;
 }
 
-message UpdateByIdResponse {
-  string id = 1;
-  string title = 2;
-  string description = 3;
-  string completed = 4;
-}
-
-message ListStreamResponse {
-  string id = 1;
-  string title = 2;
-  string description = 3;
-  string completed = 4;
-}
-message ListStreamRequest {
-  string limit = 1;
-  repeated string projection = 2;
-}
-
-message ListRequest {
-  string limit = 1;
-  repeated string projection = 2;
-}
-
-message UpdateByIdRequest {
-  string id = 1;
-}
-
-message DeleteByIdResponse {}
-message DeleteByIdRequest {
-  string id = 1;
-}
-
-message GetByIdRequest {
-  string id = 1;
-  repeated string projection = 2;
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  TODO = 1;
+  IN_PROGRESS = 2;
+  DONE = 3;
 }
 
 message CreateRequest {
   string title = 1;
   string description = 2;
-  string completed = 3;
+  // UUIDs as bytes: 16 bytes instead of 36-char string
+  optional bytes project_id = 3;
+  Priority priority = 4;  // 1 byte enum instead of string
+  Status status = 5;      // 1 byte enum instead of string
+  // Unix timestamp (seconds): 8 bytes instead of 24+ char ISO8601
+  optional int64 due_date = 6;
 }
 
 message CreateResponse {
-  string id = 1;
+  bytes id = 1;  // 16 bytes UUID
   string title = 2;
   string description = 3;
-  string completed = 4;
+  bool completed = 4;
+  optional bytes project_id = 5;
+  Priority priority = 6;
+  Status status = 7;
+  optional int64 due_date = 8;
+  int64 created_at = 9;  // Unix timestamp
+  int64 updated_at = 10;
+}
+
+message GetByIdRequest {
+  bytes id = 1;  // Binary UUID
+}
+
+message GetByIdResponse {
+  bytes id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional bytes project_id = 5;
+  Priority priority = 6;
+  Status status = 7;
+  optional int64 due_date = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+message UpdateByIdRequest {
+  bytes id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  optional bool completed = 4;
+  optional bytes project_id = 5;
+  optional Priority priority = 6;
+  optional Status status = 7;
+  optional int64 due_date = 8;
+}
+
+message UpdateByIdResponse {
+  bytes id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional bytes project_id = 5;
+  Priority priority = 6;
+  Status status = 7;
+  optional int64 due_date = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+message DeleteByIdRequest {
+  bytes id = 1;
+}
+
+message DeleteByIdResponse {}
+
+message ListRequest {
+  optional bytes project_id = 1;
+  optional Status status = 2;
+  optional Priority priority = 3;
+  optional bool completed = 4;
+  int32 limit = 5;  // int32 instead of string
+  int32 offset = 6; // int32 instead of string
 }
 
 message ListResponse {
   repeated CreateResponse data = 1;
+}
+
+message ListStreamRequest {
+  optional bytes project_id = 1;
+  optional Status status = 2;
+  optional Priority priority = 3;
+  optional bool completed = 4;
+  int32 limit = 5;
+}
+
+message ListStreamResponse {
+  bytes id = 1;
+  string title = 2;
+  string description = 3;
+  bool completed = 4;
+  optional bytes project_id = 5;
+  Priority priority = 6;
+  Status status = 7;
+  optional int64 due_date = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
 }

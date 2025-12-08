@@ -1,0 +1,32 @@
+docker_build(
+  'yurikrupnik/zerg-api',
+  build_args={
+    'APP_NAME': 'zerg_api',
+  },
+  context='../../..',
+  dockerfile='../../../manifests/dockers/rust.Dockerfile',
+  only=[
+    'Cargo.toml',
+    'Cargo.lock',
+    'apps/',
+    'libs/',
+    'manifests/dockers/rust.Dockerfile',
+  ],
+  ignore=[
+    'target/',
+    '**/*.md',
+    '**/.git/',
+    '**/k8s/',
+    '**/Tiltfile',
+    'apps/**/node_modules/',
+  ],
+  live_update=[
+    sync('apps/zerg/api/src', '/app/apps/zerg/api/src'),
+  ],
+  target='rust',
+  #platform='linux/amd64',
+)
+
+k8s_yaml(kustomize('k8s/kustomize/overlays/dev'))
+
+k8s_resource("zerg-api", port_forwards="5221:8080")

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(bun nx:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(gemini:*)",
+      "Bash(coderabbit:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./.aws/**)",
+      "Read(./config/credentials.json)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*_rsa)",
+      "Read(./**/*.pfx)"
+    ],
+    "ask": []
+  }
+}

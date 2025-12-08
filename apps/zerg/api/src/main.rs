@@ -1,13 +1,11 @@
 use axum_helpers::server::create_production_app;
 use core_config::tracing::init_tracing;
-use rpc::tasks::tasks_service_client::TasksServiceClient;
-use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
 use tracing::info;
 
 mod api;
 mod config;
+mod grpc_pool;
 mod openapi;
 mod state;
 
@@ -26,9 +24,9 @@ async fn main() -> eyre::Result<()> {
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
 
-    info!("Connecting to TasksService at {}", tasks_addr);
+    info!("Connecting to TasksService at {} (optimized)", tasks_addr);
 
-    let tasks_client = TasksServiceClient::connect(tasks_addr).await?;
+    let tasks_client = grpc_pool::create_optimized_tasks_client(tasks_addr).await?;
 
     // Initialize database connections concurrently
     let postgres_future = async {
@@ -48,7 +46,7 @@ async fn main() -> eyre::Result<()> {
     // Initialize the application state with database connections
     let state = AppState {
         config,
-        tasks_client: Arc::new(RwLock::new(tasks_client)),
+        tasks_client,
         db,
         redis,
     };

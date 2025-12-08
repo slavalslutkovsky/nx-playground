@@ -54,8 +54,24 @@ pub async fn create_app(router: Router, server_config: &ServerConfig) -> io::Res
 /// - OpenAPI documentation (Swagger UI, ReDoc, RapiDoc, Scalar)
 /// - Health and readiness endpoints
 /// - API routes nested under `/api`
-/// - Common middleware (tracing, security headers)
+/// - Common middleware (tracing, security headers, CORS)
 /// - 404 fallback handler
+///
+/// # CORS Configuration (Required)
+///
+/// The `CORS_ALLOWED_ORIGIN` environment variable **must** be set with comma-separated allowed origins.
+/// The application will fail to start if this variable is not set.
+///
+/// Examples:
+/// - Development: `CORS_ALLOWED_ORIGIN=http://localhost:3000,http://localhost:5173`
+/// - Production: `CORS_ALLOWED_ORIGIN=https://example.com,https://app.example.com`
+/// - Mixed: `CORS_ALLOWED_ORIGIN=http://localhost:3000,https://staging.example.com`
+///
+/// CORS configuration includes:
+/// - Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+/// - Headers: Content-Type, Authorization, Accept, Cookie, x-csrf-token
+/// - Credentials: Allowed
+/// - Max age: 1 hour
 ///
 /// Use this when your API routes already have state applied internally.
 /// For clean architecture, domain routers should apply their own state,
@@ -66,6 +82,12 @@ pub async fn create_app(router: Router, server_config: &ServerConfig) -> io::Res
 ///
 /// # Arguments
 /// * `apis` - Router with all routes (state already applied to individual routes)
+///
+/// # Errors
+/// Returns an error if:
+/// - `CORS_ALLOWED_ORIGIN` is not set
+/// - `CORS_ALLOWED_ORIGIN` contains invalid values
+/// - `CORS_ALLOWED_ORIGIN` is empty
 ///
 /// # Example
 /// ```ignore
@@ -79,6 +101,9 @@ pub async fn create_app(router: Router, server_config: &ServerConfig) -> io::Res
 ///
 /// #[tokio::main]
 /// async fn main() {
+///     // Set CORS_ALLOWED_ORIGIN before starting
+///     std::env::set_var("CORS_ALLOWED_ORIGIN", "http://localhost:3000");
+///
 ///     // Routes with state already applied
 ///     let api_routes = Router::new()
 ///         .route("/example", get(handler))
@@ -98,6 +123,57 @@ where
     use utoipa_scalar::{Scalar, Servable as ScalarServable};
     use utoipa_swagger_ui::SwaggerUi;
 
+    // Configure CORS: parse required comma-separated origins from CORS_ALLOWED_ORIGIN
+    use axum::http::{HeaderName, Method};
+    use tower_http::cors::AllowOrigin;
+
+    let origins_str = std::env::var("CORS_ALLOWED_ORIGIN")
+        .map_err(|_| io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "CORS_ALLOWED_ORIGIN environment variable is required. Example: CORS_ALLOWED_ORIGIN=http://localhost:3000,https://example.com"
+        ))?;
+
+    // Parse comma-separated origins
+    let allowed_origins: Vec<axum::http::HeaderValue> = origins_str
+        .split(',')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.parse::<axum::http::HeaderValue>())
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("Invalid CORS_ALLOWED_ORIGIN value: {}", e)
+        ))?;
+
+    if allowed_origins.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "CORS_ALLOWED_ORIGIN cannot be empty"
+        ));
+    }
+
+    info!("CORS configured with allowed origins: {}", origins_str);
+
+    let cors_layer = tower_http::cors::CorsLayer::new()
+        .allow_origin(AllowOrigin::list(allowed_origins))
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::PATCH,
+            Method::OPTIONS,
+        ])
+        .allow_headers([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::ACCEPT,
+            axum::http::header::COOKIE,
+            HeaderName::from_static("x-csrf-token"),
+        ])
+        .allow_credentials(true)
+        .max_age(Duration::from_secs(3600));
+
     let router = Router::new()
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", T::openapi()))
         .merge(Redoc::with_url("/redoc", T::openapi()))
@@ -111,7 +187,8 @@ where
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
-        .layer(middleware::from_fn(security_headers));
+        .layer(middleware::from_fn(security_headers))
+        .layer(cors_layer);
 
     Ok(router)
 }
