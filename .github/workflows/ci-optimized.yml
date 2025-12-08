@@ -141,13 +141,13 @@ jobs:
       - run: bun nx affected -t test
 
       # Clean up build artifacts to free space
-#      - name: Clean up after test
-#        if: always()
-#        run: |
-#          df -h
-#          du -sh dist/target 2>/dev/null || true
-#          rm -rf dist/target
-#          df -h
+      - name: Clean up after test
+        if: always()
+        run: |
+          df -h
+          du -sh dist/target 2>/dev/null || true
+          rm -rf dist/target
+          df -h
 
   build:
     runs-on: ubuntu-latest
