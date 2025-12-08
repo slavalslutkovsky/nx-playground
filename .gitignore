@@ -50,3 +50,6 @@ Thumbs.db
 
 # Allow example environment files (templates)
 !.env.example
+
+# Claude Code local settings (personal preferences)
+.claude/settings.local.json
