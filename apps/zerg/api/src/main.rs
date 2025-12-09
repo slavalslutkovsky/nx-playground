@@ -43,12 +43,17 @@ async fn main() -> eyre::Result<()> {
 
     let (db, redis) = tokio::try_join!(postgres_future, redis_future)?;
 
+    // Initialize JWT + Redis authentication
+    let jwt_auth = axum_helpers::JwtRedisAuth::new(redis.clone(), Some(&config.session_secret))
+        .map_err(|e| eyre::eyre!("Failed to initialize JWT auth: {}", e))?;
+
     // Initialize the application state with database connections
     let state = AppState {
         config,
         tasks_client,
         db,
         redis,
+        jwt_auth,
     };
 
     // Build router with API routes (pass reference, not ownership!)

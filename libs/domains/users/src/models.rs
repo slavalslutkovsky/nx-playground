@@ -60,6 +60,22 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
+    /// Avatar URL (from OAuth or user upload)
+    pub avatar_url: Option<String>,
+    /// Google OAuth ID
+    pub google_id: Option<String>,
+    /// GitHub OAuth ID
+    pub github_id: Option<String>,
+    /// Last login timestamp
+    pub last_login_at: Option<DateTime<Utc>>,
+    /// Account active status
+    pub is_active: bool,
+    /// Account locked status
+    pub is_locked: bool,
+    /// Failed login attempt counter
+    pub failed_login_attempts: i32,
+    /// Locked until timestamp
+    pub locked_until: Option<DateTime<Utc>>,
 }
 
 /// User response DTO (without password_hash)
@@ -72,6 +88,8 @@ pub struct UserResponse {
     pub email_verified: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub avatar_url: Option<String>,
+    pub last_login_at: Option<DateTime<Utc>>,
 }
 
 impl From<User> for UserResponse {
@@ -84,6 +102,8 @@ impl From<User> for UserResponse {
             email_verified: user.email_verified,
             created_at: user.created_at,
             updated_at: user.updated_at,
+            avatar_url: user.avatar_url,
+            last_login_at: user.last_login_at,
         }
     }
 }
@@ -131,6 +151,46 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+/// DTO for user registration
+#[derive(Debug, Clone, Deserialize)]
+pub struct RegisterRequest {
+    pub email: String,
+    pub password: String,
+    pub name: String,
+}
+
+/// Response after successful login/register
+#[derive(Debug, Clone, Serialize)]
+pub struct LoginResponse {
+    pub user: UserResponse,
+}
+
+/// OAuth provider enumeration
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OAuthProvider {
+    Google,
+    Github,
+}
+
+impl std::fmt::Display for OAuthProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OAuthProvider::Google => write!(f, "google"),
+            OAuthProvider::Github => write!(f, "github"),
+        }
+    }
+}
+
+/// User information from OAuth provider
+#[derive(Debug, Clone, Deserialize)]
+pub struct OAuthUserInfo {
+    pub email: String,
+    pub name: String,
+    pub avatar_url: Option<String>,
+    pub provider_id: String,
+}
+
 impl User {
     /// Create a new user (password will be hashed by service layer)
     pub fn new(email: String, name: String, password_hash: String, roles: Vec<Role>) -> Self {
@@ -148,6 +208,14 @@ impl User {
             email_verified: false,
             created_at: now,
             updated_at: now,
+            avatar_url: None,
+            google_id: None,
+            github_id: None,
+            last_login_at: None,
+            is_active: true,
+            is_locked: false,
+            failed_login_attempts: 0,
+            locked_until: None,
         }
     }
 

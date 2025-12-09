@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 
 use crate::error::{UserError, UserResult};
-use crate::models::{User, UserFilter};
+use crate::models::{OAuthProvider, User, UserFilter};
 
 /// Repository trait for User persistence
 #[async_trait]
@@ -33,6 +33,28 @@ pub trait UserRepository: Send + Sync {
 
     /// Count total users (for pagination)
     async fn count(&self, filter: UserFilter) -> UserResult<usize>;
+
+    /// Get a user by OAuth provider ID
+    async fn get_by_oauth_id(
+        &self,
+        provider: OAuthProvider,
+        provider_id: &str,
+    ) -> UserResult<Option<User>>;
+
+    /// Link OAuth account to an existing user
+    async fn link_oauth_account(
+        &self,
+        user_id: Uuid,
+        provider: OAuthProvider,
+        provider_id: &str,
+        avatar_url: Option<String>,
+    ) -> UserResult<()>;
+
+    /// Update login attempt (increment or reset)
+    async fn update_login_attempt(&self, user_id: Uuid, success: bool) -> UserResult<()>;
+
+    /// Check if account is currently locked
+    async fn check_account_locked(&self, user_id: Uuid) -> UserResult<bool>;
 }
 
 /// In-memory implementation of UserRepository (for development/testing)
@@ -190,6 +212,94 @@ impl UserRepository for InMemoryUserRepository {
             .count();
 
         Ok(count)
+    }
+
+    async fn get_by_oauth_id(
+        &self,
+        provider: OAuthProvider,
+        provider_id: &str,
+    ) -> UserResult<Option<User>> {
+        let users = self.users.read().await;
+        let user = users.values().find(|u| match provider {
+            OAuthProvider::Google => {
+                u.google_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
+            }
+            OAuthProvider::Github => {
+                u.github_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
+            }
+        }).cloned();
+        Ok(user)
+    }
+
+    async fn link_oauth_account(
+        &self,
+        user_id: Uuid,
+        provider: OAuthProvider,
+        provider_id: &str,
+        avatar_url: Option<String>,
+    ) -> UserResult<()> {
+        let mut users = self.users.write().await;
+        if let Some(user) = users.get_mut(&user_id) {
+            match provider {
+                OAuthProvider::Google => {
+                    user.google_id = Some(provider_id.to_string());
+                }
+                OAuthProvider::Github => {
+                    user.github_id = Some(provider_id.to_string());
+                }
+            }
+            if avatar_url.is_some() {
+                user.avatar_url = avatar_url;
+            }
+            user.updated_at = chrono::Utc::now();
+            Ok(())
+        } else {
+            Err(UserError::NotFound(user_id))
+        }
+    }
+
+    async fn update_login_attempt(&self, user_id: Uuid, success: bool) -> UserResult<()> {
+        let mut users = self.users.write().await;
+        if let Some(user) = users.get_mut(&user_id) {
+            if success {
+                // Reset on successful login
+                user.failed_login_attempts = 0;
+                user.is_locked = false;
+                user.locked_until = None;
+                user.last_login_at = Some(chrono::Utc::now());
+            } else {
+                // Increment failed attempts
+                user.failed_login_attempts += 1;
+
+                // Lock account after 5 failed attempts
+                if user.failed_login_attempts >= 5 {
+                    user.is_locked = true;
+                    user.locked_until = Some(chrono::Utc::now() + chrono::Duration::minutes(15));
+                }
+            }
+            user.updated_at = chrono::Utc::now();
+            Ok(())
+        } else {
+            Err(UserError::NotFound(user_id))
+        }
+    }
+
+    async fn check_account_locked(&self, user_id: Uuid) -> UserResult<bool> {
+        let users = self.users.read().await;
+        if let Some(user) = users.get(&user_id) {
+            if !user.is_locked {
+                return Ok(false);
+            }
+
+            // Check if lock has expired
+            if let Some(locked_until) = user.locked_until {
+                Ok(locked_until > chrono::Utc::now())
+            } else {
+                Ok(user.is_locked)
+            }
+        } else {
+            Err(UserError::NotFound(user_id))
+        }
     }
 }
 

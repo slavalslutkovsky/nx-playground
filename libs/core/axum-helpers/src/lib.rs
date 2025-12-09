@@ -43,7 +43,9 @@ pub mod cleanup;
 pub mod errors;
 pub mod extractors;
 pub mod health;
+pub mod jwt_redis_auth;
 pub mod middleware;
+pub mod redis_auth_store;
 pub mod server;
 pub mod shutdown;
 
@@ -51,6 +53,8 @@ pub mod shutdown;
 pub use cleanup::CleanupCoordinator;
 pub use errors::{AppError, ErrorCode, ErrorResponse};
 pub use health::{HealthResponse, ReadyResponse};
+pub use jwt_redis_auth::{JwtClaims, JwtRedisAuth, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
+pub use redis_auth_store::RedisAuthStore;
 pub use server::{create_app, create_production_app, create_router};
 pub use shutdown::{shutdown_signal, ShutdownCoordinator};
 

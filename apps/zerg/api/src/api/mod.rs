@@ -1,5 +1,6 @@
 use axum::Router;
 
+pub mod auth;
 pub mod cloud_resources;
 pub mod health;
 pub mod projects;
@@ -20,6 +21,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
     use domain_projects::ApiResource;
 
     Router::new()
+        .nest("/auth", auth::router(state)) // Auth routes at /api/auth
         .nest("/tasks", tasks::router(state.clone()))
         .nest("/tasks-direct", tasks_direct::router(&state))
         .nest(domain_projects::entity::Model::URL, projects::router(state))
