@@ -6,7 +6,8 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::error::{UserError, UserResult};
-use crate::models::{CreateUser, OAuthProvider, OAuthUserInfo, Role, UpdateUser, User, UserFilter, UserResponse};
+use crate::models::{CreateUser, Role, UpdateUser, User, UserFilter, UserResponse};
+use crate::oauth::{OAuthUserInfo, Provider};
 use crate::repository::UserRepository;
 
 /// Service layer for User business logic
@@ -322,23 +323,23 @@ impl<R: UserRepository> UserService<R> {
     pub async fn create_user_from_oauth(
         &self,
         oauth_info: OAuthUserInfo,
-        provider: OAuthProvider,
+        provider: Provider,
     ) -> UserResult<UserResponse> {
         // Generate a random password (won't be used since OAuth users don't use passwords)
         let random_password = uuid::Uuid::new_v4().to_string();
         let password_hash = self.hash_password(&random_password)?;
 
         let mut user = User::new(
-            oauth_info.email.clone(),
-            oauth_info.name.clone(),
+            oauth_info.email.clone().unwrap_or_else(|| "noemail@oauth.local".to_string()),
+            oauth_info.name.clone().unwrap_or_else(|| "OAuth User".to_string()),
             password_hash,
             vec![Role::User],
         );
 
         // Set OAuth provider ID
         match provider {
-            OAuthProvider::Google => user.google_id = Some(oauth_info.provider_id.clone()),
-            OAuthProvider::Github => user.github_id = Some(oauth_info.provider_id.clone()),
+            Provider::Google => user.google_id = Some(oauth_info.provider_user_id.clone()),
+            Provider::Github => user.github_id = Some(oauth_info.provider_user_id.clone()),
         }
 
         // Set avatar from OAuth
@@ -354,7 +355,7 @@ impl<R: UserRepository> UserService<R> {
     /// Get user by OAuth provider ID
     pub async fn get_user_by_oauth_id(
         &self,
-        provider: OAuthProvider,
+        provider: Provider,
         provider_id: &str,
     ) -> UserResult<Option<UserResponse>> {
         let user = self.repository.get_by_oauth_id(provider, provider_id).await?;
@@ -366,10 +367,10 @@ impl<R: UserRepository> UserService<R> {
         &self,
         user_id: Uuid,
         oauth_info: OAuthUserInfo,
-        provider: OAuthProvider,
+        provider: Provider,
     ) -> UserResult<()> {
         self.repository
-            .link_oauth_account(user_id, provider, &oauth_info.provider_id, oauth_info.avatar_url)
+            .link_oauth_account(user_id, provider, &oauth_info.provider_user_id, oauth_info.avatar_url)
             .await
     }
 }

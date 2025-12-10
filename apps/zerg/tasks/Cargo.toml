@@ -7,7 +7,7 @@ edition = "2021"
 rpc = { workspace = true }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
-tonic = "0.12"
+tonic = { version = "0.12", features = ["zstd"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }

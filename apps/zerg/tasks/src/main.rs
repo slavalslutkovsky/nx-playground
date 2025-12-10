@@ -294,7 +294,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("TasksService listening on {}", addr);
 
     Server::builder()
-        .add_service(TasksServiceServer::new(tasks_service))
+        .add_service(
+            TasksServiceServer::new(tasks_service)
+                // Enable zstd compression for requests and responses (3-5x faster than gzip)
+                .accept_compressed(tonic::codec::CompressionEncoding::Zstd)
+                .send_compressed(tonic::codec::CompressionEncoding::Zstd)
+        )
         .serve(addr)
         .await?;
 

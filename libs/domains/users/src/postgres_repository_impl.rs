@@ -1,5 +1,5 @@
 use super::{User, UserError, UserFilter, UserRepository, UserResult};
-use crate::models::OAuthProvider;
+use crate::oauth::Provider;
 use async_trait::async_trait;
 use sea_orm::{ConnectionTrait, DbBackend, FromQueryResult, Statement};
 use uuid::Uuid;
@@ -223,10 +223,10 @@ impl UserRepository for PostgresUserRepository {
         Ok(result.rows_affected() > 0)
     }
 
-    async fn get_by_oauth_id(&self, provider: OAuthProvider, provider_id: &str) -> UserResult<Option<User>> {
+    async fn get_by_oauth_id(&self, provider: Provider, provider_id: &str) -> UserResult<Option<User>> {
         let sql = match provider {
-            OAuthProvider::Google => "SELECT * FROM users WHERE google_id = $1",
-            OAuthProvider::Github => "SELECT * FROM users WHERE github_id = $1",
+            Provider::Google => "SELECT * FROM users WHERE google_id = $1",
+            Provider::Github => "SELECT * FROM users WHERE github_id = $1",
         };
 
         let stmt = Statement::from_sql_and_values(
@@ -243,10 +243,10 @@ impl UserRepository for PostgresUserRepository {
         Ok(row.map(|r| r.into()))
     }
 
-    async fn link_oauth_account(&self, user_id: Uuid, provider: OAuthProvider, provider_id: &str, avatar_url: Option<String>) -> UserResult<()> {
+    async fn link_oauth_account(&self, user_id: Uuid, provider: Provider, provider_id: &str, avatar_url: Option<String>) -> UserResult<()> {
         let sql = match provider {
-            OAuthProvider::Google => "UPDATE users SET google_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
-            OAuthProvider::Github => "UPDATE users SET github_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
+            Provider::Google => "UPDATE users SET google_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
+            Provider::Github => "UPDATE users SET github_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
         };
 
         let stmt = Statement::from_sql_and_values(

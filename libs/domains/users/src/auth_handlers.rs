@@ -6,15 +6,15 @@ use axum::{
     Json, Router,
 };
 use axum_helpers::{JwtRedisAuth, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
-use oauth2::{
-    basic::BasicClient, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken,
-    RedirectUrl, Scope, TokenResponse, TokenUrl,
-};
 use serde::Deserialize;
-use std::str::FromStr;
+use std::sync::Arc;
 
 use crate::error::UserError;
 use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
+use crate::oauth::providers::github::GithubProvider;
+use crate::oauth::providers::google::GoogleProvider;
+use crate::oauth::providers::OAuthProvider;
+use crate::oauth::{AccountLinkingResult, AccountLinkingService, OAuthAccountRepository, OAuthState, OAuthStateManager};
 use crate::repository::UserRepository;
 use crate::service::UserService;
 
@@ -31,10 +31,12 @@ pub struct OAuthConfig {
 
 /// Application state for auth handlers
 #[derive(Clone)]
-pub struct AuthState<R: UserRepository> {
+pub struct AuthState<R: UserRepository, O: OAuthAccountRepository> {
     pub service: UserService<R>,
     pub oauth_config: OAuthConfig,
     pub jwt_auth: JwtRedisAuth,
+    pub oauth_state_manager: OAuthStateManager,
+    pub account_linking: AccountLinkingService<R, O>,
 }
 
 /// Check if running in development mode
@@ -45,8 +47,8 @@ fn is_development() -> bool {
 }
 
 /// Register a new user
-async fn register<R: UserRepository>(
-    State(state): State<AuthState<R>>,
+async fn register<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
     Json(input): Json<RegisterRequest>,
 ) -> Result<Response, UserError> {
     // Create user
@@ -144,9 +146,9 @@ async fn register<R: UserRepository>(
         .into_response())
 }
 
-/// Login with email and password
-async fn login<R: UserRepository>(
-    State(state): State<AuthState<R>>,
+/// Login with email/password
+async fn login<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
     Json(input): Json<LoginRequest>,
 ) -> Result<Response, UserError> {
     // Verify credentials
@@ -157,7 +159,7 @@ async fn login<R: UserRepository>(
 
     let user_id = user.id.to_string();
 
-    // Create access token
+    // Create JWT tokens
     let access_token = state
         .jwt_auth
         .create_access_token(&user_id, &user.email, &user.name, &user.roles)
@@ -166,7 +168,6 @@ async fn login<R: UserRepository>(
             UserError::Internal("Failed to create token".to_string())
         })?;
 
-    // Verify and whitelist access token
     let access_claims = state.jwt_auth.verify_token(&access_token).map_err(|e| {
         tracing::error!("Failed to verify access token: {:?}", e);
         UserError::Internal("Failed to verify token".to_string())
@@ -181,7 +182,6 @@ async fn login<R: UserRepository>(
             UserError::Internal("Failed to whitelist token".to_string())
         })?;
 
-    // Create refresh token
     let refresh_token = state
         .jwt_auth
         .create_refresh_token(&user_id, &user.email, &user.name, &user.roles)
@@ -190,7 +190,6 @@ async fn login<R: UserRepository>(
             UserError::Internal("Failed to create token".to_string())
         })?;
 
-    // Verify and whitelist refresh token
     let refresh_claims = state.jwt_auth.verify_token(&refresh_token).map_err(|e| {
         tracing::error!("Failed to verify refresh token: {:?}", e);
         UserError::Internal("Failed to verify token".to_string())
@@ -240,8 +239,8 @@ async fn login<R: UserRepository>(
 }
 
 /// Logout
-async fn logout<R: UserRepository>(
-    State(state): State<AuthState<R>>,
+async fn logout<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
 ) -> Result<Response, UserError> {
     // Extract tokens from cookies
@@ -302,8 +301,8 @@ async fn logout<R: UserRepository>(
 }
 
 /// Get current user from JWT claims
-async fn me<R: UserRepository>(
-    State(state): State<AuthState<R>>,
+async fn me<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
 ) -> Result<Json<crate::models::UserResponse>, UserError> {
     // Extract token from Authorization header or cookie
@@ -371,82 +370,17 @@ fn extract_cookie_value(cookies: &str, name: &str) -> Option<String> {
     })
 }
 
-/// Supported OAuth providers
-#[derive(Debug, Clone, Copy)]
-enum OAuthProvider {
-    Google,
-    Github,
-}
-
-impl FromStr for OAuthProvider {
-    type Err = UserError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "google" => Ok(OAuthProvider::Google),
-            "github" => Ok(OAuthProvider::Github),
-            _ => Err(UserError::OAuth(format!("Unsupported provider: {}", s))),
-        }
-    }
-}
-
-impl OAuthProvider {
-    fn as_str(&self) -> &'static str {
-        match self {
-            OAuthProvider::Google => "google",
-            OAuthProvider::Github => "github",
-        }
-    }
-
-    fn auth_url(&self) -> &'static str {
-        match self {
-            OAuthProvider::Google => "https://accounts.google.com/o/oauth2/v2/auth",
-            OAuthProvider::Github => "https://github.com/login/oauth/authorize",
-        }
-    }
-
-    fn token_url(&self) -> &'static str {
-        match self {
-            OAuthProvider::Google => "https://oauth2.googleapis.com/token",
-            OAuthProvider::Github => "https://github.com/login/oauth/access_token",
-        }
-    }
-
-    fn scopes(&self) -> Vec<Scope> {
-        match self {
-            OAuthProvider::Google => vec![
-                Scope::new("email".to_string()),
-                Scope::new("profile".to_string()),
-            ],
-            OAuthProvider::Github => vec![
-                Scope::new("user:email".to_string()),
-                Scope::new("read:user".to_string()),
-            ],
-        }
-    }
-
-    fn client_credentials(&self, config: &OAuthConfig) -> (String, String) {
-        match self {
-            OAuthProvider::Google => (
-                config.google_client_id.clone(),
-                config.google_client_secret.clone(),
-            ),
-            OAuthProvider::Github => (
-                config.github_client_id.clone(),
-                config.github_client_secret.clone(),
-            ),
-        }
-    }
-}
-
 /// Query parameters for OAuth callback
 #[derive(Debug, Deserialize)]
 struct OAuthCallbackQuery {
     code: String,
+    // TODO: Implement CSRF state validation with PKCE (see terran's OAuthStateManager)
+    #[allow(dead_code)]
     state: String,
 }
 
 /// Generate a secure random password that meets all validation requirements
+#[allow(dead_code)]
 fn generate_oauth_password() -> String {
     use rand::Rng;
     const CHARSET_LOWER: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
@@ -454,140 +388,196 @@ fn generate_oauth_password() -> String {
     const CHARSET_DIGIT: &[u8] = b"0123456789";
     const CHARSET_SPECIAL: &[u8] = b"!@#$%^&*()_+-=[]{}|;:,.<>?";
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut password = String::new();
 
     // Ensure at least one of each required character type
-    password.push(CHARSET_UPPER[rng.gen_range(0..CHARSET_UPPER.len())] as char);
-    password.push(CHARSET_LOWER[rng.gen_range(0..CHARSET_LOWER.len())] as char);
-    password.push(CHARSET_DIGIT[rng.gen_range(0..CHARSET_DIGIT.len())] as char);
-    password.push(CHARSET_SPECIAL[rng.gen_range(0..CHARSET_SPECIAL.len())] as char);
+    password.push(CHARSET_UPPER[rng.random_range(0..CHARSET_UPPER.len())] as char);
+    password.push(CHARSET_LOWER[rng.random_range(0..CHARSET_LOWER.len())] as char);
+    password.push(CHARSET_DIGIT[rng.random_range(0..CHARSET_DIGIT.len())] as char);
+    password.push(CHARSET_SPECIAL[rng.random_range(0..CHARSET_SPECIAL.len())] as char);
 
     // Add remaining random characters (total 20 chars)
     let all_chars = [CHARSET_LOWER, CHARSET_UPPER, CHARSET_DIGIT, CHARSET_SPECIAL].concat();
     for _ in 0..16 {
-        password.push(all_chars[rng.gen_range(0..all_chars.len())] as char);
+        password.push(all_chars[rng.random_range(0..all_chars.len())] as char);
     }
 
     // Shuffle to avoid predictable pattern
     let mut chars: Vec<char> = password.chars().collect();
     for i in (1..chars.len()).rev() {
-        let j = rng.gen_range(0..=i);
+        let j = rng.random_range(0..=i);
         chars.swap(i, j);
     }
 
     chars.into_iter().collect()
 }
 
+/// Get OAuth provider by name
+fn get_provider(provider_name: &str, config: &OAuthConfig) -> Result<Arc<dyn OAuthProvider>, UserError> {
+    match provider_name.to_lowercase().as_str() {
+        "google" => Ok(Arc::new(GoogleProvider::new(
+            config.google_client_id.clone(),
+            config.google_client_secret.clone(),
+        )) as Arc<dyn OAuthProvider>),
+        "github" => Ok(Arc::new(GithubProvider::new(
+            config.github_client_id.clone(),
+            config.github_client_secret.clone(),
+        )) as Arc<dyn OAuthProvider>),
+        _ => Err(UserError::OAuth(format!("Unsupported provider: {}", provider_name))),
+    }
+}
+
 /// Initiate OAuth flow for any provider
-async fn authorize<R: UserRepository>(
-    State(state): State<AuthState<R>>,
-    Path(provider_str): Path<String>,
+async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
+    Path(provider_name): Path<String>,
 ) -> Result<Redirect, UserError> {
-    let provider = OAuthProvider::from_str(&provider_str)?;
-    let redirect_url = format!(
+    let provider = get_provider(&provider_name, &state.oauth_config)?;
+
+    let redirect_uri = format!(
         "{}/api/auth/oauth/{}/callback",
         state.oauth_config.redirect_base_url,
-        provider.as_str()
+        provider.name()
     );
-    tracing::info!("{} OAuth redirect URI: {}", provider_str, redirect_url);
+    tracing::info!("{} OAuth redirect URI: {}", provider_name, redirect_uri);
 
-    let (client_id, client_secret) = provider.client_credentials(&state.oauth_config);
+    // Generate CSRF state and PKCE verifier
+    let csrf_state = state.oauth_state_manager.generate_state();
+    let pkce_verifier = state.oauth_state_manager.generate_pkce_verifier();
 
-    let client = BasicClient::new(ClientId::new(client_id))
-        .set_client_secret(ClientSecret::new(client_secret))
+    // Store state in Redis for validation in callback
+    let oauth_state = OAuthState {
+        state: csrf_state.clone(),
+        pkce_verifier: pkce_verifier.clone(),
+        nonce: None,
+        redirect_uri: redirect_uri.clone(),
+        provider: provider.name().to_string(),
+    };
+    state.oauth_state_manager.store_state(&oauth_state).await?;
+
+    // Build authorization URL with PKCE
+    use oauth2::{
+        basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge,
+        PkceCodeVerifier, RedirectUrl, Scope,
+    };
+
+    let client = BasicClient::new(ClientId::new(provider.client_id().to_string()))
+        .set_client_secret(ClientSecret::new(provider.client_secret().to_string()))
         .set_auth_uri(
             AuthUrl::new(provider.auth_url().to_string())
                 .map_err(|e| UserError::OAuth(format!("Invalid auth URL: {}", e)))?,
         )
-        .set_token_uri(
-            TokenUrl::new(provider.token_url().to_string())
-                .map_err(|e| UserError::OAuth(format!("Invalid token URL: {}", e)))?,
-        )
         .set_redirect_uri(
-            RedirectUrl::new(redirect_url)
+            RedirectUrl::new(redirect_uri)
                 .map_err(|e| UserError::OAuth(format!("Invalid redirect URL: {}", e)))?,
         );
 
-    let mut auth_request = client.authorize_url(CsrfToken::new_random);
-    for scope in provider.scopes() {
-        auth_request = auth_request.add_scope(scope);
+    // Generate PKCE challenge from verifier
+    let pkce_verifier_obj = PkceCodeVerifier::new(pkce_verifier);
+    let pkce_challenge = PkceCodeChallenge::from_code_verifier_sha256(&pkce_verifier_obj);
+
+    let mut auth_request = client
+        .authorize_url(|| CsrfToken::new(csrf_state))
+        .set_pkce_challenge(pkce_challenge);
+
+    for scope in provider.required_scopes() {
+        auth_request = auth_request.add_scope(Scope::new(scope.to_string()));
     }
+
     let (auth_url, _csrf_token) = auth_request.url();
 
     Ok(Redirect::to(auth_url.as_str()))
 }
 
 /// Handle OAuth callback for any provider
-async fn callback<R: UserRepository>(
-    State(state): State<AuthState<R>>,
-    Path(provider_str): Path<String>,
+async fn callback<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
+    Path(provider_name): Path<String>,
     Query(query): Query<OAuthCallbackQuery>,
 ) -> Result<Response, UserError> {
-    let provider = OAuthProvider::from_str(&provider_str)?;
-    let redirect_url = format!(
-        "{}/api/auth/oauth/{}/callback",
-        state.oauth_config.redirect_base_url,
-        provider.as_str()
-    );
+    tracing::info!("OAuth callback started for provider: {}", provider_name);
 
-    let (client_id, client_secret) = provider.client_credentials(&state.oauth_config);
-
-    let client = BasicClient::new(ClientId::new(client_id))
-        .set_client_secret(ClientSecret::new(client_secret))
-        .set_auth_uri(
-            AuthUrl::new(provider.auth_url().to_string())
-                .map_err(|e| UserError::OAuth(format!("Invalid auth URL: {}", e)))?,
-        )
-        .set_token_uri(
-            TokenUrl::new(provider.token_url().to_string())
-                .map_err(|e| UserError::OAuth(format!("Invalid token URL: {}", e)))?,
-        )
-        .set_redirect_uri(
-            RedirectUrl::new(redirect_url)
-                .map_err(|e| UserError::OAuth(format!("Invalid redirect URL: {}", e)))?,
-        );
-
-    // Exchange code for token
-    let http_client = reqwest::Client::new();
-    let token_result = client
-        .exchange_code(AuthorizationCode::new(query.code))
-        .request_async(&http_client)
+    // Verify and consume OAuth state (CSRF protection + retrieve PKCE verifier)
+    let oauth_state = state.oauth_state_manager
+        .verify_and_consume_state(&query.state)
         .await
-        .map_err(|e| UserError::OAuth(format!("Failed to exchange code: {}", e)))?;
+        .map_err(|e| {
+            tracing::error!("Failed to verify OAuth state: {:?}", e);
+            e
+        })?;
 
-    let access_token = token_result.access_token().secret();
+    tracing::debug!("OAuth state verified successfully");
+
+    // Verify provider matches
+    let provider = get_provider(&provider_name, &state.oauth_config)?;
+    if oauth_state.provider != provider.name() {
+        return Err(UserError::OAuth("Provider mismatch".to_string()));
+    }
+
+    // Use the trait's exchange_code method with PKCE verification
+    let token_response = provider
+        .exchange_code(&query.code, &oauth_state.pkce_verifier, &oauth_state.redirect_uri)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to exchange OAuth code: {:?}", e);
+            e
+        })?;
+
+    tracing::debug!("Token exchange successful");
+
+    let access_token = token_response.access_token.clone();
+    let refresh_token = token_response.refresh_token;
+    let expires_in = token_response.expires_in;
 
     // Fetch user info from provider
-    let user_info = match provider {
-        OAuthProvider::Google => crate::oauth::fetch_google_user_info(access_token).await?,
-        OAuthProvider::Github => crate::oauth::fetch_github_user_info(access_token).await?,
-    };
+    let user_info = provider.get_user_info(&access_token).await
+        .map_err(|e| {
+            tracing::error!("Failed to get user info from provider: {:?}", e);
+            e
+        })?;
 
-    // Check if user exists by email
-    let user = if let Ok(existing_user) = state.service.get_user_by_email(&user_info.email).await {
-        // User exists, use it
-        // TODO: Update user with Google OAuth ID if not already linked
-        existing_user
-    } else {
-        // Create new user with OAuth info
-        state
-            .service
-            .create_user(crate::models::CreateUser {
-                email: user_info.email,
-                name: user_info.name,
-                password: generate_oauth_password(), // Secure random password for OAuth users
-                roles: vec![],
-            })
-            .await?
+    tracing::info!("User info retrieved: email={:?}, name={:?}", user_info.email, user_info.name);
+
+    // Use AccountLinkingService to handle account linking logic
+    let linking_result = state
+        .account_linking
+        .handle_oauth_login(
+            provider.name(),
+            user_info,
+            Some(access_token),
+            refresh_token,
+            expires_in,
+            true, // auto_link_verified_emails
+        )
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to handle account linking: {:?}", e);
+            e
+        })?;
+
+    tracing::debug!("Account linking completed successfully");
+
+    // Handle different linking results
+    let user = match linking_result {
+        AccountLinkingResult::NewUser(user) | AccountLinkingResult::ExistingUser(user) => user,
+        AccountLinkingResult::LinkRequired { existing_user_id: _, provider_data } => {
+            // For now, return an error. In a real app, you'd redirect to a linking confirmation page
+            return Err(UserError::OAuth(format!(
+                "Account linking required. An account with email '{}' already exists. Please log in first and link your {} account from your profile.",
+                provider_data.email.unwrap_or_default(),
+                provider_name
+            )));
+        }
     };
 
     let user_id = user.id.to_string();
+    let user_roles: Vec<String> = user.roles.iter().map(|r| r.to_string()).collect();
 
     // Create JWT tokens
     let access_token = state
         .jwt_auth
-        .create_access_token(&user_id, &user.email, &user.name, &user.roles)
+        .create_access_token(&user_id, &user.email, &user.name, &user_roles)
         .map_err(|e| {
             tracing::error!("Failed to create access token: {:?}", e);
             UserError::Internal("Failed to create token".to_string())
@@ -609,7 +599,7 @@ async fn callback<R: UserRepository>(
 
     let refresh_token = state
         .jwt_auth
-        .create_refresh_token(&user_id, &user.email, &user.name, &user.roles)
+        .create_refresh_token(&user_id, &user.email, &user.name, &user_roles)
         .map_err(|e| {
             tracing::error!("Failed to create refresh token: {:?}", e);
             UserError::Internal("Failed to create token".to_string())
@@ -666,16 +656,17 @@ async fn callback<R: UserRepository>(
 }
 
 /// Create auth router
-pub fn auth_router<R>(state: AuthState<R>) -> Router
+pub fn auth_router<R, O>(state: AuthState<R, O>) -> Router
 where
     R: UserRepository + Clone + Send + Sync + 'static,
+    O: OAuthAccountRepository + Clone + Send + Sync + 'static,
 {
     Router::new()
-        .route("/register", post(register::<R>))
-        .route("/login", post(login::<R>))
-        .route("/logout", post(logout::<R>))
-        .route("/me", get(me::<R>))
-        .route("/oauth/{provider}", get(authorize::<R>))
-        .route("/oauth/{provider}/callback", get(callback::<R>))
+        .route("/register", post(register::<R, O>))
+        .route("/login", post(login::<R, O>))
+        .route("/logout", post(logout::<R, O>))
+        .route("/me", get(me::<R, O>))
+        .route("/oauth/{provider}", get(authorize::<R, O>))
+        .route("/oauth/{provider}/callback", get(callback::<R, O>))
         .with_state(state)
 }

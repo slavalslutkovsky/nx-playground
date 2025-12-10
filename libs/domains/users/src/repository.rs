@@ -5,7 +5,8 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 
 use crate::error::{UserError, UserResult};
-use crate::models::{OAuthProvider, User, UserFilter};
+use crate::models::{User, UserFilter};
+use crate::oauth::Provider;
 
 /// Repository trait for User persistence
 #[async_trait]
@@ -37,7 +38,7 @@ pub trait UserRepository: Send + Sync {
     /// Get a user by OAuth provider ID
     async fn get_by_oauth_id(
         &self,
-        provider: OAuthProvider,
+        provider: Provider,
         provider_id: &str,
     ) -> UserResult<Option<User>>;
 
@@ -45,7 +46,7 @@ pub trait UserRepository: Send + Sync {
     async fn link_oauth_account(
         &self,
         user_id: Uuid,
-        provider: OAuthProvider,
+        provider: Provider,
         provider_id: &str,
         avatar_url: Option<String>,
     ) -> UserResult<()>;
@@ -216,15 +217,15 @@ impl UserRepository for InMemoryUserRepository {
 
     async fn get_by_oauth_id(
         &self,
-        provider: OAuthProvider,
+        provider: Provider,
         provider_id: &str,
     ) -> UserResult<Option<User>> {
         let users = self.users.read().await;
         let user = users.values().find(|u| match provider {
-            OAuthProvider::Google => {
+            Provider::Google => {
                 u.google_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
             }
-            OAuthProvider::Github => {
+            Provider::Github => {
                 u.github_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
             }
         }).cloned();
@@ -234,17 +235,17 @@ impl UserRepository for InMemoryUserRepository {
     async fn link_oauth_account(
         &self,
         user_id: Uuid,
-        provider: OAuthProvider,
+        provider: Provider,
         provider_id: &str,
         avatar_url: Option<String>,
     ) -> UserResult<()> {
         let mut users = self.users.write().await;
         if let Some(user) = users.get_mut(&user_id) {
             match provider {
-                OAuthProvider::Google => {
+                Provider::Google => {
                     user.google_id = Some(provider_id.to_string());
                 }
-                OAuthProvider::Github => {
+                Provider::Github => {
                     user.github_id = Some(provider_id.to_string());
                 }
             }

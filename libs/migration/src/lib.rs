@@ -6,7 +6,8 @@ mod m20241129_000001_create_projects;
 mod m20241129_000002_create_cloud_resources;
 mod m20241201_000000_seed_initial_data;
 mod m20241206_000000_create_tasks;
-mod m20241209_000000_extend_users_for_auth;
+mod m20241206_000001_seed_tasks;
+mod m20241209_000001_create_oauth_accounts;
 
 pub struct Migrator;
 
@@ -20,7 +21,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20241129_000002_create_cloud_resources::Migration),
             Box::new(m20241201_000000_seed_initial_data::Migration),
             Box::new(m20241206_000000_create_tasks::Migration),
-            Box::new(m20241209_000000_extend_users_for_auth::Migration),
+            Box::new(m20241206_000001_seed_tasks::Migration),
+            Box::new(m20241209_000001_create_oauth_accounts::Migration),
         ]
     }
 }

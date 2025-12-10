@@ -59,6 +59,7 @@ pub mod service;
 // Re-export commonly used types
 pub use error::{UserError, UserResult};
 pub use models::{CreateUser, LoginRequest, Role, UpdateUser, User, UserFilter, UserResponse};
+pub use oauth::{AccountLinkingService, OAuthStateManager, PostgresOAuthAccountRepository};
 pub use postgres_repository_impl::PostgresUserRepository;
 pub use repository::{InMemoryUserRepository, UserRepository};
 pub use service::UserService;

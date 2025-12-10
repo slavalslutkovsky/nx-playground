@@ -24,10 +24,10 @@ pub async fn create_optimized_tasks_client(addr: String) -> eyre::Result<TasksSe
     let channel = endpoint.connect().await?;
 
     let client = TasksServiceClient::new(channel)
-        // Compression requires enabling "gzip" or "zstd" feature in tonic
-        // Add to Cargo.toml: tonic = { version = "0.12", features = ["gzip"] }
-        // .accept_compressed(tonic::codec::CompressionEncoding::Gzip)
-        // .send_compressed(tonic::codec::CompressionEncoding::Gzip)
+        // Using zstd for better performance (3-5x faster than gzip)
+        // Add to Cargo.toml: tonic = { version = "0.12", features = ["zstd"] }
+        .accept_compressed(tonic::codec::CompressionEncoding::Zstd)
+        .send_compressed(tonic::codec::CompressionEncoding::Zstd)
         .max_decoding_message_size(8 * 1024 * 1024)  // 8MB max
         .max_encoding_message_size(8 * 1024 * 1024); // 8MB max
 

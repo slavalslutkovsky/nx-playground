@@ -46,7 +46,6 @@ eyre = { version = '0.6.12', features = ['default'] }
 field-selector = { path = 'libs/core/field-selector' }
 #flagsmith = { version = '2.1.0', features = [] }
 futures = '0.3.31'
-#hex = '0.4.3'
 http = { version = '1.4.0' }
 jsonwebtoken = { version = '10.2.0', features = ['aws_lc_rs'] }
 #k8s-openapi = { version = '0.26.0', features = ['v1_34'] }
@@ -87,7 +86,7 @@ tonic = '0.14.2'
 tonic-reflection = '0.14.2'
 tonic-web = '0.14.2'
 tower = '0.5.2'
-tower-http = { version = '0.6.7', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
+tower-http = { version = '0.6.8', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
 tower_governor = '0.8.0'
 tracing = '0.1.43'
 tracing-error = '0.2.1'

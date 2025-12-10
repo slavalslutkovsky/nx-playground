@@ -9,8 +9,10 @@ async-trait = { workspace = true }
 axum = { workspace = true }
 axum-helpers = { workspace = true }
 chrono = { workspace = true }
+const-hex = "1.17.0"
 oauth2 = { workspace = true }
 rand = { workspace = true }
+redis = { workspace = true }
 reqwest = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }

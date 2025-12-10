@@ -13,7 +13,6 @@
     ],
     "deny": [
       "Read(./.env)",
-      "Read(./.env.*)",
       "Read(./secrets/**)",
       "Read(./.aws/**)",
       "Read(./config/credentials.json)",

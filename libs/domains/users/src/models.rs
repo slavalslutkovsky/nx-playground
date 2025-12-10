@@ -165,32 +165,6 @@ pub struct LoginResponse {
     pub user: UserResponse,
 }
 
-/// OAuth provider enumeration
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum OAuthProvider {
-    Google,
-    Github,
-}
-
-impl std::fmt::Display for OAuthProvider {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            OAuthProvider::Google => write!(f, "google"),
-            OAuthProvider::Github => write!(f, "github"),
-        }
-    }
-}
-
-/// User information from OAuth provider
-#[derive(Debug, Clone, Deserialize)]
-pub struct OAuthUserInfo {
-    pub email: String,
-    pub name: String,
-    pub avatar_url: Option<String>,
-    pub provider_id: String,
-}
-
 impl User {
     /// Create a new user (password will be hashed by service layer)
     pub fn new(email: String, name: String, password_hash: String, roles: Vec<Role>) -> Self {

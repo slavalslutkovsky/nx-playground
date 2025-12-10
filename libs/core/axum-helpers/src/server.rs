@@ -5,6 +5,7 @@ use axum::{middleware, Router};
 use core_config::server::ServerConfig;
 use std::io;
 use std::time::Duration;
+use tower_http::compression::CompressionLayer;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 use tracing::{info, Level};
 use utoipa::OpenApi;
@@ -188,7 +189,10 @@ where
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .layer(middleware::from_fn(security_headers))
-        .layer(cors_layer);
+        .layer(cors_layer)
+        // Add HTTP response compression (gzip, br, deflate, zstd)
+        // Automatically compresses responses based on the Accept-Encoding header
+        .layer(CompressionLayer::new());
 
     Ok(router)
 }
