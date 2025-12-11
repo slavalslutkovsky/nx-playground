@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zerg-api
+  name: zerg-tasks
   labels:
-    app: zerg-api
-    app.kubernetes.io/name: zerg-api
-    app.kubernetes.io/component: api-server
+    app: zerg-tasks
+    app.kubernetes.io/name: zerg-tasks
+    app.kubernetes.io/component: grpc-server
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: zerg-api
+      app: zerg-tasks
   template:
     metadata:
       labels:
-        app: zerg-api
-        app.kubernetes.io/name: zerg-api
-        app.kubernetes.io/component: api-server
+        app: zerg-tasks
+        app.kubernetes.io/name: zerg-tasks
+        app.kubernetes.io/component: grpc-server
     spec:
       securityContext:
         runAsNonRoot: true
@@ -25,46 +25,43 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: zerg-api
-          image: yurikrupnik/zerg-api:latest
+        - name: zerg-tasks
+          image: yurikrupnik/zerg-tasks:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
-              name: http
+            - containerPort: 50051
+              name: grpc
               protocol: TCP
           env:
-            - name: PORT
-              value: "8080"
+            - name: APP_ENV
+              value: "production"
+            - name: GRPC_HOST
+              value: "0.0.0.0"
+            - name: GRPC_PORT
+              value: "50051"
             - name: RUST_LOG
               value: "info"
             - name: DATABASE_URL
               value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-            - name: REDIS_HOST
-              value: "redis://redis.dbs.svc.cluster.local"
-            - name: CORS_ALLOWED_ORIGIN
-              value: "http://localhost:3000"
           # Startup probe: allows up to 30s for container to start (6 * 5s)
           startupProbe:
-            httpGet:
-              path: /health
-              port: 8080
+            grpc:
+              port: 50051
             initialDelaySeconds: 2
             periodSeconds: 5
             failureThreshold: 6
             timeoutSeconds: 3
           # Liveness probe: restarts container if unhealthy
           livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
+            grpc:
+              port: 50051
             periodSeconds: 10
             failureThreshold: 3
             timeoutSeconds: 3
           # Readiness probe: removes from service if not ready
           readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
+            grpc:
+              port: 50051
             periodSeconds: 5
             failureThreshold: 3
             timeoutSeconds: 2

@@ -5,6 +5,7 @@
 //! - Database connection
 //! - Service creation
 //! - gRPC server configuration and startup
+//! - Health check service (grpc.health.v1.Health)
 
 use core_config::{Environment, FromEnv};
 use database::postgres::PostgresConfig;
@@ -12,6 +13,7 @@ use domain_tasks::{PgTaskRepository, TaskService};
 use eyre::{Result, WrapErr};
 use rpc::tasks::tasks_service_server::TasksServiceServer;
 use tonic::transport::Server;
+use tonic_health::server::health_reporter;
 use tracing::info;
 
 use crate::service::TasksServiceImpl;
@@ -53,15 +55,33 @@ pub async fn run() -> Result<()> {
     // Create gRPC service implementation
     let tasks_service = TasksServiceImpl::new(service);
 
-    // Configure server address
-    let addr = "[::1]:50051"
+    // Configure server address from environment or default
+    let host = std::env::var("GRPC_HOST").unwrap_or_else(|_| "[::1]".to_string());
+    let port = std::env::var("GRPC_PORT").unwrap_or_else(|_| "50051".to_string());
+    let addr_str = format!("{}:{}", host, port);
+    let addr = addr_str
         .parse()
-        .wrap_err("Failed to parse server address")?;
+        .wrap_err_with(|| format!("Failed to parse server address: {}", addr_str))?;
     info!("TasksService listening on {}", addr);
     info!("Using Zstd compression for optimal performance");
 
+    // Create health reporter for Kubernetes probes
+    let (health_reporter, health_service) = health_reporter();
+
+    // Mark tasks service as serving (for k8s readiness/liveness probes)
+    // Using the service name from the proto definition
+    health_reporter
+        .set_service_status("tasks.TasksService", tonic_health::ServingStatus::Serving)
+        .await;
+    // Also set empty service name for generic health checks (what k8s uses by default)
+    health_reporter
+        .set_service_status("", tonic_health::ServingStatus::Serving)
+        .await;
+    info!("Health check service enabled (grpc.health.v1.Health)");
+
     // Build and start the gRPC server with production settings
     Server::builder()
+        .add_service(health_service)
         .add_service(
             TasksServiceServer::new(tasks_service)
                 // Enable zstd compression (3-5x faster than gzip, better compression ratio)
