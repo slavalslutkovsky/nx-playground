@@ -50,7 +50,8 @@ schema:
 test-all:
   cargo nextest run --workspace
 kompose:
-  kompose convert --file /Users/yurikrupnik/projects/playground/manifests/dockers/compose.yaml -o k8s-manifests/
+  kubectl create ns dbs
+  kompose convert --file ~/private/nx-playground/manifests/dockers/compose.yaml --namespace dbs --stdout | kubectl apply -f -
 # Proto/gRPC workflow (using buf)
 # Directory containing buf configuration
 proto_dir := "manifests/grpc"
