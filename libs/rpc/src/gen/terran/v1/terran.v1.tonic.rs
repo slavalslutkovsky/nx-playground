@@ -1,7 +1,13 @@
 // @generated
 /// Generated client implementations.
 pub mod terran_service_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
@@ -21,10 +27,10 @@ pub mod terran_service_client {
     }
     impl<T> TerranServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
     {
         pub fn new(inner: T) -> Self {
             let inner = tonic::client::Grpc::new(inner);
@@ -42,14 +48,14 @@ pub mod terran_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + Send + Sync,
+                http::Request<tonic::body::Body>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             TerranServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -95,12 +101,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/Healthcheck",
             );
@@ -120,12 +125,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/ListProjects",
             );
@@ -145,12 +149,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/GetProject",
             );
@@ -170,12 +173,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/CreateProject",
             );
@@ -195,12 +197,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/UpdateProject",
             );
@@ -220,12 +221,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/DeleteProject",
             );
@@ -245,12 +245,11 @@ pub mod terran_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.TerranService/StreamProjects",
             );
@@ -263,11 +262,17 @@ pub mod terran_service_client {
 }
 /// Generated server implementations.
 pub mod terran_service_server {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with TerranServiceServer.
     #[async_trait]
-    pub trait TerranService: Send + Sync + 'static {
+    pub trait TerranService: std::marker::Send + std::marker::Sync + 'static {
         async fn healthcheck(
             &self,
             request: tonic::Request<super::HealthcheckRequest>,
@@ -314,7 +319,7 @@ pub mod terran_service_server {
         type StreamProjectsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::ProjectStreamResponse, tonic::Status>,
             >
-            + Send
+            + std::marker::Send
             + 'static;
         async fn stream_projects(
             &self,
@@ -325,14 +330,14 @@ pub mod terran_service_server {
         >;
     }
     #[derive(Debug)]
-    pub struct TerranServiceServer<T: TerranService> {
+    pub struct TerranServiceServer<T> {
         inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    impl<T: TerranService> TerranServiceServer<T> {
+    impl<T> TerranServiceServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -386,10 +391,10 @@ pub mod terran_service_server {
     impl<T, B> tonic::codegen::Service<http::Request<B>> for TerranServiceServer<T>
     where
         T: TerranService,
-        B: Body + Send + 'static,
-        B::Error: Into<StdError> + Send + 'static,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
     {
-        type Response = http::Response<tonic::body::BoxBody>;
+        type Response = http::Response<tonic::body::Body>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
         fn poll_ready(
@@ -430,7 +435,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = HealthcheckSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -475,7 +480,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ListProjectsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -520,7 +525,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetProjectSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -565,7 +570,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateProjectSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -610,7 +615,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateProjectSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -655,7 +660,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = DeleteProjectSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -701,7 +706,7 @@ pub mod terran_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = StreamProjectsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -718,23 +723,27 @@ pub mod terran_service_server {
                 }
                 _ => {
                     Box::pin(async move {
-                        Ok(
-                            http::Response::builder()
-                                .status(200)
-                                .header("grpc-status", tonic::Code::Unimplemented as i32)
-                                .header(
-                                    http::header::CONTENT_TYPE,
-                                    tonic::metadata::GRPC_CONTENT_TYPE,
-                                )
-                                .body(empty_body())
-                                .unwrap(),
-                        )
+                        let mut response = http::Response::new(
+                            tonic::body::Body::default(),
+                        );
+                        let headers = response.headers_mut();
+                        headers
+                            .insert(
+                                tonic::Status::GRPC_STATUS,
+                                (tonic::Code::Unimplemented as i32).into(),
+                            );
+                        headers
+                            .insert(
+                                http::header::CONTENT_TYPE,
+                                tonic::metadata::GRPC_CONTENT_TYPE,
+                            );
+                        Ok(response)
                     })
                 }
             }
         }
     }
-    impl<T: TerranService> Clone for TerranServiceServer<T> {
+    impl<T> Clone for TerranServiceServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -746,13 +755,21 @@ pub mod terran_service_server {
             }
         }
     }
-    impl<T: TerranService> tonic::server::NamedService for TerranServiceServer<T> {
-        const NAME: &'static str = "terran.v1.TerranService";
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "terran.v1.TerranService";
+    impl<T> tonic::server::NamedService for TerranServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
     }
 }
 /// Generated client implementations.
 pub mod code_graph_service_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
@@ -772,10 +789,10 @@ pub mod code_graph_service_client {
     }
     impl<T> CodeGraphServiceClient<T>
     where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T: tonic::client::GrpcService<tonic::body::Body>,
         T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
     {
         pub fn new(inner: T) -> Self {
             let inner = tonic::client::Grpc::new(inner);
@@ -793,14 +810,14 @@ pub mod code_graph_service_client {
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
             T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
+                http::Request<tonic::body::Body>,
                 Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                    <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
                 >,
             >,
             <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + Send + Sync,
+                http::Request<tonic::body::Body>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             CodeGraphServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -846,12 +863,11 @@ pub mod code_graph_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.CodeGraphService/InitGraph",
             );
@@ -871,12 +887,11 @@ pub mod code_graph_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.CodeGraphService/ScanWorkspace",
             );
@@ -896,12 +911,11 @@ pub mod code_graph_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.CodeGraphService/ClearGraph",
             );
@@ -921,12 +935,11 @@ pub mod code_graph_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.CodeGraphService/QueryGraph",
             );
@@ -946,12 +959,11 @@ pub mod code_graph_service_client {
                 .ready()
                 .await
                 .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
+                    tonic::Status::unknown(
                         format!("Service was not ready: {}", e.into()),
                     )
                 })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/terran.v1.CodeGraphService/GetGraphStats",
             );
@@ -964,11 +976,17 @@ pub mod code_graph_service_client {
 }
 /// Generated server implementations.
 pub mod code_graph_service_server {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with CodeGraphServiceServer.
     #[async_trait]
-    pub trait CodeGraphService: Send + Sync + 'static {
+    pub trait CodeGraphService: std::marker::Send + std::marker::Sync + 'static {
         async fn init_graph(
             &self,
             request: tonic::Request<super::InitGraphRequest>,
@@ -980,7 +998,7 @@ pub mod code_graph_service_server {
         type ScanWorkspaceStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::ScanProgressResponse, tonic::Status>,
             >
-            + Send
+            + std::marker::Send
             + 'static;
         async fn scan_workspace(
             &self,
@@ -1012,14 +1030,14 @@ pub mod code_graph_service_server {
         >;
     }
     #[derive(Debug)]
-    pub struct CodeGraphServiceServer<T: CodeGraphService> {
+    pub struct CodeGraphServiceServer<T> {
         inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    impl<T: CodeGraphService> CodeGraphServiceServer<T> {
+    impl<T> CodeGraphServiceServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -1073,10 +1091,10 @@ pub mod code_graph_service_server {
     impl<T, B> tonic::codegen::Service<http::Request<B>> for CodeGraphServiceServer<T>
     where
         T: CodeGraphService,
-        B: Body + Send + 'static,
-        B::Error: Into<StdError> + Send + 'static,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
     {
-        type Response = http::Response<tonic::body::BoxBody>;
+        type Response = http::Response<tonic::body::Body>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
         fn poll_ready(
@@ -1117,7 +1135,7 @@ pub mod code_graph_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = InitGraphSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1164,7 +1182,7 @@ pub mod code_graph_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ScanWorkspaceSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1209,7 +1227,7 @@ pub mod code_graph_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ClearGraphSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1254,7 +1272,7 @@ pub mod code_graph_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = QueryGraphSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1300,7 +1318,7 @@ pub mod code_graph_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetGraphStatsSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1317,23 +1335,27 @@ pub mod code_graph_service_server {
                 }
                 _ => {
                     Box::pin(async move {
-                        Ok(
-                            http::Response::builder()
-                                .status(200)
-                                .header("grpc-status", tonic::Code::Unimplemented as i32)
-                                .header(
-                                    http::header::CONTENT_TYPE,
-                                    tonic::metadata::GRPC_CONTENT_TYPE,
-                                )
-                                .body(empty_body())
-                                .unwrap(),
-                        )
+                        let mut response = http::Response::new(
+                            tonic::body::Body::default(),
+                        );
+                        let headers = response.headers_mut();
+                        headers
+                            .insert(
+                                tonic::Status::GRPC_STATUS,
+                                (tonic::Code::Unimplemented as i32).into(),
+                            );
+                        headers
+                            .insert(
+                                http::header::CONTENT_TYPE,
+                                tonic::metadata::GRPC_CONTENT_TYPE,
+                            );
+                        Ok(response)
                     })
                 }
             }
         }
     }
-    impl<T: CodeGraphService> Clone for CodeGraphServiceServer<T> {
+    impl<T> Clone for CodeGraphServiceServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -1345,7 +1367,9 @@ pub mod code_graph_service_server {
             }
         }
     }
-    impl<T: CodeGraphService> tonic::server::NamedService for CodeGraphServiceServer<T> {
-        const NAME: &'static str = "terran.v1.CodeGraphService";
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "terran.v1.CodeGraphService";
+    impl<T> tonic::server::NamedService for CodeGraphServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
     }
 }

@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-prost = "0.13"
-tonic = "0.12"
-#serde = { version = "1.0", features = ["derive"] }
-#pbjson = "0.7"
-#pbjson-types = "0.7"
+prost = { workspace = true }
+tonic = { workspace = true }
+tonic-prost = { workspace = true }
