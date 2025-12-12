@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-tasks
+  labels:
+    app: zerg-tasks
+    app.kubernetes.io/name: zerg-tasks
+    app.kubernetes.io/component: grpc-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zerg-tasks
+  template:
+    metadata:
+      labels:
+        app: zerg-tasks
+        app.kubernetes.io/name: zerg-tasks
+        app.kubernetes.io/component: grpc-server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zerg-tasks
+          image: yurikrupnik/zerg-tasks:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              name: grpc
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: GRPC_HOST
+              value: "0.0.0.0"
+            - name: GRPC_PORT
+              value: "50051"
+            - name: RUST_LOG
+              value: "info"
+            - name: DATABASE_URL
+              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+          # Startup probe: allows up to 30s for container to start (6 * 5s)
+          startupProbe:
+            grpc:
+              port: 50051
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 3
+          # Liveness probe: restarts container if unhealthy
+          livenessProbe:
+            grpc:
+              port: 50051
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          # Readiness probe: removes from service if not ready
+          readinessProbe:
+            grpc:
+              port: 50051
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 2
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              # No CPU limit prevents throttling for latency-sensitive services
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always

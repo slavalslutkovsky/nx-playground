@@ -5,6 +5,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use axum_helpers::ValidatedJson;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -60,7 +61,7 @@ async fn list_users<R: UserRepository>(
 /// POST /users
 async fn create_user<R: UserRepository>(
     State(service): State<Arc<UserService<R>>>,
-    Json(input): Json<CreateUser>,
+    ValidatedJson(input): ValidatedJson<CreateUser>,
 ) -> UserResult<impl IntoResponse> {
     let user = service.create_user(input).await?;
     Ok((StatusCode::CREATED, Json(user)))
@@ -83,7 +84,7 @@ async fn get_user<R: UserRepository>(
 async fn update_user<R: UserRepository>(
     State(service): State<Arc<UserService<R>>>,
     Path(id): Path<Uuid>,
-    Json(input): Json<UpdateUser>,
+    ValidatedJson(input): ValidatedJson<UpdateUser>,
 ) -> UserResult<Json<UserResponse>> {
     let user = service.update_user(id, input).await?;
     Ok(Json(user))
@@ -146,7 +147,7 @@ async fn change_password<R: UserRepository>(
 /// POST /users/login
 async fn login<R: UserRepository>(
     State(service): State<Arc<UserService<R>>>,
-    Json(input): Json<LoginRequest>,
+    ValidatedJson(input): ValidatedJson<LoginRequest>,
 ) -> UserResult<Json<UserResponse>> {
     let user = service
         .verify_credentials(&input.email, &input.password)

@@ -4,7 +4,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use rpc::tasks::{CreateRequest, GetByIdRequest, UpdateByIdRequest, DeleteByIdRequest, ListRequest};
+use rpc::tasks::{GetByIdRequest, UpdateByIdRequest, DeleteByIdRequest, ListRequest};
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use tonic::transport::Channel;
 use uuid::Uuid;
@@ -39,23 +39,8 @@ pub async fn list_tasks(
     .await
     .map_err(|e| TaskError::Internal(e.to_string()))?;
 
-    let tasks: Vec<Task> = response
-        .into_inner()
-        .data
-        .into_iter()
-        .map(|proto_task| Task {
-            id: bytes_to_uuid(&proto_task.id).unwrap_or_else(|_| Uuid::new_v4()),
-            title: proto_task.title,
-            description: proto_task.description,
-            completed: proto_task.completed,
-            project_id: opt_bytes_to_uuid(proto_task.project_id).ok().flatten(),
-            priority: proto_priority_to_domain(proto_task.priority).unwrap_or_default(),
-            status: proto_status_to_domain(proto_task.status).unwrap_or_default(),
-            due_date: opt_timestamp_to_datetime(proto_task.due_date),
-            created_at: timestamp_to_datetime(proto_task.created_at),
-            updated_at: timestamp_to_datetime(proto_task.updated_at),
-        })
-        .collect();
+    let tasks = list_response_to_tasks(response.into_inner())
+        .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
     Ok(Json(tasks))
 }
@@ -94,19 +79,9 @@ pub async fn get_task(
         }
     })?;
 
-    let proto_task = response.into_inner();
-    let task = Task {
-        id: bytes_to_uuid(&proto_task.id).unwrap_or(uuid),
-        title: proto_task.title,
-        description: proto_task.description,
-        completed: proto_task.completed,
-        project_id: opt_bytes_to_uuid(proto_task.project_id).ok().flatten(),
-        priority: proto_priority_to_domain(proto_task.priority).unwrap_or_default(),
-        status: proto_status_to_domain(proto_task.status).unwrap_or_default(),
-        due_date: opt_timestamp_to_datetime(proto_task.due_date),
-        created_at: timestamp_to_datetime(proto_task.created_at),
-        updated_at: timestamp_to_datetime(proto_task.updated_at),
-    };
+    let task: Task = response.into_inner()
+        .try_into()
+        .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
     Ok(Json(task))
 }
@@ -127,32 +102,13 @@ pub async fn create_task(
     State(mut client): State<TasksServiceClient<Channel>>,
     Json(input): Json<CreateTask>,
 ) -> TaskResult<impl IntoResponse> {
-    let request = CreateRequest {
-        title: input.title,
-        description: input.description,
-        project_id: opt_uuid_to_bytes(input.project_id),
-        priority: domain_priority_to_proto(&input.priority),
-        status: domain_status_to_proto(&input.status),
-        due_date: opt_datetime_to_timestamp(input.due_date),
-    };
-
-    let response = client.create(request)
+    let response = client.create(rpc::tasks::CreateRequest::from(input))
         .await
         .map_err(|e| TaskError::Internal(e.to_string()))?;
 
-    let proto_task = response.into_inner();
-    let task = Task {
-        id: bytes_to_uuid(&proto_task.id).unwrap_or_else(|_| Uuid::new_v4()),
-        title: proto_task.title,
-        description: proto_task.description,
-        completed: proto_task.completed,
-        project_id: opt_bytes_to_uuid(proto_task.project_id).ok().flatten(),
-        priority: proto_priority_to_domain(proto_task.priority).unwrap_or_default(),
-        status: proto_status_to_domain(proto_task.status).unwrap_or_default(),
-        due_date: opt_timestamp_to_datetime(proto_task.due_date),
-        created_at: timestamp_to_datetime(proto_task.created_at),
-        updated_at: timestamp_to_datetime(proto_task.updated_at),
-    };
+    let task: Task = response.into_inner()
+        .try_into()
+        .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
     Ok((StatusCode::CREATED, Json(task)))
 }
@@ -181,16 +137,8 @@ pub async fn update_task(
     let uuid = Uuid::parse_str(&id)
         .map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
 
-    let request = UpdateByIdRequest {
-        id: uuid_to_bytes(uuid),
-        title: input.title,
-        description: input.description,
-        completed: input.completed,
-        project_id: input.project_id.and_then(opt_uuid_to_bytes),
-        priority: input.priority.map(|p| domain_priority_to_proto(&p)),
-        status: input.status.map(|s| domain_status_to_proto(&s)),
-        due_date: input.due_date.and_then(opt_datetime_to_timestamp),
-    };
+    let mut request: UpdateByIdRequest = input.into();
+    request.id = uuid_to_bytes(uuid);
 
     let response = client.update_by_id(request)
         .await
@@ -202,19 +150,9 @@ pub async fn update_task(
             }
         })?;
 
-    let proto_task = response.into_inner();
-    let task = Task {
-        id: bytes_to_uuid(&proto_task.id).unwrap_or(uuid),
-        title: proto_task.title,
-        description: proto_task.description,
-        completed: proto_task.completed,
-        project_id: opt_bytes_to_uuid(proto_task.project_id).ok().flatten(),
-        priority: proto_priority_to_domain(proto_task.priority).unwrap_or_default(),
-        status: proto_status_to_domain(proto_task.status).unwrap_or_default(),
-        due_date: opt_timestamp_to_datetime(proto_task.due_date),
-        created_at: timestamp_to_datetime(proto_task.created_at),
-        updated_at: timestamp_to_datetime(proto_task.updated_at),
-    };
+    let task: Task = response.into_inner()
+        .try_into()
+        .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
     Ok(Json(task))
 }

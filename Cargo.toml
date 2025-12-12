@@ -7,6 +7,7 @@ members = [
     'libs/core/axum-helpers',
     'libs/core/config',
     'libs/core/field-selector',
+    'libs/core/grpc',
     'libs/core/proc_macros',
     'libs/core/proc_macros/api_resource',
     'libs/core/proc_macros/sea_orm_resource',
@@ -28,15 +29,15 @@ async-trait = '0.1.89'
 axum = { version = '0.8.7', features = ['default', 'tracing', 'ws'] }
 axum-extra = { version = '0.12.2', features = ['typed-header'] }
 axum-helpers = { path = 'libs/core/axum-helpers' }
-bb8 = { version = '0.9.1', features = ['default'] }
-bb8-redis = { version = '0.24.0' }
-bytes = '1.10.1'
+#bb8 = { version = '0.9.1', features = ['default'] }
+#bb8-redis = { version = '0.26.0' }
+#bytes = '1.11.0'
 chrono = { version = '0.4.42', features = ['serde'] }
-clap = { version = '4.5.53', features = ['derive'] }
+#clap = { version = '4.5.53', features = ['derive'] }
 color-eyre = '0.6.5'
 core_config = { path = 'libs/core/config' }
 core_proc_macros = { path = 'libs/core/proc_macros' }
-csv = '1.4.0'
+#csv = '1.4.0'
 darling = '0.23.0'
 database = { path = 'libs/database' }
 domain_cloud_resources = { path = 'libs/domains/cloud_resources' }
@@ -44,26 +45,26 @@ domain_projects = { path = 'libs/domains/projects' }
 domain_users = { path = 'libs/domains/users' }
 eyre = { version = '0.6.12', features = ['default'] }
 field-selector = { path = 'libs/core/field-selector' }
-flagsmith = { version = '2.1.0', features = [] }
+#flagsmith = { version = '2.1.0', features = [] }
 futures = '0.3.31'
-hex = '0.4.3'
+grpc-client = { path = 'libs/core/grpc' }
 http = { version = '1.4.0' }
 jsonwebtoken = { version = '10.2.0', features = ['aws_lc_rs'] }
-k8s-openapi = { version = '0.26.0', features = ['v1_34'] }
-kube = { version = '2.0.1', features = ['derive', 'runtime'] }
+#k8s-openapi = { version = '0.26.0', features = ['v1_34'] }
+#kube = { version = '2.0.1', features = ['derive', 'runtime'] }
 migration = { path = 'libs/migration' }
 mockall = '0.14.0'
-mongodb = '3.4.1'
+#mongodb = '3.4.1'
 oauth2 = '5.0.0'
 pluralizer = '0.5.0'
 proc-macro2 = '1.0.103'
 prost = '0.14.1'
 quote = '1.0.42'
-r2d2 = { version = '0.8.10', features = [] }
+#r2d2 = { version = '0.8.10', features = [] }
 rand = '0.10.0-rc.5'
 redis = { version = '1.0.0', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 regex = '1.12.2'
-reqwest = { version = '0.12.24', features = ['json', 'rustls-tls'], default-features = false }
+reqwest = { version = '0.12.25', features = ['json', 'rustls-tls'], default-features = false }
 rpc = { path = 'libs/rpc' }
 schemars = '1.1.0'
 sea-orm = { version = '2.0.0-rc.20', features = ['sqlx-postgres', 'runtime-tokio-rustls', 'macros', 'with-uuid', 'with-chrono', 'mock', 'debug-print', 'with-json'] }
@@ -76,18 +77,17 @@ sha2 = '0.10.9'
 sqlx = { version = '0.9.0-alpha.1', default-features = false, features = ['postgres', 'macros', 'uuid', 'chrono', 'migrate'] }
 strum = { version = '0.27.2', features = ['derive'] }
 syn = { version = '2.0.111', features = ['full', 'extra-traits', 'visit'] }
-tabled = '0.20.0'
+#tabled = '0.20.0'
 test-utils = { path = 'libs/testing/test-utils' }
 testcontainers = '0.26.0'
 testcontainers-modules = { version = '0.14.0', features = ['postgres', 'mongo', 'redis'] }
 thiserror = '2.0.17'
 tokio = { version = '1.48.0', features = ['full'] }
 tokio-stream = { version = '0.1.17', features = ['sync'] }
-tonic = '0.14.2'
-tonic-reflection = '0.14.2'
-tonic-web = '0.14.2'
+tonic = { version = '0.14.2', features = ['zstd'] }
+tonic-prost = '0.14.2'
 tower = '0.5.2'
-tower-http = { version = '0.6.7', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
+tower-http = { version = '0.6.8', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
 tower_governor = '0.8.0'
 tracing = '0.1.43'
 tracing-error = '0.2.1'
@@ -101,7 +101,7 @@ utoipa-scalar = { version = '0.3.0', features = ['axum'] }
 utoipa-swagger-ui = { version = '9.0.2', features = ['axum'] }
 uuid = { version = '1.19.0', features = ['serde', 'v4', 'v7'] }
 validator = { version = '0.20.0', features = ['derive'] }
-walkdir = '2.5.0'
+#walkdir = '2.5.0'
 
 [profile.dev]
 incremental = true

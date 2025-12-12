@@ -3,6 +3,7 @@
 #k8s_yaml(kustomize('./manifests/kustomize/all/dev'))
 
 include('./apps/zerg/api/Tiltfile')
+include('./apps/zerg/tasks/Tiltfile')
 include('./apps/zerg/web/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
 
@@ -23,11 +24,11 @@ local_resource(
 
 local_resource(
     'postgres-port-forward',
-    serve_cmd='kubectl port-forward -n dbs deployment/postgres 5432:5432',
+    serve_cmd='kubectl port-forward -n dbs deployment/postgres 5433:5432',
     labels=['databases'],
     readiness_probe=probe(
         period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 5432'])
+        exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
     )
 )
 

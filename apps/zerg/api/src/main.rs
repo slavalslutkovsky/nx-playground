@@ -1,5 +1,5 @@
-use axum_helpers::server::create_production_app;
-use core_config::tracing::init_tracing;
+use axum_helpers::server::{create_production_app, health_router};
+use core_config::tracing::{init_tracing, install_color_eyre};
 use std::time::Duration;
 use tracing::info;
 
@@ -14,11 +14,13 @@ use state::AppState;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    // Install color-eyre first for colored error output (before any fallible operations)
+    install_color_eyre();
+
     // Load configuration from environment variables
     let config = Config::from_env()?;
 
-    // Initialize tracing with color-eyre and ErrorLayer for span trace capture
-    // This sets up both error display and span trace logging
+    // Initialize tracing with ErrorLayer for span trace capture
     init_tracing(&config.environment);
 
     let tasks_addr =
@@ -43,23 +45,31 @@ async fn main() -> eyre::Result<()> {
 
     let (db, redis) = tokio::try_join!(postgres_future, redis_future)?;
 
+    // Initialize JWT + Redis authentication
+    let jwt_auth = axum_helpers::JwtRedisAuth::new(redis.clone(), &config.jwt)
+        .map_err(|e| eyre::eyre!("Failed to initialize JWT auth: {}", e))?;
+
     // Initialize the application state with database connections
     let state = AppState {
         config,
         tasks_client,
         db,
         redis,
+        jwt_auth,
     };
 
     // Build router with API routes (pass reference, not ownership!)
     let api_routes = api::routes(&state);
 
-    // create_router adds docs/health/middleware to our composed routes
+    // create_router adds docs/middleware to our composed routes
     let router = axum_helpers::create_router::<openapi::ApiDoc>(api_routes).await?;
 
-    // Merge ready endpoint (with actual health checks) into the app
-    // Note: Arc clone for ready router (cheap), original state moves into cleanup
-    let app = api::ready_router(state.clone()).merge(router);
+    // Merge health endpoints into the app
+    // - /health: liveness check with app name/version
+    // - /ready: readiness check with actual db/redis health checks
+    let app = router
+        .merge(health_router(state.config.app.clone()))
+        .merge(api::ready_router(state.clone()));
 
     info!("Starting zerg API with production-ready shutdown (30s timeout)");
 

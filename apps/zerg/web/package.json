@@ -27,6 +27,9 @@
     "@domain/tasks": "workspace:*",
     "@tanstack/solid-query": "^5.90.15",
     "@tanstack/solid-router": "^1.139.14",
-    "solid-js": "^1.9.5"
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "solid-js": "^1.9.5",
+    "tailwind-merge": "^3.3.1"
   }
 }

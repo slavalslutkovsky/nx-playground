@@ -11,6 +11,8 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/env
         value:
+          - name: APP_ENV
+            value: "production"
           - name: PORT
             value: "8080"
           - name: RUST_LOG
@@ -41,6 +43,21 @@ patches:
             value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
           - name: FLAGSMITH_ENVIRONMENT_KEY
             value: "your-flagsmith-key"
+          - name: TASKS_SERVICE_ADDR
+            value: "http://zerg-tasks.zerg.svc.cluster.local:50051"
+          # DB Pool Optimization (keep low - postgres has 100 max connections shared across all pods)
+          - name: DB_MAX_CONNECTIONS
+            value: "10"
+          - name: DB_MIN_CONNECTIONS
+            value: "2"
+          - name: DB_ACQUIRE_TIMEOUT_SECS
+            value: "5"
+          - name: DB_IDLE_TIMEOUT_SECS
+            value: "300"
+          - name: DB_MAX_LIFETIME_SECS
+            value: "1800"
+          - name: DB_SQLX_LOGGING
+            value: "false"
     target:
       kind: Deployment
       name: zerg-api

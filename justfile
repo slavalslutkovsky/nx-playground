@@ -50,7 +50,21 @@ schema:
 test-all:
   cargo nextest run --workspace
 kompose:
-  kompose convert --file /Users/yurikrupnik/projects/playground/manifests/dockers/compose.yaml -o k8s-manifests/
+  kubectl create ns dbs
+  kompose convert --file ~/private/nx-playground/manifests/dockers/compose.yaml --namespace dbs --stdout | kubectl apply -f -
+  just migrate-cluster
+
+# Run migrations against Kind cluster postgres (port 5433)
+migrate-cluster:
+  DATABASE_URL="postgres://myuser:mypassword@localhost:5433/mydatabase" cargo run -p migration -- up
+
+# Run migrations against local Docker postgres (port 5432)
+migrate-local:
+  DATABASE_URL="postgres://myuser:mypassword@localhost:5432/mydatabase" cargo run -p migration -- up
+
+# Check migration status on cluster
+migrate-status:
+  DATABASE_URL="postgres://myuser:mypassword@localhost:5433/mydatabase" cargo run -p migration -- status
 # Proto/gRPC workflow (using buf)
 # Directory containing buf configuration
 proto_dir := "manifests/grpc"
@@ -89,32 +103,37 @@ buf: proto
 # Benchmark tasks API endpoints with wrk
 # Directory containing wrk scripts
 wrk_dir := "scripts/wrk"
-api_url := "http://localhost:8080/api"
+api_url_local := "http://localhost:8080/api"
+api_url_cluster := "http://localhost:5221/api"
 
-# Benchmark GET /api/tasks (gRPC endpoint)
+# ============================================================================
+# Local Benchmarks (localhost:8080)
+# ============================================================================
+
+# Benchmark GET /api/tasks (gRPC endpoint) - Local
 bench-tasks-grpc:
-    @echo "=== Benchmarking gRPC Tasks Endpoint (GET) ==="
-    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url}}/tasks
+    @echo "=== Benchmarking gRPC Tasks Endpoint (GET) - Local ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url_local}}/tasks
 
-# Benchmark GET /api/tasks-direct (Direct DB endpoint)
+# Benchmark GET /api/tasks-direct (Direct DB endpoint) - Local
 bench-tasks-direct:
-    @echo "=== Benchmarking Direct DB Tasks Endpoint (GET) ==="
-    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url}}/tasks-direct
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (GET) - Local ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url_local}}/tasks-direct
 
-# Benchmark POST /api/tasks (gRPC endpoint)
+# Benchmark POST /api/tasks (gRPC endpoint) - Local
 bench-tasks-grpc-post:
-    @echo "=== Benchmarking gRPC Tasks Endpoint (POST) ==="
-    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url}}/tasks
+    @echo "=== Benchmarking gRPC Tasks Endpoint (POST) - Local ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url_local}}/tasks
 
-# Benchmark POST /api/tasks-direct (Direct DB endpoint)
+# Benchmark POST /api/tasks-direct (Direct DB endpoint) - Local
 bench-tasks-direct-post:
-    @echo "=== Benchmarking Direct DB Tasks Endpoint (POST) ==="
-    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url}}/tasks-direct
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (POST) - Local ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url_local}}/tasks-direct
 
-# Run all benchmarks and compare
+# Run all local benchmarks and compare
 bench-tasks-compare:
     @echo "======================================"
-    @echo "  Tasks API Benchmark Comparison"
+    @echo "  Tasks API Benchmark Comparison (Local)"
     @echo "======================================"
     @echo ""
     just bench-tasks-grpc
@@ -128,16 +147,66 @@ bench-tasks-compare:
     just bench-tasks-grpc-post
     @echo ""
     just bench-tasks-direct-post
+
+# ============================================================================
+# Cluster Benchmarks (Kind via Tilt port-forward on localhost:5221)
+# ============================================================================
+
+# Benchmark GET /api/tasks (gRPC endpoint) - Cluster
+bench-cluster-tasks-grpc:
+    @echo "=== Benchmarking gRPC Tasks Endpoint (GET) - Cluster ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url_cluster}}/tasks
+
+# Benchmark GET /api/tasks-direct (Direct DB endpoint) - Cluster
+bench-cluster-tasks-direct:
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (GET) - Cluster ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/report.lua {{api_url_cluster}}/tasks-direct
+
+# Benchmark POST /api/tasks (gRPC endpoint) - Cluster
+bench-cluster-tasks-grpc-post:
+    @echo "=== Benchmarking gRPC Tasks Endpoint (POST) - Cluster ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url_cluster}}/tasks
+
+# Benchmark POST /api/tasks-direct (Direct DB endpoint) - Cluster
+bench-cluster-tasks-direct-post:
+    @echo "=== Benchmarking Direct DB Tasks Endpoint (POST) - Cluster ==="
+    wrk -t4 -c50 -d30s --latency -s {{wrk_dir}}/post-task.lua {{api_url_cluster}}/tasks-direct
+
+# Run all cluster benchmarks and compare
+bench-cluster-compare:
+    @echo "======================================"
+    @echo "  Tasks API Benchmark Comparison (Cluster)"
+    @echo "======================================"
+    @echo ""
+    just bench-cluster-tasks-grpc
+    @echo ""
+    just bench-cluster-tasks-direct
+    @echo ""
+    @echo "======================================"
+    @echo "  POST Benchmarks (Cluster)"
+    @echo "======================================"
+    @echo ""
+    just bench-cluster-tasks-grpc-post
+    @echo ""
+    just bench-cluster-tasks-direct-post
+
+# Quick cluster benchmark (10s duration, lighter load)
+bench-cluster-quick:
+    @echo "=== Quick Benchmark: gRPC GET (Cluster) ==="
+    wrk -t2 -c10 -d10s --latency {{api_url_cluster}}/tasks
+    @echo ""
+    @echo "=== Quick Benchmark: Direct DB GET (Cluster) ==="
+    wrk -t2 -c10 -d10s --latency {{api_url_cluster}}/tasks-direct
     @echo ""
     @echo "Benchmark complete!"
 
-# Quick benchmark (10s duration, lighter load)
+# Quick benchmark (10s duration, lighter load) - Local
 bench-tasks-quick:
-    @echo "=== Quick Benchmark: gRPC GET ==="
-    wrk -t2 -c10 -d10s --latency {{api_url}}/tasks
+    @echo "=== Quick Benchmark: gRPC GET (Local) ==="
+    wrk -t2 -c10 -d10s --latency {{api_url_local}}/tasks
     @echo ""
-    @echo "=== Quick Benchmark: Direct DB GET ==="
-    wrk -t2 -c10 -d10s --latency {{api_url}}/tasks-direct
+    @echo "=== Quick Benchmark: Direct DB GET (Local) ==="
+    wrk -t2 -c10 -d10s --latency {{api_url_local}}/tasks-direct
 
 backstage-dev:
   kubectl apply -k manifests/kustomize/backstage/overlays/dev

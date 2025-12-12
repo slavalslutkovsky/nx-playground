@@ -1,13 +1,10 @@
 [package]
 name = "axum-helpers"
 version = "0.1.0"
-edition = "2021"
-
-[features]
-default = []
-redis = ["dep:redis"]
+edition = "2024"
 
 [dependencies]
+async-trait.workspace = true
 axum.workspace = true
 chrono.workspace = true
 
@@ -15,8 +12,12 @@ chrono.workspace = true
 core_config = { workspace = true }
 futures.workspace = true
 
-# Optional database dependencies
-redis = { workspace = true, optional = true }
+# JWT and error handling
+eyre.workspace = true
+jsonwebtoken.workspace = true
+
+# Redis - no longer optional, required for auth
+redis = { workspace = true }
 
 # Database dependencies - required for error handling
 sea-orm = { workspace = true }
@@ -39,4 +40,5 @@ uuid.workspace = true
 validator.workspace = true
 
 [dev-dependencies]
+temp-env = "0.3"
 tokio-test = "0.4"

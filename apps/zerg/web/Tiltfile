@@ -18,4 +18,4 @@ docker_build(
 
 k8s_yaml(kustomize('k8s/kustomize/overlays/dev'))
 
-k8s_resource("zerg-web", port_forwards="5206:80", resource_deps=['build-zerg-web'])
+k8s_resource("zerg-web", port_forwards="5206:8080", resource_deps=['build-zerg-web'])

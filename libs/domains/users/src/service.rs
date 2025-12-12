@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::error::{UserError, UserResult};
 use crate::models::{CreateUser, Role, UpdateUser, User, UserFilter, UserResponse};
+use crate::oauth::{OAuthUserInfo, Provider};
 use crate::repository::UserRepository;
 
 /// Service layer for User business logic
@@ -124,9 +125,30 @@ impl<R: UserRepository> UserService<R> {
             .await?
             .ok_or(UserError::InvalidCredentials)?;
 
+        // Check if account is active
+        if !user.is_active {
+            return Err(UserError::Validation("Account is inactive".to_string()));
+        }
+
+        // Check if account is locked
+        if self.repository.check_account_locked(user.id).await? {
+            let locked_until = user.locked_until
+                .map(|dt| dt.to_rfc3339())
+                .unwrap_or_else(|| "unknown".to_string());
+            return Err(UserError::Validation(
+                format!("Account is locked until {}", locked_until)
+            ));
+        }
+
+        // Verify password
         if !self.verify_password(password, &user.password_hash)? {
+            // Increment failed login attempts
+            self.repository.update_login_attempt(user.id, false).await?;
             return Err(UserError::InvalidCredentials);
         }
+
+        // Successful login - reset failed attempts and update last login
+        self.repository.update_login_attempt(user.id, true).await?;
 
         Ok(user.into())
     }
@@ -159,7 +181,7 @@ impl<R: UserRepository> UserService<R> {
             .await?
             .ok_or(UserError::NotFound(id))?;
 
-        // Verify current password
+        // Verify the current password
         if !self.verify_password(current_password, &user.password_hash)? {
             return Err(UserError::InvalidCredentials);
         }
@@ -198,55 +220,18 @@ impl<R: UserRepository> UserService<R> {
 
     // Validation helpers
 
+    // Email and name validation is now handled by ValidatedJson<T> at the handler level
+    // using the validator crate with #[validate(email)] and #[validate(length(...))] attributes
+
     fn validate_create(&self, input: &CreateUser) -> UserResult<()> {
-        self.validate_email(&input.email)?;
-        self.validate_name(&input.name)?;
         self.validate_password(&input.password)?;
         Ok(())
     }
 
     fn validate_update(&self, input: &UpdateUser) -> UserResult<()> {
-        if let Some(ref email) = input.email {
-            self.validate_email(email)?;
-        }
-        if let Some(ref name) = input.name {
-            self.validate_name(name)?;
-        }
         if let Some(ref password) = input.password {
             self.validate_password(password)?;
         }
-        Ok(())
-    }
-
-    fn validate_email(&self, email: &str) -> UserResult<()> {
-        if email.trim().is_empty() {
-            return Err(UserError::Validation("Email cannot be empty".to_string()));
-        }
-
-        if !email.contains('@') || !email.contains('.') {
-            return Err(UserError::Validation("Invalid email format".to_string()));
-        }
-
-        if email.len() > 255 {
-            return Err(UserError::Validation(
-                "Email cannot exceed 255 characters".to_string(),
-            ));
-        }
-
-        Ok(())
-    }
-
-    fn validate_name(&self, name: &str) -> UserResult<()> {
-        if name.trim().is_empty() {
-            return Err(UserError::Validation("Name cannot be empty".to_string()));
-        }
-
-        if name.len() > 100 {
-            return Err(UserError::Validation(
-                "Name cannot exceed 100 characters".to_string(),
-            ));
-        }
-
         Ok(())
     }
 
@@ -263,6 +248,92 @@ impl<R: UserRepository> UserService<R> {
             ));
         }
 
+        // Check for at least one uppercase letter
+        if !password.chars().any(|c| c.is_uppercase()) {
+            return Err(UserError::Validation(
+                "Password must contain at least one uppercase letter".to_string(),
+            ));
+        }
+
+        // Check for at least one lowercase letter
+        if !password.chars().any(|c| c.is_lowercase()) {
+            return Err(UserError::Validation(
+                "Password must contain at least one lowercase letter".to_string(),
+            ));
+        }
+
+        // Check for at least one digit
+        if !password.chars().any(|c| c.is_numeric()) {
+            return Err(UserError::Validation(
+                "Password must contain at least one digit".to_string(),
+            ));
+        }
+
+        // Check for at least one special character
+        let special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        if !password.chars().any(|c| special_chars.contains(c)) {
+            return Err(UserError::Validation(
+                "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)".to_string(),
+            ));
+        }
+
         Ok(())
+    }
+
+    // OAuth methods
+
+    /// Create a new user from OAuth information
+    pub async fn create_user_from_oauth(
+        &self,
+        oauth_info: OAuthUserInfo,
+        provider: Provider,
+    ) -> UserResult<UserResponse> {
+        // Generate a random password (won't be used since OAuth users don't use passwords)
+        let random_password = uuid::Uuid::new_v4().to_string();
+        let password_hash = self.hash_password(&random_password)?;
+
+        let mut user = User::new(
+            oauth_info.email.clone().unwrap_or_else(|| "noemail@oauth.local".to_string()),
+            oauth_info.name.clone().unwrap_or_else(|| "OAuth User".to_string()),
+            password_hash,
+            vec![Role::User],
+        );
+
+        // Set OAuth provider ID
+        match provider {
+            Provider::Google => user.google_id = Some(oauth_info.provider_user_id.clone()),
+            Provider::Github => user.github_id = Some(oauth_info.provider_user_id.clone()),
+        }
+
+        // Set avatar from OAuth
+        user.avatar_url = oauth_info.avatar_url;
+
+        // Mark email as verified (trust OAuth provider)
+        user.email_verified = true;
+
+        let created = self.repository.create(user).await?;
+        Ok(created.into())
+    }
+
+    /// Get user by OAuth provider ID
+    pub async fn get_user_by_oauth_id(
+        &self,
+        provider: Provider,
+        provider_id: &str,
+    ) -> UserResult<Option<UserResponse>> {
+        let user = self.repository.get_by_oauth_id(provider, provider_id).await?;
+        Ok(user.map(|u| u.into()))
+    }
+
+    /// Link OAuth account to an existing user
+    pub async fn link_oauth_to_user(
+        &self,
+        user_id: Uuid,
+        oauth_info: OAuthUserInfo,
+        provider: Provider,
+    ) -> UserResult<()> {
+        self.repository
+            .link_oauth_account(user_id, provider, &oauth_info.provider_user_id, oauth_info.avatar_url)
+            .await
     }
 }

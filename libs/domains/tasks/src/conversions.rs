@@ -1,90 +1,309 @@
-//! Proto conversion helpers
+//! Task-specific proto ↔ domain conversions
 //!
-//! These functions convert between proto types and domain types.
-//! Single source of truth for all proto ↔ domain conversions.
+//! This module contains conversions specific to the tasks domain:
+//! - TaskPriority ↔ protobuf Priority enum
+//! - TaskStatus ↔ protobuf Status enum
+//! - Task structs ↔ protobuf message types
+//!
+//! Generic conversions (UUIDs, timestamps) are re-exported from grpc_client::conversions
+//! and shared across all domains (tasks, users, projects, etc.)
 
-use chrono::{DateTime, Utc};
-use rpc::tasks::{Priority, Status};
-use uuid::Uuid;
+use rpc::tasks::{
+    CreateRequest, CreateResponse, GetByIdResponse, ListResponse, ListStreamResponse,
+    Priority, Status, UpdateByIdRequest, UpdateByIdResponse,
+};
 
-use crate::models::{TaskPriority, TaskStatus};
+use crate::models::{CreateTask, Task, TaskPriority, TaskStatus, UpdateTask};
 
-// UUID conversions
-pub fn uuid_to_bytes(uuid: Uuid) -> Vec<u8> {
-    uuid.as_bytes().to_vec()
-}
+// Re-export generic proto conversion helpers from shared library
+// These are domain-agnostic and used across all services
+pub use grpc_client::conversions::*;
 
-pub fn bytes_to_uuid(bytes: &[u8]) -> Result<Uuid, String> {
-    Uuid::from_slice(bytes).map_err(|e| format!("Invalid UUID bytes: {}", e))
-}
+// ============================================================================
+// Priority Conversions
+// ============================================================================
 
-pub fn opt_uuid_to_bytes(uuid: Option<Uuid>) -> Option<Vec<u8>> {
-    uuid.map(|u| u.as_bytes().to_vec())
-}
-
-pub fn opt_bytes_to_uuid(bytes: Option<Vec<u8>>) -> Result<Option<Uuid>, String> {
-    bytes.map(|b| bytes_to_uuid(&b)).transpose()
-}
-
-// Priority conversions
-pub fn domain_priority_to_proto(priority: &TaskPriority) -> i32 {
-    match priority {
-        TaskPriority::Low => Priority::Low as i32,
-        TaskPriority::Medium => Priority::Medium as i32,
-        TaskPriority::High => Priority::High as i32,
-        TaskPriority::Urgent => Priority::Urgent as i32,
+impl From<TaskPriority> for i32 {
+    fn from(priority: TaskPriority) -> Self {
+        match priority {
+            TaskPriority::Low => Priority::Low as i32,
+            TaskPriority::Medium => Priority::Medium as i32,
+            TaskPriority::High => Priority::High as i32,
+            TaskPriority::Urgent => Priority::Urgent as i32,
+        }
     }
 }
 
-pub fn proto_priority_to_domain(priority: i32) -> Result<TaskPriority, String> {
-    match Priority::try_from(priority) {
-        Ok(Priority::Low) => Ok(TaskPriority::Low),
-        Ok(Priority::Medium) => Ok(TaskPriority::Medium),
-        Ok(Priority::High) => Ok(TaskPriority::High),
-        Ok(Priority::Urgent) => Ok(TaskPriority::Urgent),
-        _ => Err(format!("Invalid priority: {}", priority)),
+impl From<&TaskPriority> for i32 {
+    fn from(priority: &TaskPriority) -> Self {
+        (*priority).into()
     }
 }
 
-pub fn opt_proto_priority_to_domain(priority: Option<i32>) -> Result<Option<TaskPriority>, String> {
-    priority.map(proto_priority_to_domain).transpose()
-}
+impl TryFrom<i32> for TaskPriority {
+    type Error = String;
 
-// Status conversions
-pub fn domain_status_to_proto(status: &TaskStatus) -> i32 {
-    match status {
-        TaskStatus::Todo => Status::Todo as i32,
-        TaskStatus::InProgress => Status::InProgress as i32,
-        TaskStatus::Done => Status::Done as i32,
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match Priority::try_from(value) {
+            Ok(Priority::Low) => Ok(TaskPriority::Low),
+            Ok(Priority::Medium) => Ok(TaskPriority::Medium),
+            Ok(Priority::High) => Ok(TaskPriority::High),
+            Ok(Priority::Urgent) => Ok(TaskPriority::Urgent),
+            Ok(Priority::Unspecified) | Err(_) => {
+                Err(format!("Invalid priority: {}", value))
+            }
+        }
     }
 }
 
-pub fn proto_status_to_domain(status: i32) -> Result<TaskStatus, String> {
-    match Status::try_from(status) {
-        Ok(Status::Todo) => Ok(TaskStatus::Todo),
-        Ok(Status::InProgress) => Ok(TaskStatus::InProgress),
-        Ok(Status::Done) => Ok(TaskStatus::Done),
-        _ => Err(format!("Invalid status: {}", status)),
+// ============================================================================
+// Status Conversions
+// ============================================================================
+
+impl From<TaskStatus> for i32 {
+    fn from(status: TaskStatus) -> Self {
+        match status {
+            TaskStatus::Todo => Status::Todo as i32,
+            TaskStatus::InProgress => Status::InProgress as i32,
+            TaskStatus::Done => Status::Done as i32,
+        }
     }
 }
 
-pub fn opt_proto_status_to_domain(status: Option<i32>) -> Result<Option<TaskStatus>, String> {
-    status.map(proto_status_to_domain).transpose()
+impl From<&TaskStatus> for i32 {
+    fn from(status: &TaskStatus) -> Self {
+        (*status).into()
+    }
 }
 
-// Timestamp conversions
-pub fn datetime_to_timestamp(dt: DateTime<Utc>) -> i64 {
-    dt.timestamp()
+impl TryFrom<i32> for TaskStatus {
+    type Error = String;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match Status::try_from(value) {
+            Ok(Status::Todo) => Ok(TaskStatus::Todo),
+            Ok(Status::InProgress) => Ok(TaskStatus::InProgress),
+            Ok(Status::Done) => Ok(TaskStatus::Done),
+            Ok(Status::Unspecified) | Err(_) => {
+                Err(format!("Invalid status: {}", value))
+            }
+        }
+    }
 }
 
-pub fn timestamp_to_datetime(timestamp: i64) -> DateTime<Utc> {
-    DateTime::from_timestamp(timestamp, 0).unwrap_or_else(|| Utc::now())
+// ============================================================================
+// Struct Conversions: Domain → Proto (Request types)
+// ============================================================================
+
+impl From<CreateTask> for CreateRequest {
+    fn from(input: CreateTask) -> Self {
+        CreateRequest {
+            title: input.title,
+            description: input.description,
+            project_id: opt_uuid_to_bytes(input.project_id),
+            priority: input.priority.into(),
+            status: input.status.into(),
+            due_date: opt_datetime_to_timestamp(input.due_date),
+        }
+    }
 }
 
-pub fn opt_timestamp_to_datetime(timestamp: Option<i64>) -> Option<DateTime<Utc>> {
-    timestamp.map(timestamp_to_datetime)
+impl From<UpdateTask> for UpdateByIdRequest {
+    fn from(input: UpdateTask) -> Self {
+        UpdateByIdRequest {
+            id: vec![], // Will be set by caller with the actual UUID
+            title: input.title,
+            description: input.description,
+            completed: input.completed,
+            project_id: input.project_id.map(opt_uuid_to_bytes).flatten(),
+            priority: input.priority.map(Into::into),
+            status: input.status.map(Into::into),
+            due_date: input.due_date.map(opt_datetime_to_timestamp).flatten(),
+        }
+    }
 }
 
-pub fn opt_datetime_to_timestamp(dt: Option<DateTime<Utc>>) -> Option<i64> {
-    dt.map(datetime_to_timestamp)
+// ============================================================================
+// Struct Conversions: Proto → Domain (Request types - for gRPC server)
+// ============================================================================
+
+impl TryFrom<CreateRequest> for CreateTask {
+    type Error = String;
+
+    fn try_from(proto: CreateRequest) -> Result<Self, Self::Error> {
+        Ok(CreateTask {
+            title: proto.title,
+            description: proto.description,
+            project_id: opt_bytes_to_uuid(proto.project_id)?,
+            priority: proto.priority.try_into()?,
+            status: proto.status.try_into()?,
+            due_date: opt_timestamp_to_datetime(proto.due_date),
+        })
+    }
+}
+
+impl TryFrom<UpdateByIdRequest> for UpdateTask {
+    type Error = String;
+
+    fn try_from(proto: UpdateByIdRequest) -> Result<Self, Self::Error> {
+        // UpdateTask uses Option<Option<T>> for partial updates
+        // None = field not provided, Some(None) = set to null, Some(Some(value)) = set value
+        Ok(UpdateTask {
+            title: proto.title,
+            description: proto.description,
+            completed: proto.completed,
+            project_id: match proto.project_id {
+                None => None,
+                Some(bytes) => Some(bytes_to_uuid(&bytes).ok()),
+            },
+            priority: proto.priority.map(|p| p.try_into()).transpose()?,
+            status: proto.status.map(|s| s.try_into()).transpose()?,
+            due_date: proto.due_date.map(|ts| Some(timestamp_to_datetime(ts))),
+        })
+    }
+}
+
+// ============================================================================
+// Struct Conversions: Proto → Domain (Response types - for gRPC client)
+// ============================================================================
+
+impl TryFrom<CreateResponse> for Task {
+    type Error = String;
+
+    fn try_from(proto: CreateResponse) -> Result<Self, Self::Error> {
+        Ok(Task {
+            id: bytes_to_uuid(&proto.id)?,
+            title: proto.title,
+            description: proto.description,
+            completed: proto.completed,
+            project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
+            priority: proto.priority.try_into().unwrap_or_default(),
+            status: proto.status.try_into().unwrap_or_default(),
+            due_date: opt_timestamp_to_datetime(proto.due_date),
+            created_at: timestamp_to_datetime(proto.created_at),
+            updated_at: timestamp_to_datetime(proto.updated_at),
+        })
+    }
+}
+
+impl TryFrom<GetByIdResponse> for Task {
+    type Error = String;
+
+    fn try_from(proto: GetByIdResponse) -> Result<Self, Self::Error> {
+        Ok(Task {
+            id: bytes_to_uuid(&proto.id)?,
+            title: proto.title,
+            description: proto.description,
+            completed: proto.completed,
+            project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
+            priority: proto.priority.try_into().unwrap_or_default(),
+            status: proto.status.try_into().unwrap_or_default(),
+            due_date: opt_timestamp_to_datetime(proto.due_date),
+            created_at: timestamp_to_datetime(proto.created_at),
+            updated_at: timestamp_to_datetime(proto.updated_at),
+        })
+    }
+}
+
+impl TryFrom<UpdateByIdResponse> for Task {
+    type Error = String;
+
+    fn try_from(proto: UpdateByIdResponse) -> Result<Self, Self::Error> {
+        Ok(Task {
+            id: bytes_to_uuid(&proto.id)?,
+            title: proto.title,
+            description: proto.description,
+            completed: proto.completed,
+            project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
+            priority: proto.priority.try_into().unwrap_or_default(),
+            status: proto.status.try_into().unwrap_or_default(),
+            due_date: opt_timestamp_to_datetime(proto.due_date),
+            created_at: timestamp_to_datetime(proto.created_at),
+            updated_at: timestamp_to_datetime(proto.updated_at),
+        })
+    }
+}
+
+// ============================================================================
+// Struct Conversions: Domain → Proto (Response types - for gRPC server)
+// ============================================================================
+
+impl From<Task> for CreateResponse {
+    fn from(task: Task) -> Self {
+        CreateResponse {
+            id: uuid_to_bytes(task.id),
+            title: task.title,
+            description: task.description,
+            completed: task.completed,
+            project_id: opt_uuid_to_bytes(task.project_id),
+            priority: task.priority.into(),
+            status: task.status.into(),
+            due_date: opt_datetime_to_timestamp(task.due_date),
+            created_at: datetime_to_timestamp(task.created_at),
+            updated_at: datetime_to_timestamp(task.updated_at),
+        }
+    }
+}
+
+impl From<Task> for GetByIdResponse {
+    fn from(task: Task) -> Self {
+        GetByIdResponse {
+            id: uuid_to_bytes(task.id),
+            title: task.title,
+            description: task.description,
+            completed: task.completed,
+            project_id: opt_uuid_to_bytes(task.project_id),
+            priority: task.priority.into(),
+            status: task.status.into(),
+            due_date: opt_datetime_to_timestamp(task.due_date),
+            created_at: datetime_to_timestamp(task.created_at),
+            updated_at: datetime_to_timestamp(task.updated_at),
+        }
+    }
+}
+
+impl From<Task> for UpdateByIdResponse {
+    fn from(task: Task) -> Self {
+        UpdateByIdResponse {
+            id: uuid_to_bytes(task.id),
+            title: task.title,
+            description: task.description,
+            completed: task.completed,
+            project_id: opt_uuid_to_bytes(task.project_id),
+            priority: task.priority.into(),
+            status: task.status.into(),
+            due_date: opt_datetime_to_timestamp(task.due_date),
+            created_at: datetime_to_timestamp(task.created_at),
+            updated_at: datetime_to_timestamp(task.updated_at),
+        }
+    }
+}
+
+impl From<Task> for ListStreamResponse {
+    fn from(task: Task) -> Self {
+        ListStreamResponse {
+            id: uuid_to_bytes(task.id),
+            title: task.title,
+            description: task.description,
+            completed: task.completed,
+            project_id: opt_uuid_to_bytes(task.project_id),
+            priority: task.priority.into(),
+            status: task.status.into(),
+            due_date: opt_datetime_to_timestamp(task.due_date),
+            created_at: datetime_to_timestamp(task.created_at),
+            updated_at: datetime_to_timestamp(task.updated_at),
+        }
+    }
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+// Helper function for ListResponse conversion (can't implement TryFrom due to orphan rules)
+pub fn list_response_to_tasks(proto: ListResponse) -> Result<Vec<Task>, String> {
+    proto.data
+        .into_iter()
+        .map(|item| item.try_into())
+        .collect()
 }

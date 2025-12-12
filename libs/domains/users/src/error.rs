@@ -27,6 +27,9 @@ pub enum UserError {
     #[error("Password hashing error: {0}")]
     PasswordHash(String),
 
+    #[error("OAuth error: {0}")]
+    OAuth(String),
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -65,6 +68,14 @@ impl IntoResponse for UserError {
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "internal_error",
                     "An internal error occurred".to_string(),
+                )
+            }
+            UserError::OAuth(msg) => {
+                tracing::error!("OAuth error: {}", msg);
+                (
+                    StatusCode::UNAUTHORIZED,
+                    "oauth_error",
+                    format!("OAuth authentication failed: {}", msg),
                 )
             }
             UserError::Internal(msg) => {

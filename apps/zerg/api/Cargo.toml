@@ -1,11 +1,11 @@
 [package]
 name = "zerg_api"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 axum = { workspace = true }
-axum-helpers = { workspace = true, features = ["redis"] }
+axum-helpers = { workspace = true }
 color-eyre = { workspace = true }
 core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }
@@ -14,6 +14,7 @@ domain_projects = { workspace = true }
 domain_tasks = { path = "../../../libs/domains/tasks" }
 domain_users = { workspace = true }
 eyre = { workspace = true }
+grpc-client = { workspace = true }
 migration = { workspace = true }
 redis = { workspace = true }
 rpc = { workspace = true }
@@ -21,9 +22,11 @@ sea-orm = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
-tonic = "0.12"
+tonic = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }
+oauth2 = { workspace = true }
+reqwest = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 utoipa = { workspace = true }

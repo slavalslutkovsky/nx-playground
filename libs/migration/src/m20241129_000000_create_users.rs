@@ -6,7 +6,7 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Create users table
+        // Create a users table with all auth-related fields
         manager
             .create_table(
                 Table::create()
@@ -36,6 +36,28 @@ impl MigrationTrait for Migration {
                         timestamp_with_time_zone(Users::UpdatedAt)
                             .default(Expr::current_timestamp()),
                     )
+                    // Auth-related fields
+                    .col(text_null(Users::AvatarUrl))
+                    .col(timestamp_with_time_zone_null(Users::LastLoginAt))
+                    .col(
+                        ColumnDef::new(Users::IsActive)
+                            .boolean()
+                            .not_null()
+                            .default(true),
+                    )
+                    .col(
+                        ColumnDef::new(Users::IsLocked)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
+                    .col(
+                        ColumnDef::new(Users::FailedLoginAttempts)
+                            .integer()
+                            .not_null()
+                            .default(0),
+                    )
+                    .col(timestamp_with_time_zone_null(Users::LockedUntil))
                     .to_owned(),
             )
             .await?;
@@ -57,6 +79,16 @@ impl MigrationTrait for Migration {
                     .name("idx_users_created_at")
                     .table(Users::Table)
                     .col(Users::CreatedAt)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name("idx_users_locked_until")
+                    .table(Users::Table)
+                    .col(Users::LockedUntil)
                     .to_owned(),
             )
             .await?;
@@ -102,4 +134,10 @@ enum Users {
     EmailVerified,
     CreatedAt,
     UpdatedAt,
+    AvatarUrl,
+    LastLoginAt,
+    IsActive,
+    IsLocked,
+    FailedLoginAttempts,
+    LockedUntil,
 }
