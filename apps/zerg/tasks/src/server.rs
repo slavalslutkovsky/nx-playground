@@ -65,7 +65,7 @@ pub async fn run() -> Result<()> {
     info!("TasksService listening on {}", addr);
     info!("Using Zstd compression for optimal performance");
 
-    // Create health reporter for Kubernetes probes
+    // Create a health reporter for Kubernetes probes
     let (health_reporter, health_service) = health_reporter();
 
     // Mark tasks service as serving (for k8s readiness/liveness probes)
@@ -73,7 +73,7 @@ pub async fn run() -> Result<()> {
     health_reporter
         .set_service_status("tasks.TasksService", tonic_health::ServingStatus::Serving)
         .await;
-    // Also set empty service name for generic health checks (what k8s uses by default)
+    // Also set an empty service name for generic health checks (what k8s uses by default)
     health_reporter
         .set_service_status("", tonic_health::ServingStatus::Serving)
         .await;

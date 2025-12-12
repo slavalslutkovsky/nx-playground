@@ -40,6 +40,7 @@
 
 pub mod audit;
 pub mod cleanup;
+pub mod config;
 pub mod errors;
 pub mod extractors;
 pub mod health;
@@ -51,6 +52,7 @@ pub mod shutdown;
 
 // Re-export commonly used types
 pub use cleanup::CleanupCoordinator;
+pub use config::JwtConfig;
 pub use errors::{AppError, ErrorCode, ErrorResponse};
 pub use health::{HealthResponse, ReadyResponse};
 pub use jwt_redis_auth::{JwtClaims, JwtRedisAuth, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};

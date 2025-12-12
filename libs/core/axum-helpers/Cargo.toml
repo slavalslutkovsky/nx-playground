@@ -40,4 +40,5 @@ uuid.workspace = true
 validator.workspace = true
 
 [dev-dependencies]
+temp-env = "0.3"
 tokio-test = "0.4"

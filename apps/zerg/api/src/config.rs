@@ -1,3 +1,4 @@
+use axum_helpers::JwtConfig;
 use core_config::{app_info, server::ServerConfig, AppInfo, FromEnv};
 
 // Import database configs from the database library
@@ -16,8 +17,8 @@ pub struct Config {
     pub redis: RedisConfig,
     pub server: ServerConfig,
     pub environment: Environment,
-    // Auth configuration
-    pub session_secret: String,
+    // Auth configuration (using library config structs)
+    pub jwt: JwtConfig,
     pub cors_allowed_origin: String,
     pub frontend_url: String,
     pub redirect_base_url: String,
@@ -34,12 +35,14 @@ impl Config {
         let database = PostgresConfig::from_env()?; // Required - will fail if not set
         let server = ServerConfig::from_env()?; // Uses defaults: HOST=0.0.0.0, PORT=8080
         let redis = RedisConfig::from_env()?; // Required - will fail if not set
+        let jwt = JwtConfig::from_env()?; // Required - validates min 32 chars
 
-        // Auth configuration
-        let session_secret = core_config::env_required("JWT_SECRET")?;
-        let cors_allowed_origin = core_config::env_or_default("CORS_ALLOWED_ORIGIN", "http://localhost:3000");
+        // Other auth configuration
+        let cors_allowed_origin =
+            core_config::env_or_default("CORS_ALLOWED_ORIGIN", "http://localhost:3000");
         let frontend_url = core_config::env_or_default("FRONTEND_URL", "http://localhost:3000");
-        let redirect_base_url = core_config::env_or_default("REDIRECT_BASE_URL", "http://localhost:8080");
+        let redirect_base_url =
+            core_config::env_or_default("REDIRECT_BASE_URL", "http://localhost:8080");
 
         // OAuth configuration
         let google_client_id = core_config::env_required("GOOGLE_CLIENT_ID")?;
@@ -53,7 +56,7 @@ impl Config {
             redis,
             server,
             environment,
-            session_secret,
+            jwt,
             cors_allowed_origin,
             frontend_url,
             redirect_base_url,

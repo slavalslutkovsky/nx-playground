@@ -2,6 +2,21 @@ use crate::Environment;
 use tracing::{debug, info};
 use tracing_subscriber::{prelude::*, EnvFilter};
 
+/// Install color-eyre with a project-standard configuration.
+///
+/// Call this early in the main() before any fallible operations to ensure
+/// colored error output. Safe to call multiple times.
+///
+/// Configuration:
+/// - Shows file:line where errors occur
+/// - Hides environment variables (less noise)
+pub fn install_color_eyre() {
+    let _ = color_eyre::config::HookBuilder::default()
+        .display_location_section(true)
+        .display_env_section(false)
+        .install();
+}
+
 /// Initialize tracing with environment-aware configuration and error span capture.
 ///
 /// This function sets up:
@@ -49,11 +64,8 @@ use tracing_subscriber::{prelude::*, EnvFilter};
 pub fn init_tracing(environment: &Environment) {
     // Install color-eyre FIRST - it must be set up before ErrorLayer
     // This allows ErrorLayer to capture span traces when errors occur
-    // Silently ignore if already installed (common in tests)
-    let _ = color_eyre::config::HookBuilder::default()
-        .display_location_section(true) // Show file:line where errors occur
-        .display_env_section(false) // Hide environment variables (less noise)
-        .install();
+    // Silently ignore if already installed (common in tests or if called early in the main)
+    install_color_eyre();
 
     let is_production = environment.is_production();
 

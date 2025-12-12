@@ -53,10 +53,12 @@ pub async fn create_app(router: Router, server_config: &ServerConfig) -> io::Res
 ///
 /// This function sets up:
 /// - OpenAPI documentation (Swagger UI, ReDoc, RapiDoc, Scalar)
-/// - Health and readiness endpoints
 /// - API routes nested under `/api`
 /// - Common middleware (tracing, security headers, CORS)
 /// - 404 fallback handler
+///
+/// Note: Health endpoints (/health, /ready) should be added by the app
+/// using `health_router()` and your own ready handler.
 ///
 /// # CORS Configuration (Required)
 ///
@@ -117,8 +119,6 @@ pub async fn create_router<T>(apis: Router) -> io::Result<Router>
 where
     T: OpenApi + 'static,
 {
-    use crate::health::health_handler;
-    use axum::routing::get;
     use utoipa_rapidoc::RapiDoc;
     use utoipa_redoc::{Redoc, Servable as RedocServable};
     use utoipa_scalar::{Scalar, Servable as ScalarServable};
@@ -180,7 +180,6 @@ where
         .merge(Redoc::with_url("/redoc", T::openapi()))
         .merge(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
         .merge(Scalar::with_url("/scalar", T::openapi()))
-        .route("/health", get(health_handler))
         .nest("/api", apis)
         .fallback(not_found)
         .layer(

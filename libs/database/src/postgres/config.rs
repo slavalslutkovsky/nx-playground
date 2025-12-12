@@ -270,9 +270,16 @@ mod tests {
     #[cfg(feature = "config")]
     #[test]
     fn test_postgres_config_from_env_minimal() {
-        temp_env::with_var(
-            "DATABASE_URL",
-            Some("postgresql://localhost/testdb"),
+        // Unset optional vars to ensure defaults are used
+        temp_env::with_vars(
+            [
+                ("DATABASE_URL", Some("postgresql://localhost/testdb")),
+                ("DB_MAX_CONNECTIONS", None),
+                ("DB_MIN_CONNECTIONS", None),
+                ("DB_CONNECT_TIMEOUT_SECS", None),
+                ("DB_IDLE_TIMEOUT_SECS", None),
+                ("DB_ACQUIRE_TIMEOUT_SECS", None),
+            ],
             || {
                 let config = PostgresConfig::from_env();
                 assert!(config.is_ok());

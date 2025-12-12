@@ -380,6 +380,7 @@ dependencies = [
  "sea-orm-migration",
  "serde",
  "serde_json",
+ "temp-env",
  "thiserror 2.0.17",
  "tokio",
  "tokio-test",
@@ -1256,6 +1257,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "validator",
 ]
 
 [[package]]

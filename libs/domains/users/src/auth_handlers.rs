@@ -5,7 +5,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use axum_helpers::{JwtRedisAuth, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
+use axum_helpers::{JwtRedisAuth, ValidatedJson, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -49,7 +49,7 @@ fn is_development() -> bool {
 /// Register a new user
 async fn register<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
-    Json(input): Json<RegisterRequest>,
+    ValidatedJson(input): ValidatedJson<RegisterRequest>,
 ) -> Result<Response, UserError> {
     // Create user
     let user = state
@@ -149,7 +149,7 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 /// Login with email/password
 async fn login<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
-    Json(input): Json<LoginRequest>,
+    ValidatedJson(input): ValidatedJson<LoginRequest>,
 ) -> Result<Response, UserError> {
     // Verify credentials
     let user = state

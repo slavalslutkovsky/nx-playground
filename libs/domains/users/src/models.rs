@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 /// User roles
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -109,9 +110,11 @@ impl From<User> for UserResponse {
 }
 
 /// DTO for creating a new user
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct CreateUser {
+    #[validate(email, length(max = 255))]
     pub email: String,
+    #[validate(length(min = 1, max = 100))]
     pub name: String,
     pub password: String,
     #[serde(default)]
@@ -119,9 +122,11 @@ pub struct CreateUser {
 }
 
 /// DTO for updating an existing user
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, Validate)]
 pub struct UpdateUser {
+    #[validate(email, length(max = 255))]
     pub email: Option<String>,
+    #[validate(length(min = 1, max = 100))]
     pub name: Option<String>,
     pub password: Option<String>,
     pub roles: Option<Vec<String>>,
@@ -145,17 +150,20 @@ fn default_limit() -> usize {
 }
 
 /// DTO for user login
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct LoginRequest {
+    #[validate(email, length(max = 255))]
     pub email: String,
     pub password: String,
 }
 
 /// DTO for user registration
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct RegisterRequest {
+    #[validate(email, length(max = 255))]
     pub email: String,
     pub password: String,
+    #[validate(length(min = 1, max = 100))]
     pub name: String,
 }
 

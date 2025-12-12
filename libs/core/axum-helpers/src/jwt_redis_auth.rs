@@ -1,3 +1,4 @@
+use crate::config::JwtConfig;
 use crate::redis_auth_store::RedisAuthStore;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
@@ -30,14 +31,23 @@ pub struct JwtRedisAuth {
 }
 
 impl JwtRedisAuth {
-    /// Create new JWT + Redis auth instance
-    pub fn new(manager: ConnectionManager, jwt_secret: Option<&str>) -> eyre::Result<Self> {
+    /// Create a new JWT + Redis auth instance.
+    ///
+    /// # Arguments
+    /// * `manager` - Redis connection manager
+    /// * `config` - JWT configuration (use `JwtConfig::from_env()` or construct manually)
+    ///
+    /// # Example
+    /// ```ignore
+    /// use axum_helpers::{JwtConfig, JwtRedisAuth};
+    /// use core_config::FromEnv;
+    ///
+    /// let config = JwtConfig::from_env()?;
+    /// let jwt_auth = JwtRedisAuth::new(redis_manager, &config)?;
+    /// ```
+    pub fn new(manager: ConnectionManager, config: &JwtConfig) -> eyre::Result<Self> {
         let store = RedisAuthStore::new(manager);
-
-        let secret = jwt_secret
-            .map(String::from)
-            .or_else(|| std::env::var("JWT_SECRET").ok())
-            .unwrap_or_else(|| "default-secret-key-change-me-in-production".to_string());
+        let secret = config.secret.clone();
 
         tracing::info!("JWT + Redis auth initialized");
         Ok(Self { secret, store })

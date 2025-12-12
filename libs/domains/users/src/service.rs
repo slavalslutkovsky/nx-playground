@@ -181,7 +181,7 @@ impl<R: UserRepository> UserService<R> {
             .await?
             .ok_or(UserError::NotFound(id))?;
 
-        // Verify current password
+        // Verify the current password
         if !self.verify_password(current_password, &user.password_hash)? {
             return Err(UserError::InvalidCredentials);
         }
@@ -220,55 +220,18 @@ impl<R: UserRepository> UserService<R> {
 
     // Validation helpers
 
+    // Email and name validation is now handled by ValidatedJson<T> at the handler level
+    // using the validator crate with #[validate(email)] and #[validate(length(...))] attributes
+
     fn validate_create(&self, input: &CreateUser) -> UserResult<()> {
-        self.validate_email(&input.email)?;
-        self.validate_name(&input.name)?;
         self.validate_password(&input.password)?;
         Ok(())
     }
 
     fn validate_update(&self, input: &UpdateUser) -> UserResult<()> {
-        if let Some(ref email) = input.email {
-            self.validate_email(email)?;
-        }
-        if let Some(ref name) = input.name {
-            self.validate_name(name)?;
-        }
         if let Some(ref password) = input.password {
             self.validate_password(password)?;
         }
-        Ok(())
-    }
-
-    fn validate_email(&self, email: &str) -> UserResult<()> {
-        if email.trim().is_empty() {
-            return Err(UserError::Validation("Email cannot be empty".to_string()));
-        }
-
-        if !email.contains('@') || !email.contains('.') {
-            return Err(UserError::Validation("Invalid email format".to_string()));
-        }
-
-        if email.len() > 255 {
-            return Err(UserError::Validation(
-                "Email cannot exceed 255 characters".to_string(),
-            ));
-        }
-
-        Ok(())
-    }
-
-    fn validate_name(&self, name: &str) -> UserResult<()> {
-        if name.trim().is_empty() {
-            return Err(UserError::Validation("Name cannot be empty".to_string()));
-        }
-
-        if name.len() > 100 {
-            return Err(UserError::Validation(
-                "Name cannot exceed 100 characters".to_string(),
-            ));
-        }
-
         Ok(())
     }
 

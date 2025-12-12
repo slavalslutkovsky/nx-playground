@@ -1,8 +1,11 @@
 use axum::{
+    extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
+    routing::get,
+    Json, Router,
 };
+use core_config::AppInfo;
 use futures::future::join_all;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -12,8 +15,9 @@ use std::pin::Pin;
 
 #[derive(Serialize)]
 pub struct HealthResponse {
-    pub status: String,
-    pub version: String,
+    pub status: &'static str,
+    pub name: &'static str,
+    pub version: &'static str,
 }
 
 #[derive(Serialize)]
@@ -77,7 +81,7 @@ pub async fn run_health_checks(
         "status": if all_healthy { "ready" } else { "not ready" }
     });
 
-    // Add each check result to response
+    // Add each check result to the response
     if let Value::Object(ref mut map) = response {
         for (name, status) in status_map {
             map.insert(name.to_string(), json!(status));
@@ -93,33 +97,35 @@ pub async fn run_health_checks(
 
 /// Health check endpoint handler.
 ///
-/// Returns a simple health status response.
+/// Returns a simple health status response with app name and version.
 /// This endpoint should always return 200 if the service is running.
-pub async fn health_handler() -> Response {
+pub async fn health_handler(State(app): State<AppInfo>) -> Response {
     let response = HealthResponse {
-        status: "healthy".to_string(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
+        status: "healthy",
+        name: app.name,
+        version: app.version,
     };
 
     (StatusCode::OK, Json(response)).into_response()
 }
 
-/// Readiness check endpoint handler.
+/// Creates a router with the /health endpoint.
 ///
-/// This is a basic implementation that always returns ready.
-/// In a real application, you should check connections to dependencies
-/// like databases, caches, message queues, etc.
-pub async fn ready_handler() -> Response {
-    let response = ReadyResponse {
-        ready: true,
-        services: ServiceStatus {
-            database: true, // TODO: Check actual database connection
-            cache: true,    // TODO: Check actual cache connection
-        },
-    };
-
-    (StatusCode::OK, Json(response)).into_response()
+/// Use this to add liveness checks to your app. The handler returns
+/// the app name and version from `AppInfo`.
+///
+/// # Example
+/// ```ignore
+/// use axum_helpers::health::health_router;
+/// use core_config::app_info;
+///
+/// let app_info = app_info!();
+/// let app = Router::new()
+///     .merge(health_router(app_info))
+///     .merge(ready_router(state));
+/// ```
+pub fn health_router(app_info: AppInfo) -> Router {
+    Router::new()
+        .route("/health", get(health_handler))
+        .with_state(app_info)
 }
-
-// Note: create_router in server.rs now handles health endpoint setup directly.
-// Health handlers are exported for direct use if needed.
