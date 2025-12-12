@@ -4,9 +4,9 @@ managed:
 plugins:
   # Rust - prost for message types (prost 0.14.1/tonic 0.14.1)
   - remote: buf.build/community/neoeinstein-prost:v0.5.0
-    out: ../../libs/rpc/src/gen
+    out: ../../libs/rpc/src/generated
   # Rust - tonic for gRPC client/server (tonic 0.14.1)
   - remote: buf.build/community/neoeinstein-tonic:v0.5.0
-    out: ../../libs/rpc/src/gen
+    out: ../../libs/rpc/src/generated
 inputs:
   - directory: proto

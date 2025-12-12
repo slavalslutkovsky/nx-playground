@@ -4,20 +4,20 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  Navigate,
   Outlet,
   RouterProvider,
-  Navigate,
 } from '@tanstack/solid-router';
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
-import { AuthProvider } from './lib/auth-context';
 import { ProtectedRoute } from './components/protected-route';
 import { UserMenu } from './components/user-menu';
-import { TaskDetailPage } from './pages/task-detail';
-import { TasksListPage } from './pages/tasks-list';
+import { AuthProvider } from './lib/auth-context';
 import { LoginPage } from './pages/login';
 import { RegisterPage } from './pages/register';
+import { TaskDetailPage } from './pages/task-detail';
+import { TasksListPage } from './pages/tasks-list';
 
 const queryClient = new QueryClient();
 

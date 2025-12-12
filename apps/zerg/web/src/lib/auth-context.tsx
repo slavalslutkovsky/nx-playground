@@ -1,7 +1,11 @@
-import { createContext, useContext, ParentComponent, createSignal, createEffect, onMount } from 'solid-js';
-import { createQuery, createMutation, useQueryClient } from '@tanstack/solid-query';
+import {
+  createMutation,
+  createQuery,
+  useQueryClient,
+} from '@tanstack/solid-query';
+import { createContext, type ParentComponent, useContext } from 'solid-js';
+import type { LoginRequest, RegisterRequest, UserResponse } from './auth-api';
 import * as authApi from './auth-api';
-import type { UserResponse, RegisterRequest, LoginRequest } from './auth-api';
 
 interface AuthContextValue {
   user: () => UserResponse | null | undefined;
@@ -92,9 +96,7 @@ export const AuthProvider: ParentComponent = (props) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {props.children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>
   );
 };
 

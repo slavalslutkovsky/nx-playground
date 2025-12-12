@@ -1,4 +1,4 @@
-pub mod gen;
+pub mod generated;
 
 // Re-export for convenience
-pub use gen::*;
+pub use generated::*;

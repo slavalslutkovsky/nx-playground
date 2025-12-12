@@ -1,8 +1,7 @@
-import { createSignal, Show } from 'solid-js';
-import { useNavigate, Link } from '@tanstack/solid-router';
+import { Link, useNavigate } from '@tanstack/solid-router';
+import { createSignal, createUniqueId, Show } from 'solid-js';
+import { SocialLogin } from '../components/SocialLogin';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
   Card,
   CardContent,
@@ -11,7 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from '../components/ui/card';
-import { SocialLogin } from '../components/SocialLogin';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { useAuth } from '../lib/auth-context';
 
 export function LoginPage() {
@@ -19,6 +19,9 @@ export function LoginPage() {
   const [password, setPassword] = createSignal('');
   const [error, setError] = createSignal('');
   const [isLoading, setIsLoading] = createSignal(false);
+
+  const emailId = createUniqueId();
+  const passwordId = createUniqueId();
 
   const auth = useAuth();
   const navigate = useNavigate();
@@ -60,9 +63,9 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} class="space-y-4">
             <div class="space-y-2">
-              <Label for="email">Email</Label>
+              <Label for={emailId}>Email</Label>
               <Input
-                id="email"
+                id={emailId}
                 type="email"
                 placeholder="your@email.com"
                 value={email()}
@@ -72,9 +75,9 @@ export function LoginPage() {
             </div>
 
             <div class="space-y-2">
-              <Label for="password">Password</Label>
+              <Label for={passwordId}>Password</Label>
               <Input
-                id="password"
+                id={passwordId}
                 type="password"
                 placeholder="Enter your password"
                 value={password()}
@@ -83,11 +86,7 @@ export function LoginPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              class="w-full"
-              disabled={isLoading()}
-            >
+            <Button type="submit" class="w-full" disabled={isLoading()}>
               {isLoading() ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>

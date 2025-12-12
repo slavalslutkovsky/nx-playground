@@ -1,8 +1,6 @@
-import { createSignal, Show, createMemo } from 'solid-js';
-import { useNavigate, Link } from '@tanstack/solid-router';
+import { Link, useNavigate } from '@tanstack/solid-router';
+import { createMemo, createSignal, createUniqueId, Show } from 'solid-js';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
   Card,
   CardContent,
@@ -11,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { useAuth } from '../lib/auth-context';
 
 export function RegisterPage() {
@@ -20,6 +20,11 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = createSignal('');
   const [error, setError] = createSignal('');
   const [isLoading, setIsLoading] = createSignal(false);
+
+  const nameId = createUniqueId();
+  const emailId = createUniqueId();
+  const passwordId = createUniqueId();
+  const confirmPasswordId = createUniqueId();
 
   const auth = useAuth();
   const navigate = useNavigate();
@@ -35,7 +40,13 @@ export function RegisterPage() {
 
   const isPasswordValid = createMemo(() => {
     const reqs = passwordRequirements();
-    return reqs.length && reqs.uppercase && reqs.lowercase && reqs.digit && reqs.special;
+    return (
+      reqs.length &&
+      reqs.uppercase &&
+      reqs.lowercase &&
+      reqs.digit &&
+      reqs.special
+    );
   });
 
   const passwordsMatch = createMemo(() => {
@@ -91,9 +102,9 @@ export function RegisterPage() {
 
           <form onSubmit={handleSubmit} class="space-y-4">
             <div class="space-y-2">
-              <Label for="name">Name</Label>
+              <Label for={nameId}>Name</Label>
               <Input
-                id="name"
+                id={nameId}
                 type="text"
                 placeholder="Your name"
                 value={name()}
@@ -103,9 +114,9 @@ export function RegisterPage() {
             </div>
 
             <div class="space-y-2">
-              <Label for="email">Email</Label>
+              <Label for={emailId}>Email</Label>
               <Input
-                id="email"
+                id={emailId}
                 type="email"
                 placeholder="your@email.com"
                 value={email()}
@@ -115,9 +126,9 @@ export function RegisterPage() {
             </div>
 
             <div class="space-y-2">
-              <Label for="password">Password</Label>
+              <Label for={passwordId}>Password</Label>
               <Input
-                id="password"
+                id={passwordId}
                 type="password"
                 placeholder="Create a password"
                 value={password()}
@@ -130,24 +141,64 @@ export function RegisterPage() {
               <div class="rounded-md bg-muted p-3 space-y-2">
                 <p class="text-sm font-semibold">Password requirements:</p>
                 <ul class="space-y-1 text-sm">
-                  <li class={passwordRequirements().length ? 'text-green-600' : 'text-muted-foreground'}>
-                    <span class="mr-2">{passwordRequirements().length ? '✓' : '○'}</span>
+                  <li
+                    class={
+                      passwordRequirements().length
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <span class="mr-2">
+                      {passwordRequirements().length ? '✓' : '○'}
+                    </span>
                     At least 8 characters
                   </li>
-                  <li class={passwordRequirements().uppercase ? 'text-green-600' : 'text-muted-foreground'}>
-                    <span class="mr-2">{passwordRequirements().uppercase ? '✓' : '○'}</span>
+                  <li
+                    class={
+                      passwordRequirements().uppercase
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <span class="mr-2">
+                      {passwordRequirements().uppercase ? '✓' : '○'}
+                    </span>
                     One uppercase letter
                   </li>
-                  <li class={passwordRequirements().lowercase ? 'text-green-600' : 'text-muted-foreground'}>
-                    <span class="mr-2">{passwordRequirements().lowercase ? '✓' : '○'}</span>
+                  <li
+                    class={
+                      passwordRequirements().lowercase
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <span class="mr-2">
+                      {passwordRequirements().lowercase ? '✓' : '○'}
+                    </span>
                     One lowercase letter
                   </li>
-                  <li class={passwordRequirements().digit ? 'text-green-600' : 'text-muted-foreground'}>
-                    <span class="mr-2">{passwordRequirements().digit ? '✓' : '○'}</span>
+                  <li
+                    class={
+                      passwordRequirements().digit
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <span class="mr-2">
+                      {passwordRequirements().digit ? '✓' : '○'}
+                    </span>
                     One number
                   </li>
-                  <li class={passwordRequirements().special ? 'text-green-600' : 'text-muted-foreground'}>
-                    <span class="mr-2">{passwordRequirements().special ? '✓' : '○'}</span>
+                  <li
+                    class={
+                      passwordRequirements().special
+                        ? 'text-green-600'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <span class="mr-2">
+                      {passwordRequirements().special ? '✓' : '○'}
+                    </span>
                     One special character
                   </li>
                 </ul>
@@ -155,9 +206,9 @@ export function RegisterPage() {
             </Show>
 
             <div class="space-y-2">
-              <Label for="confirmPassword">Confirm Password</Label>
+              <Label for={confirmPasswordId}>Confirm Password</Label>
               <Input
-                id="confirmPassword"
+                id={confirmPasswordId}
                 type="password"
                 placeholder="Confirm your password"
                 value={confirmPassword()}
