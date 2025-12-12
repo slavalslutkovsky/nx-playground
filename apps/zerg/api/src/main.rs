@@ -1,5 +1,4 @@
-use axum_helpers::health::health_router;
-use axum_helpers::server::create_production_app;
+use axum_helpers::server::{create_production_app, health_router};
 use core_config::tracing::{init_tracing, install_color_eyre};
 use std::time::Duration;
 use tracing::info;

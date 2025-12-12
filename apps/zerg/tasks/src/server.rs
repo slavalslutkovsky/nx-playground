@@ -11,7 +11,7 @@ use core_config::{Environment, FromEnv};
 use database::postgres::PostgresConfig;
 use domain_tasks::{PgTaskRepository, TaskService};
 use eyre::{Result, WrapErr};
-use rpc::tasks::tasks_service_server::TasksServiceServer;
+use rpc::tasks::tasks_service_server::{TasksServiceServer, SERVICE_NAME};
 use tonic::transport::Server;
 use tonic_health::server::health_reporter;
 use tracing::info;
@@ -69,9 +69,9 @@ pub async fn run() -> Result<()> {
     let (health_reporter, health_service) = health_reporter();
 
     // Mark tasks service as serving (for k8s readiness/liveness probes)
-    // Using the service name from the proto definition
+    // Using the service name from the generated gRPC code
     health_reporter
-        .set_service_status("tasks.TasksService", tonic_health::ServingStatus::Serving)
+        .set_service_status(SERVICE_NAME, tonic_health::ServingStatus::Serving)
         .await;
     // Also set an empty service name for generic health checks (what k8s uses by default)
     health_reporter

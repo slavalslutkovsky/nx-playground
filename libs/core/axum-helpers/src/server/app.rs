@@ -1,6 +1,6 @@
 use crate::errors::handlers::not_found;
-use crate::middleware::security::security_headers;
-use crate::shutdown::{coordinated_shutdown, shutdown_signal, ShutdownCoordinator};
+use crate::http::security::security_headers;
+use super::shutdown::{coordinated_shutdown, shutdown_signal, ShutdownCoordinator};
 use axum::{middleware, Router};
 use core_config::server::ServerConfig;
 use std::io;

@@ -1,4 +1,4 @@
-use crate::jwt_redis_auth::JwtRedisAuth;
+use super::jwt::JwtRedisAuth;
 use axum::{
     extract::{Request, State},
     http::{HeaderMap, StatusCode},

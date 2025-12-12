@@ -38,7 +38,6 @@ pub async fn close_postgres(db: sea_orm::DatabaseConnection, name: &str) {
 ///
 /// close_redis(redis, "main").await;
 /// ```
-#[cfg(feature = "redis")]
 pub async fn close_redis(redis: redis::aio::ConnectionManager, name: &str) {
     // ConnectionManager closes automatically on drop
     // Just log that we're releasing it
