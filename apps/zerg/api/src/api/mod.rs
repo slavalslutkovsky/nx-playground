@@ -2,6 +2,7 @@ use axum::Router;
 
 pub mod auth;
 pub mod cloud_resources;
+pub mod finops;
 pub mod health;
 pub mod pricing;
 pub mod projects;
@@ -37,6 +38,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
             pricing::router(state),
         )
         .nest("/users", users::router(state)) // TODO: Add SeaOrmResource to domain_users
+        .nest("/finops", finops::router(state)) // FinOps AI Agent chat API
 }
 
 /// Creates a router with the /ready endpoint that performs actual health checks.

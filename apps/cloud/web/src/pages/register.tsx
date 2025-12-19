@@ -1,28 +1,21 @@
 import { Link, useNavigate } from '@tanstack/solid-router';
 import { RegisterForm } from '@nx-playground/auth-solid';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 
-export function RegisterPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
 
   const handleSuccess = () => {
-    navigate({ to: '/tasks' });
+    navigate({ to: '/' });
   };
 
   return (
-    <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="flex min-h-[calc(100vh-12rem)] items-center justify-center p-4">
       <Card class="w-full max-w-md">
         <CardHeader>
           <CardTitle class="text-2xl text-center">Create Account</CardTitle>
           <CardDescription class="text-center">
-            Sign up to get started with your account
+            Sign up to start optimizing your cloud costs
           </CardDescription>
         </CardHeader>
 
@@ -33,7 +26,7 @@ export function RegisterPage() {
         <CardFooter class="flex justify-center">
           <p class="text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" class="text-primary hover:underline">
+            <Link to="/login" class="text-primary hover:underline">
               Sign in
             </Link>
           </p>

@@ -294,3 +294,102 @@ export function getRecommendationColor(rec: CostRecommendation): string {
       return "text-red-500";
   }
 }
+
+// ===== FinOps Chat Types =====
+
+export type SessionStatus = "active" | "archived" | "completed";
+export type MessageRole = "user" | "assistant" | "system" | "tool";
+export type RecommendationType = "rightsize" | "terminate" | "migrate" | "reserve" | "upgrade" | "consolidate";
+export type RecommendationStatus = "pending" | "approved" | "applied" | "dismissed" | "failed";
+
+export interface ChatContext {
+  preferred_providers: CloudProvider[];
+  budget_monthly: number | null;
+  regions: string[];
+  compliance_requirements: string[];
+  cloud_account_ids: string[];
+}
+
+export interface ChatSession {
+  id: string;
+  user_id: string | null;
+  title: string | null;
+  context: ChatContext;
+  status: SessionStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ToolCallRecord {
+  name: string;
+  arguments: string;
+  result: string | null;
+  latency_ms: number | null;
+}
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  role: MessageRole;
+  content: string | null;
+  tool_calls: ToolCallRecord[] | null;
+  token_count: number | null;
+  latency_ms: number | null;
+  created_at: string;
+}
+
+export interface ChatRequest {
+  session_id?: string;
+  user_id?: string;
+  message: string;
+  context?: ChatContext;
+}
+
+export interface ChatResponse {
+  session_id: string;
+  content: string;
+  tool_calls: ToolCallRecord[];
+}
+
+export interface CreateSession {
+  user_id?: string;
+  title?: string;
+  context?: ChatContext;
+}
+
+// SSE Event types for streaming chat
+export type ChatChunkType = "text" | "tool_call" | "tool_result" | "done" | "error";
+
+export interface ChatChunkText {
+  type: "text";
+  content: string;
+}
+
+export interface ChatChunkToolCall {
+  type: "tool_call";
+  name: string;
+  arguments: string;
+}
+
+export interface ChatChunkToolResult {
+  type: "tool_result";
+  name: string;
+  result: string;
+}
+
+export interface ChatChunkDone {
+  type: "done";
+  session_id: string;
+}
+
+export interface ChatChunkError {
+  type: "error";
+  message: string;
+}
+
+export type ChatChunk =
+  | ChatChunkText
+  | ChatChunkToolCall
+  | ChatChunkToolResult
+  | ChatChunkDone
+  | ChatChunkError;

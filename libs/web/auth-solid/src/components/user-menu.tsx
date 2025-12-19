@@ -1,8 +1,20 @@
-import { createSignal, onCleanup, onMount, Show } from 'solid-js';
-import { useAuth } from '../lib/auth-context';
-import { Button } from './ui/button';
+import { createSignal, onCleanup, onMount, Show, type Component } from 'solid-js';
+import { useAuth } from '../context';
 
-export function UserMenu() {
+interface UserMenuProps {
+  /**
+   * Optional custom button class
+   */
+  buttonClass?: string;
+}
+
+/**
+ * User menu dropdown component
+ *
+ * Shows user avatar/initials and dropdown with sign out option.
+ * Only renders when user is authenticated.
+ */
+export const UserMenu: Component<UserMenuProps> = (props) => {
   const auth = useAuth();
   const [isOpen, setIsOpen] = createSignal(false);
 
@@ -38,9 +50,9 @@ export function UserMenu() {
     <Show when={auth.isAuthenticated() && auth.user()}>
       {(user) => (
         <div class="relative">
-          <Button
-            variant="ghost"
-            class="flex items-center gap-2"
+          <button
+            type="button"
+            class={`flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent ${props.buttonClass || ''}`}
             onClick={() => setIsOpen(!isOpen())}
           >
             <div class="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
@@ -55,10 +67,8 @@ export function UserMenu() {
                 />
               </Show>
             </div>
-            <Show when={window.innerWidth > 640}>
-              <span class="text-sm font-medium">{user().name}</span>
-            </Show>
-          </Button>
+            <span class="hidden sm:inline text-sm font-medium">{user().name}</span>
+          </button>
 
           <Show when={isOpen()}>
             <div
@@ -92,4 +102,4 @@ export function UserMenu() {
       )}
     </Show>
   );
-}
+};

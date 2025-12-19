@@ -1,11 +1,15 @@
-import { type Component, type JSX } from "solid-js";
+import { type Component, type JSX, Show } from "solid-js";
 import { Link } from "@tanstack/solid-router";
+import { useAuth, UserMenu } from "@nx-playground/auth-solid";
+import { Button } from "~/components/ui/button";
 
 interface LayoutProps {
   children: JSX.Element;
 }
 
 const Layout: Component<LayoutProps> = (props) => {
+  const auth = useAuth();
+
   return (
     <div class="min-h-screen bg-background">
       {/* Navigation */}
@@ -73,6 +77,27 @@ const Layout: Component<LayoutProps> = (props) => {
               >
                 Price Finder
               </Link>
+              <Link
+                to="/chat"
+                class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                activeProps={{ class: "text-foreground" }}
+              >
+                AI Assistant
+              </Link>
+              <div class="ml-4 border-l pl-4">
+                <Show
+                  when={auth.user()}
+                  fallback={
+                    <Link to="/login">
+                      <Button variant="outline" size="sm">
+                        Sign In
+                      </Button>
+                    </Link>
+                  }
+                >
+                  <UserMenu />
+                </Show>
+              </div>
             </div>
           </div>
         </div>

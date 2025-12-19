@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@nx-playground/auth-solid": ["../../../libs/web/auth-solid/src/index.ts"],
+      "@nx-playground/auth-solid/*": ["../../../libs/web/auth-solid/src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

@@ -22,6 +22,14 @@ export default defineConfig({
         __dirname,
         '../../../libs/domains/tasks/types/index.ts',
       ),
+      '@nx-playground/auth-solid': path.resolve(
+        __dirname,
+        '../../../libs/web/auth-solid/src',
+      ),
     },
+    dedupe: ['solid-js', '@tanstack/solid-router', '@tanstack/solid-query'],
+  },
+  optimizeDeps: {
+    include: ['solid-js', '@tanstack/solid-router', '@tanstack/solid-query'],
   },
 });

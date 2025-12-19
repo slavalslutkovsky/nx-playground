@@ -8,6 +8,7 @@ import {
   RouterProvider,
 } from "@tanstack/solid-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
+import { AuthProvider } from "@nx-playground/auth-solid";
 import { Layout } from "./components/layout";
 import Dashboard from "./pages/dashboard";
 import TcoCalculator from "./pages/tco-calculator";
@@ -15,8 +16,14 @@ import CncfTools from "./pages/cncf-tools";
 import CncfLandscape from "./pages/cncf-landscape";
 import Compare from "./pages/compare";
 import PriceFinder from "./pages/price-finder";
+import FinopsChat from "./pages/finops-chat";
+import LoginPage from "./pages/login";
+import RegisterPage from "./pages/register";
 import "./index.css";
 import "solid-devtools";
+
+// Auth configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -79,8 +86,26 @@ const finderRoute = createRoute({
   component: PriceFinder,
 });
 
+const chatRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/chat",
+  component: FinopsChat,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: LoginPage,
+});
+
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/register",
+  component: RegisterPage,
+});
+
 // Create the route tree
-const routeTree = rootRoute.addChildren([indexRoute, tcoRoute, toolsRoute, landscapeRoute, compareRoute, finderRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, tcoRoute, toolsRoute, landscapeRoute, compareRoute, finderRoute, chatRoute, loginRoute, registerRoute]);
 
 // Create the router
 const router = createRouter({ routeTree });
@@ -98,7 +123,9 @@ if (root) {
   render(
     () => (
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <AuthProvider config={{ apiBaseUrl: API_BASE_URL }}>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </QueryClientProvider>
     ),
     root

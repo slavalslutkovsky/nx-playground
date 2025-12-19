@@ -1,0 +1,15 @@
+{
+  "name": "auth-solid",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/web/auth-solid/src",
+  "projectType": "library",
+  "tags": ["scope:web", "type:lib"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/vite:test"
+    }
+  }
+}

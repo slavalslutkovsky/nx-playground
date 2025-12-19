@@ -1,0 +1,33 @@
+[package]
+name = "domain_finops"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+axum-helpers = { workspace = true }
+chrono = { workspace = true }
+core_proc_macros = { workspace = true, features = ["sea_orm_resource"] }
+database = { workspace = true }
+domain_pricing = { workspace = true }
+futures = { workspace = true }
+reqwest = { workspace = true }
+rig-core = "0.24"
+sea-orm = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tracing = { workspace = true }
+ts-rs = { workspace = true }
+utoipa = { workspace = true }
+uuid = { workspace = true }
+validator = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }
+test-utils = { workspace = true }

@@ -10,7 +10,8 @@ mod m20241206_000001_seed_tasks;
 mod m20241209_000001_create_oauth_accounts;
 mod m20251213_000000_create_email_tables;
 mod m20251216_000000_create_cloud_prices;
-mod m20251216_015221_region;
+// mod m20251216_015221_region; // Incomplete template - disabled
+mod m20251219_000000_create_finops_chat;
 
 pub struct Migrator;
 
@@ -28,7 +29,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20241209_000001_create_oauth_accounts::Migration),
             Box::new(m20251213_000000_create_email_tables::Migration),
             Box::new(m20251216_000000_create_cloud_prices::Migration),
-            Box::new(m20251216_015221_region::Migration),
+            // Box::new(m20251216_015221_region::Migration), // Disabled
+            Box::new(m20251219_000000_create_finops_chat::Migration),
         ]
     }
 }

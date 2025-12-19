@@ -10,6 +10,7 @@ color-eyre = { workspace = true }
 core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }
 domain_cloud_resources = { workspace = true }
+domain_finops = { workspace = true }
 domain_notifications = { workspace = true }
 domain_pricing = { workspace = true }
 domain_projects = { workspace = true }

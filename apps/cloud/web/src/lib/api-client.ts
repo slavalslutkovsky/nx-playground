@@ -12,6 +12,11 @@ import type {
   CloudProvider,
   DeploymentMode,
   Money,
+  ChatRequest,
+  ChatResponse,
+  ChatSession,
+  CreateSession,
+  ChatMessage,
 } from "~/types";
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
@@ -324,3 +329,110 @@ export const MOCK_CNCF_TOOLS: CncfTool[] = [
     ],
   },
 ];
+
+// ===== FinOps Chat API =====
+
+const FINOPS_BASE = "/finops";
+
+// Send a chat message (non-streaming)
+export async function sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
+  return fetchJson<ChatResponse>(`${FINOPS_BASE}/chat`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+// Stream a chat response via SSE
+export function streamChatMessage(
+  request: ChatRequest,
+  onMessage: (event: string, data: string) => void,
+  onError?: (error: Error) => void,
+  onComplete?: () => void
+): () => void {
+  const params = new URLSearchParams({
+    message: request.message,
+  });
+
+  if (request.session_id) {
+    params.set("session_id", request.session_id);
+  }
+
+  if (request.user_id) {
+    params.set("user_id", request.user_id);
+  }
+
+  if (request.context) {
+    params.set("context", JSON.stringify(request.context));
+  }
+
+  const eventSource = new EventSource(`${API_BASE}${FINOPS_BASE}/chat/stream?${params}`);
+
+  eventSource.onmessage = (event) => {
+    onMessage("message", event.data);
+  };
+
+  eventSource.addEventListener("text", (event) => {
+    onMessage("text", (event as MessageEvent).data);
+  });
+
+  eventSource.addEventListener("tool_call", (event) => {
+    onMessage("tool_call", (event as MessageEvent).data);
+  });
+
+  eventSource.addEventListener("tool_result", (event) => {
+    onMessage("tool_result", (event as MessageEvent).data);
+  });
+
+  eventSource.addEventListener("done", (event) => {
+    onMessage("done", (event as MessageEvent).data);
+    eventSource.close();
+    onComplete?.();
+  });
+
+  eventSource.addEventListener("error", (event) => {
+    const errorEvent = event as MessageEvent;
+    if (errorEvent.data) {
+      onMessage("error", errorEvent.data);
+    }
+    onError?.(new Error("SSE connection error"));
+    eventSource.close();
+  });
+
+  eventSource.onerror = () => {
+    onError?.(new Error("SSE connection failed"));
+    eventSource.close();
+  };
+
+  // Return cleanup function
+  return () => {
+    eventSource.close();
+  };
+}
+
+// Session management
+export async function createSession(request: CreateSession): Promise<ChatSession> {
+  return fetchJson<ChatSession>(`${FINOPS_BASE}/sessions`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function fetchSessions(userId?: string): Promise<ChatSession[]> {
+  const params = userId ? `?user_id=${userId}` : "";
+  return fetchJson<ChatSession[]>(`${FINOPS_BASE}/sessions${params}`);
+}
+
+export async function fetchSession(sessionId: string): Promise<ChatSession> {
+  return fetchJson<ChatSession>(`${FINOPS_BASE}/sessions/${sessionId}`);
+}
+
+export async function deleteSession(sessionId: string): Promise<void> {
+  await fetch(`${API_BASE}${FINOPS_BASE}/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+}
+
+// Message history
+export async function fetchSessionMessages(sessionId: string): Promise<ChatMessage[]> {
+  return fetchJson<ChatMessage[]>(`${FINOPS_BASE}/sessions/${sessionId}/messages`);
+}

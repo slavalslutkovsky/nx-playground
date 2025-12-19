@@ -11,13 +11,14 @@ import {
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
-import { ProtectedRoute } from './components/protected-route';
-import { UserMenu } from './components/user-menu';
-import { AuthProvider } from './lib/auth-context';
+import { AuthProvider, ProtectedRoute, UserMenu } from '@nx-playground/auth-solid';
 import { LoginPage } from './pages/login';
 import { RegisterPage } from './pages/register';
 import { TaskDetailPage } from './pages/task-detail';
 import { TasksListPage } from './pages/tasks-list';
+
+// Auth configuration - zerg-web uses /api prefix
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const queryClient = new QueryClient();
 
@@ -114,7 +115,7 @@ if (root) {
   render(
     () => (
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+        <AuthProvider config={{ apiBaseUrl: API_BASE_URL }}>
           <RouterProvider router={router} />
         </AuthProvider>
       </QueryClientProvider>
