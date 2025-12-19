@@ -8,6 +8,9 @@ mod m20241201_000000_seed_initial_data;
 mod m20241206_000000_create_tasks;
 mod m20241206_000001_seed_tasks;
 mod m20241209_000001_create_oauth_accounts;
+mod m20251213_000000_create_email_tables;
+mod m20251216_000000_create_cloud_prices;
+mod m20251216_015221_region;
 
 pub struct Migrator;
 
@@ -23,6 +26,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20241206_000000_create_tasks::Migration),
             Box::new(m20241206_000001_seed_tasks::Migration),
             Box::new(m20241209_000001_create_oauth_accounts::Migration),
+            Box::new(m20251213_000000_create_email_tables::Migration),
+            Box::new(m20251216_000000_create_cloud_prices::Migration),
+            Box::new(m20251216_015221_region::Migration),
         ]
     }
 }

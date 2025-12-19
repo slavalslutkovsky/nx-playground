@@ -1,0 +1,20 @@
+# buf.yaml for cloud cost optimization protos
+version: v2
+modules:
+  - path: ./cloud
+lint:
+  use:
+    - STANDARD
+  except:
+    # Allow multiple packages in the same directory
+    - PACKAGE_DIRECTORY_MATCH
+    - DIRECTORY_SAME_PACKAGE
+    # Allow packages without a version suffix
+    - PACKAGE_VERSION_SUFFIX
+    # Allow flexible RPC response naming
+    - RPC_RESPONSE_STANDARD_NAME
+    # Allow shorter enum values without full prefix
+    - ENUM_VALUE_PREFIX
+breaking:
+  use:
+    - FILE

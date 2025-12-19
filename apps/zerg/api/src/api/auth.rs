@@ -1,4 +1,5 @@
 use axum::Router;
+use domain_notifications::NotificationService;
 use domain_users::{
     auth_handlers::{auth_router, AuthState, OAuthConfig},
     AccountLinkingService,
@@ -7,6 +8,8 @@ use domain_users::{
     PostgresUserRepository,
     UserService,
 };
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub fn router(state: &crate::state::AppState) -> Router {
     // Use PostgreSQL repository with database connection
@@ -33,13 +36,18 @@ pub fn router(state: &crate::state::AppState) -> Router {
         oauth_repository.clone(),
     );
 
-    // Create auth state with JWT authentication
+    // Create notification service for welcome/verification emails
+    let notification_service = NotificationService::with_default_config(state.redis.clone());
+
+    // Create auth state with JWT authentication and email service
     let auth_state = AuthState {
         service: service.clone(),
         oauth_config,
         jwt_auth: state.jwt_auth.clone(),
         oauth_state_manager,
         account_linking,
+        notification_service: Some(Arc::new(notification_service)),
+        redis: Some(Arc::new(Mutex::new(state.redis.clone()))),
     };
 
     // Return auth router

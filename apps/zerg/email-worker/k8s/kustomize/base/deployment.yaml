@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-email-worker
+  labels:
+    app: zerg-email-worker
+    app.kubernetes.io/name: zerg-email-worker
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zerg-email-worker
+  template:
+    metadata:
+      labels:
+        app: zerg-email-worker
+        app.kubernetes.io/name: zerg-email-worker
+        app.kubernetes.io/component: worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zerg-email-worker
+          image: yurikrupnik/zerg-email-worker:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: health
+              protocol: TCP
+          env:
+            - name: ENVIRONMENT
+              value: "development"
+            - name: HEALTH_PORT
+              value: "8081"
+            - name: RUST_LOG
+              value: "info"
+            - name: REDIS_HOST
+              value: "redis://redis.dbs.svc.cluster.local"
+          # Startup probe: allows up to 30s for container to start (6 * 5s)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 3
+          # Liveness probe: restarts container if unhealthy
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          # Readiness probe: removes from service if not ready
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 2
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              # No CPU limit prevents throttling
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always

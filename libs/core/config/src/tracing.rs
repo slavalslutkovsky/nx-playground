@@ -65,7 +65,7 @@ pub fn init_tracing(environment: &Environment) {
     // Install color-eyre FIRST - it must be set up before ErrorLayer
     // This allows ErrorLayer to capture span traces when errors occur
     // Silently ignore if already installed (common in tests or if called early in the main)
-    install_color_eyre();
+    // install_color_eyre();
 
     let is_production = environment.is_production();
 
@@ -73,13 +73,14 @@ pub fn init_tracing(environment: &Environment) {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
         if is_production {
             // Production: Less verbose, focus on warnings and errors
-            EnvFilter::new("info,tower_http=info,sea_orm=warn")
+            EnvFilter::new("error")
+            // EnvFilter::new("info,tower_http=info,sea_orm=warn")
         } else {
             // Development: More verbose for debugging
-            EnvFilter::new("debug,tower_http=debug,sea_orm=info")
+            EnvFilter::new("trace")
         }
     });
-
+    tracing::warn!("filter:?");
     let result = if is_production {
         // Production: JSON format for log aggregation
         tracing_subscriber::registry()
@@ -97,9 +98,9 @@ pub fn init_tracing(environment: &Environment) {
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
-                    .with_target(true) // Show module paths for debugging
-                    .with_file(true)
-                    .with_line_number(true)
+                    .with_target(false) // Show module paths for debugging
+                    .with_file(false)
+                    .with_line_number(false)
                     .pretty(),
             )
             .with(tracing_error::ErrorLayer::default()) // Capture span traces on errors

@@ -107,7 +107,7 @@ pub struct Task {
 }
 
 /// DTO for creating a new task
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, ToSchema, TS)]
 #[ts(export)]
 pub struct CreateTask {
     #[validate(length(min = 1, max = 255))]
@@ -125,7 +125,7 @@ pub struct CreateTask {
 }
 
 /// DTO for updating an existing task
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema, Default, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, ToSchema, Default, TS)]
 #[ts(export)]
 pub struct UpdateTask {
     #[validate(length(min = 1, max = 255))]
@@ -141,7 +141,7 @@ pub struct UpdateTask {
 }
 
 /// Query filters for listing tasks
-#[derive(Debug, Clone, Deserialize, ToSchema, IntoParams, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, IntoParams, Default)]
 pub struct TaskFilter {
     pub project_id: Option<Uuid>,
     pub status: Option<TaskStatus>,

@@ -1,0 +1,39 @@
+{
+  "name": "stream-worker",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/core/stream-worker/src",
+  "targets": {
+    "build": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{workspaceRoot}/dist/target"
+      ],
+      "options": {
+        "command": "cargo check --package stream-worker",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "test": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{workspaceRoot}/dist/target"
+      ],
+      "options": {
+        "command": "cargo test --package stream-worker",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "lint": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cargo clippy --package stream-worker",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  },
+  "tags": []
+}

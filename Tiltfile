@@ -5,6 +5,7 @@
 include('./apps/zerg/api/Tiltfile')
 include('./apps/zerg/tasks/Tiltfile')
 include('./apps/zerg/web/Tiltfile')
+include('./apps/zerg/email-worker/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
 
 #include('./apps/cargo-docs/Tiltfile')

@@ -16,6 +16,12 @@ pub enum TaskError {
 
     #[error("Database error: {0}")]
     Database(String),
+
+    #[error("Request timeout: {0}")]
+    Timeout(String),
+
+    #[error("Stream error: {0}")]
+    Stream(String),
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;
@@ -27,7 +33,13 @@ impl From<TaskError> for AppError {
             TaskError::NotFound(id) => AppError::NotFound(format!("Task {} not found", id)),
             TaskError::Validation(msg) => AppError::BadRequest(msg),
             TaskError::Internal(msg) => AppError::InternalServerError(msg),
-            TaskError::Database(msg) => AppError::InternalServerError(format!("Database error: {}", msg)),
+            TaskError::Database(msg) => {
+                AppError::InternalServerError(format!("Database error: {}", msg))
+            }
+            TaskError::Timeout(msg) => AppError::ServiceUnavailable(format!("Timeout: {}", msg)),
+            TaskError::Stream(msg) => {
+                AppError::InternalServerError(format!("Stream error: {}", msg))
+            }
         }
     }
 }

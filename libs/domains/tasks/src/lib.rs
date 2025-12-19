@@ -44,8 +44,11 @@ pub mod error;
 pub mod handlers;
 pub mod models;
 pub mod postgres;
+pub mod processor;
 pub mod repository;
 pub mod service;
+pub mod stream_models;
+pub mod streams;
 
 // Re-export commonly used types
 pub use error::{TaskError, TaskResult};
@@ -56,6 +59,15 @@ pub use models::{
 pub use postgres::PgTaskRepository;
 pub use repository::TaskRepository;
 pub use service::TaskService;
+
+// Stream-related exports
+pub use processor::TaskProcessor;
+pub use stream_models::{TaskCommand, TaskCommandPayload, TaskCommandResult, TaskResultData};
+pub use streams::{TaskCommandStream, TaskResultStream};
+
+// Stream handler exports
+pub use handlers::stream::StreamState;
+pub use handlers::stream_async_router;
 
 // Re-export ApiResource trait for accessing generated constants
 pub use core_proc_macros::ApiResource;

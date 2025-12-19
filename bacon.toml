@@ -9,6 +9,22 @@ need_stdout = true
 command = ["cargo", "check", "--color", "always"]
 need_stdout = false
 
+[jobs.zerg-email]
+command = ["cargo", "run", "-p", "zerg_email_worker", "--color", "always"]
+need_stdout = true
+watch = ["apps/zerg/email-worker", "libs"]
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+
+[jobs.zerg-tasks-redis]
+command = ["cargo", "run", "-p", "zerg_tasks_worker", "--color", "always"]
+need_stdout = true
+watch = ["apps/zerg/email-worker", "libs"]
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+
 [jobs.zerg-api]
 command = ["cargo", "run", "-p", "zerg_api", "--color", "always"]
 need_stdout = true
@@ -17,7 +33,7 @@ allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
 
-[jobs.zerg-email]
+[jobs.zerg-tasks]
 command = ["cargo", "run", "-p", "zerg_tasks", "--color", "always"]
 need_stdout = true
 watch = ["apps/zerg/email", "libs"]

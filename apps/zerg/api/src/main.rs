@@ -1,3 +1,4 @@
+use axum::{middleware, routing::get, Router};
 use axum_helpers::server::{create_production_app, health_router};
 use core_config::tracing::{init_tracing, install_color_eyre};
 use std::time::Duration;
@@ -22,6 +23,10 @@ async fn main() -> eyre::Result<()> {
 
     // Initialize tracing with ErrorLayer for span trace capture
     init_tracing(&config.environment);
+
+    // Initialize Prometheus metrics recorder
+    observability::init_metrics();
+    info!("Prometheus metrics initialized");
 
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
@@ -64,12 +69,18 @@ async fn main() -> eyre::Result<()> {
     // create_router adds docs/middleware to our composed routes
     let router = axum_helpers::create_router::<openapi::ApiDoc>(api_routes).await?;
 
-    // Merge health endpoints into the app
+    // Create metrics router (excluded from metrics middleware to avoid recursion)
+    let metrics_router = Router::new().route("/metrics", get(observability::metrics_handler));
+
+    // Merge health endpoints and metrics into the app
     // - /health: liveness check with app name/version
     // - /ready: readiness check with actual db/redis health checks
+    // - /metrics: Prometheus metrics endpoint
     let app = router
+        .layer(middleware::from_fn(observability::middleware::metrics_middleware))
         .merge(health_router(state.config.app.clone()))
-        .merge(api::ready_router(state.clone()));
+        .merge(api::ready_router(state.clone()))
+        .merge(metrics_router);
 
     info!("Starting zerg API with production-ready shutdown (30s timeout)");
 

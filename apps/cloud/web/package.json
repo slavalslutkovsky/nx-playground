@@ -1,0 +1,35 @@
+{
+  "name": "cloud-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "biome lint ./src",
+    "format": "biome format ./src --write",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@tanstack/solid-query": "^5.90.15",
+    "@tanstack/solid-router": "^1.139.14",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "solid-js": "^1.9.5",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@tailwindcss/vite": "^4.1.17",
+    "@testing-library/jest-dom": "^6.6.3",
+    "jsdom": "^25.0.1",
+    "solid-devtools": "^0.34.3",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.8.3",
+    "vite": "^7.1.4",
+    "vite-plugin-solid": "^2.11.9",
+    "vitest": "^4.0.0"
+  }
+}

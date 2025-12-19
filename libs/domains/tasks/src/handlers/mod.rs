@@ -1,5 +1,6 @@
 mod direct;
 mod grpc;
+pub mod stream;
 
 use axum::{routing::get, Router};
 use rpc::tasks::tasks_service_client::TasksServiceClient;
@@ -10,6 +11,9 @@ use utoipa::OpenApi;
 use crate::models::{CreateTask, Task, UpdateTask};
 use crate::repository::TaskRepository;
 use crate::service::TaskService;
+
+// Re-export stream types for external use
+pub use stream::StreamState;
 
 /// OpenAPI documentation for Tasks API (Direct DB)
 #[derive(OpenApi)]
@@ -65,4 +69,20 @@ pub fn grpc_router(client: TasksServiceClient<Channel>) -> Router {
         .route("/", get(grpc::list_tasks).post(grpc::create_task))
         .route("/{id}", get(grpc::get_task).put(grpc::update_task).delete(grpc::delete_task))
         .with_state(client)
+}
+
+/// Create router for stream-backed handlers (fire-and-forget, returns 202 Accepted)
+///
+/// These handlers queue commands to Redis streams and return immediately.
+/// Use this for measuring raw queueing throughput.
+pub fn stream_async_router(state: StreamState) -> Router {
+    Router::new()
+        .route("/", get(stream::list_tasks_async).post(stream::create_task_async))
+        .route(
+            "/{id}",
+            get(stream::get_task_async)
+                .put(stream::update_task_async)
+                .delete(stream::delete_task_async),
+        )
+        .with_state(state)
 }

@@ -1,0 +1,45 @@
+{
+  "name": "cloud-web",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/cloud/web/src",
+  "projectType": "application",
+  "tags": ["scope:cloud", "type:app", "platform:web"],
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun vite",
+        "cwd": "apps/cloud/web"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "bun vite build",
+        "cwd": "apps/cloud/web"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun vite preview",
+        "cwd": "apps/cloud/web"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "biome lint ./src",
+        "cwd": "apps/cloud/web"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun vitest run",
+        "cwd": "apps/cloud/web"
+      }
+    }
+  }
+}

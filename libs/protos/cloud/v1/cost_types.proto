@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package cloud.v1;
+
+// Cloud provider enumeration
+enum CloudProvider {
+  CLOUD_PROVIDER_UNSPECIFIED = 0;
+  AWS = 1;
+  AZURE = 2;
+  GCP = 3;
+}
+
+// Resource type enumeration
+enum ResourceType {
+  RESOURCE_TYPE_UNSPECIFIED = 0;
+  COMPUTE = 1; // VMs, instances
+  STORAGE = 2; // Object storage, block storage
+  DATABASE = 3; // RDS, Cloud SQL, etc.
+  NETWORK = 4; // Load balancers, VPNs, etc.
+  SERVERLESS = 5; // Lambda, Cloud Functions, etc.
+  ANALYTICS = 6; // BigQuery, Redshift, etc.
+  KUBERNETES = 7; // EKS, AKS, GKE
+  OTHER = 8;
+}
+
+// Pricing unit enumeration
+enum PricingUnit {
+  PRICING_UNIT_UNSPECIFIED = 0;
+  HOUR = 1;
+  MONTH = 2;
+  GB = 3;
+  GB_HOUR = 4;
+  GB_MONTH = 5;
+  REQUEST = 6;
+  MILLION_REQUESTS = 7;
+  SECOND = 8;
+  UNIT = 9;
+}
+
+// Currency enumeration
+enum Currency {
+  CURRENCY_UNSPECIFIED = 0;
+  USD = 1;
+  EUR = 2;
+  GBP = 3;
+}
+
+// Money representation with precision
+message Money {
+  // Amount in smallest currency unit (cents for USD)
+  int64 amount = 1;
+  Currency currency = 2;
+  // Number of decimal places (2 for cents)
+  int32 decimal_places = 3;
+}
+
+// Time range for queries and reports
+message TimeRange {
+  int64 start_timestamp = 1; // Unix timestamp in seconds
+  int64 end_timestamp = 2;
+}
+
+// Region information
+message Region {
+  string code = 1; // e.g., "us-east-1", "eastus", "us-central1"
+  string display_name = 2; // e.g., "US East (N. Virginia)"
+  CloudProvider provider = 3;
+}
+
+// Pagination for list requests
+message Pagination {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+// Resource identifier across clouds
+message ResourceIdentifier {
+  CloudProvider provider = 1;
+  string resource_id = 2; // Provider-specific ID
+  ResourceType resource_type = 3;
+  string region = 4;
+  string account_id = 5; // AWS account, Azure subscription, GCP project
+}

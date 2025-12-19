@@ -104,11 +104,19 @@ services:
       - "min_wal_size=1GB"
       - "-c"
       - "max_wal_size=4GB"
-#  mailhog:
-#    image: mailhog/mailhog
-#    ports:
-#      - "1025:1025"
-#      - "8025:8025"
+  # Email testing server for development
+  # Web UI: http://localhost:8025 (view sent emails)
+  # SMTP: localhost:1025 (for email-worker to send to)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP server
+      - "8025:8025"   # Web UI
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
   influxdb2:
     image: influxdb:2

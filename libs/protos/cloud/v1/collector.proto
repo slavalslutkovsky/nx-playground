@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+package cloud.v1;
+
+import "v1/cost_types.proto";
+
+// Service for collecting pricing data and resource inventory
+service CollectorService {
+  // Trigger a pricing collection job
+  rpc TriggerPriceCollection(TriggerPriceCollectionRequest) returns (TriggerPriceCollectionResponse) {}
+
+  // Get collection job status
+  rpc GetCollectionStatus(GetCollectionStatusRequest) returns (GetCollectionStatusResponse) {}
+
+  // List collection jobs
+  rpc ListCollectionJobs(ListCollectionJobsRequest) returns (ListCollectionJobsResponse) {}
+
+  // Get resource inventory from Crossplane
+  rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {}
+
+  // Stream inventory changes
+  rpc StreamInventoryChanges(StreamInventoryChangesRequest) returns (stream InventoryChange) {}
+
+  // Get collection schedule
+  rpc GetCollectionSchedule(GetCollectionScheduleRequest) returns (GetCollectionScheduleResponse) {}
+
+  // Update collection schedule
+  rpc UpdateCollectionSchedule(UpdateCollectionScheduleRequest) returns (UpdateCollectionScheduleResponse) {}
+}
+
+// Collection job status
+enum CollectionJobStatus {
+  COLLECTION_JOB_STATUS_UNSPECIFIED = 0;
+  COLLECTION_JOB_STATUS_PENDING = 1;
+  COLLECTION_JOB_STATUS_RUNNING = 2;
+  COLLECTION_JOB_STATUS_COMPLETED = 3;
+  COLLECTION_JOB_STATUS_FAILED = 4;
+  COLLECTION_JOB_STATUS_CANCELLED = 5;
+}
+
+// Collection job type
+enum CollectionJobType {
+  COLLECTION_JOB_TYPE_UNSPECIFIED = 0;
+  PRICING = 1; // Collect pricing data
+  INVENTORY = 2; // Collect resource inventory
+  FULL = 3; // Both pricing and inventory
+}
+
+// Collection job
+message CollectionJob {
+  bytes id = 1;
+  CollectionJobType type = 2;
+  CollectionJobStatus status = 3;
+  repeated CloudProvider providers = 4;
+  repeated ResourceType resource_types = 5;
+  repeated string regions = 6;
+  int64 started_at = 7;
+  optional int64 completed_at = 8;
+  CollectionJobProgress progress = 9;
+  optional string error_message = 10;
+  CollectionJobMetrics metrics = 11;
+}
+
+message CollectionJobProgress {
+  int32 total_tasks = 1;
+  int32 completed_tasks = 2;
+  int32 failed_tasks = 3;
+  string current_task = 4;
+}
+
+message CollectionJobMetrics {
+  int64 prices_collected = 1;
+  int64 resources_discovered = 2;
+  int64 prices_updated = 3;
+  int64 prices_unchanged = 4;
+  int64 duration_ms = 5;
+}
+
+// Trigger collection request
+message TriggerPriceCollectionRequest {
+  CollectionJobType type = 1;
+  repeated CloudProvider providers = 2; // Empty = all configured providers
+  repeated ResourceType resource_types = 3; // Empty = all types
+  repeated string regions = 4; // Empty = all configured regions
+  bool force = 5; // Force collection even if recent data exists
+}
+
+message TriggerPriceCollectionResponse {
+  CollectionJob job = 1;
+}
+
+// Get collection status
+message GetCollectionStatusRequest {
+  bytes job_id = 1;
+}
+
+message GetCollectionStatusResponse {
+  CollectionJob job = 1;
+}
+
+// List collection jobs
+message ListCollectionJobsRequest {
+  optional CollectionJobStatus status = 1;
+  optional CollectionJobType type = 2;
+  TimeRange time_range = 3;
+  Pagination pagination = 4;
+}
+
+message ListCollectionJobsResponse {
+  repeated CollectionJob jobs = 1;
+  int32 total_count = 2;
+}
+
+// Resource inventory item (from Crossplane)
+message InventoryItem {
+  ResourceIdentifier resource = 1;
+  string name = 2;
+  string status = 3; // Crossplane resource status
+  map<string, string> labels = 4;
+  map<string, string> annotations = 5;
+  ResourceSpec spec = 6;
+  int64 created_at = 7;
+  int64 last_synced_at = 8;
+}
+
+message ResourceSpec {
+  string instance_type = 1;
+  optional int32 vcpus = 2;
+  optional int32 memory_gb = 3;
+  optional int32 storage_gb = 4;
+  map<string, string> additional_specs = 5;
+}
+
+// Get inventory request
+message GetInventoryRequest {
+  optional CloudProvider provider = 1;
+  repeated ResourceType resource_types = 2;
+  repeated string regions = 3;
+  map<string, string> label_selector = 4;
+  Pagination pagination = 5;
+}
+
+message GetInventoryResponse {
+  repeated InventoryItem items = 1;
+  int32 total_count = 2;
+}
+
+// Stream inventory changes
+message StreamInventoryChangesRequest {
+  optional CloudProvider provider = 1;
+  repeated ResourceType resource_types = 2;
+  map<string, string> label_selector = 3;
+}
+
+message InventoryChange {
+  InventoryItem item = 1;
+  InventoryChangeType change_type = 2;
+  optional InventoryItem previous_state = 3;
+}
+
+enum InventoryChangeType {
+  INVENTORY_CHANGE_TYPE_UNSPECIFIED = 0;
+  CREATED = 1;
+  UPDATED = 2;
+  DELETED = 3;
+}
+
+// Collection schedule
+message CollectionSchedule {
+  bytes id = 1;
+  string name = 2;
+  string cron_expression = 3; // e.g., "0 */6 * * *" (every 6 hours)
+  CollectionJobType job_type = 4;
+  repeated CloudProvider providers = 5;
+  repeated ResourceType resource_types = 6;
+  repeated string regions = 7;
+  bool enabled = 8;
+  optional int64 last_run_at = 9;
+  optional int64 next_run_at = 10;
+}
+
+// Get collection schedule
+message GetCollectionScheduleRequest {}
+
+message GetCollectionScheduleResponse {
+  repeated CollectionSchedule schedules = 1;
+}
+
+// Update collection schedule
+message UpdateCollectionScheduleRequest {
+  bytes id = 1;
+  optional string cron_expression = 2;
+  optional bool enabled = 3;
+  repeated CloudProvider providers = 4;
+  repeated ResourceType resource_types = 5;
+  repeated string regions = 6;
+}
+
+message UpdateCollectionScheduleResponse {
+  CollectionSchedule schedule = 1;
+}

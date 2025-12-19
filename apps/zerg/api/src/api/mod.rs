@@ -3,9 +3,11 @@ use axum::Router;
 pub mod auth;
 pub mod cloud_resources;
 pub mod health;
+pub mod pricing;
 pub mod projects;
 pub mod tasks;
 pub mod tasks_direct;
+pub mod tasks_stream;
 pub mod users;
 
 /// Creates the API routes without the `/api` prefix.
@@ -24,10 +26,15 @@ pub fn routes(state: &crate::state::AppState) -> Router {
         .nest("/auth", auth::router(state)) // Auth routes at /api/auth
         .nest("/tasks", tasks::router(state.clone()))
         .nest("/tasks-direct", tasks_direct::router(&state))
+        .nest("/tasks-stream", tasks_stream::router(state)) // Fire-and-forget (202 Accepted)
         .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,
             cloud_resources::router(state),
+        )
+        .nest(
+            domain_pricing::entity::Model::URL,
+            pricing::router(state),
         )
         .nest("/users", users::router(state)) // TODO: Add SeaOrmResource to domain_users
 }

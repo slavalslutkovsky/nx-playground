@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: ENVIRONMENT
+            value: "development"
+          - name: HEALTH_PORT
+            value: "8081"
+          - name: RUST_LOG
+            value: "debug"
+          - name: REDIS_HOST
+            value: "redis://redis.dbs.svc.cluster.local"
+          - name: SMTP_HOST
+            value: "mailpit.dbs.svc.cluster.local"
+          - name: SMTP_PORT
+            value: "1025"
+          - name: EMAIL_POLL_INTERVAL_MS
+            value: "500"
+          - name: EMAIL_MAX_RETRIES
+            value: "3"
+    target:
+      kind: Deployment
+      name: zerg-email-worker

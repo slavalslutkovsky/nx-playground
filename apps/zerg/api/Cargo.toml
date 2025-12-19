@@ -10,10 +10,13 @@ color-eyre = { workspace = true }
 core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }
 domain_cloud_resources = { workspace = true }
+domain_notifications = { workspace = true }
+domain_pricing = { workspace = true }
 domain_projects = { workspace = true }
 domain_tasks = { path = "../../../libs/domains/tasks" }
 domain_users = { workspace = true }
 eyre = { workspace = true }
+observability = { workspace = true }
 grpc-client = { workspace = true }
 migration = { workspace = true }
 redis = { workspace = true }

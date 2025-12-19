@@ -1,0 +1,50 @@
+[package]
+name = "pricing-collector"
+version = "0.1.0"
+edition = "2024"
+description = "Cloud pricing data collector - fetches prices from AWS, Azure, and GCP"
+
+[[bin]]
+name = "pricing-collector"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+core_config = { workspace = true }
+database = { workspace = true, features = ["config"] }
+domain_pricing = { workspace = true }
+observability = { workspace = true }
+protos = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+
+# HTTP client for cloud APIs
+reqwest = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+eyre = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Time and scheduling
+chrono = { workspace = true }
+tokio-cron-scheduler = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# URL encoding for API queries
+urlencoding = { workspace = true }
+
+# Database
+sea-orm = { workspace = true }

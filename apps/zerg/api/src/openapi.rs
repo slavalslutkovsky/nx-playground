@@ -9,14 +9,15 @@ use utoipa::OpenApi;
     info(
         title = "Zerg API",
         version = "0.1.0",
-        description = "API for managing tasks, projects, cloud resources, and users"
+        description = "API for managing tasks, projects, cloud resources, pricing, and users"
     ),
     servers(
         (url = "/api", description = "API base path")
     ),
     nest(
         (path = "/tasks", api = domain_tasks::GrpcApiDoc),
-        (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc)
+        (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc),
+        (path = domain_pricing::entity::Model::URL, api = domain_pricing::handlers::ApiDoc)
     )
 )]
 pub struct ApiDoc;

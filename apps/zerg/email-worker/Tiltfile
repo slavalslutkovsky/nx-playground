@@ -1,0 +1,33 @@
+docker_build(
+  'yurikrupnik/zerg-email-worker',
+  build_args={
+    'APP_NAME': 'zerg_email_worker',
+  },
+  context='../../..',
+  dockerfile='../../../manifests/dockers/rust.Dockerfile',
+  only=[
+    'Cargo.toml',
+    'Cargo.lock',
+    'apps/',
+    'libs/',
+    'manifests/dockers/rust.Dockerfile',
+  ],
+  ignore=[
+    'target/',
+    '**/*.md',
+    '**/.git/',
+    '**/k8s/',
+    '**/Tiltfile',
+    'apps/**/node_modules/',
+  ],
+  target='rust',
+)
+
+k8s_yaml(kustomize('k8s/kustomize/overlays/dev'))
+
+k8s_resource(
+  "zerg-email-worker",
+  port_forwards="8181:8081",
+  labels=['workers'],
+  resource_deps=['redis-port-forward']
+)

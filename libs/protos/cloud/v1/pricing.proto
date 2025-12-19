@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package cloud.v1;
+
+import "v1/cost_types.proto";
+
+// Pricing service for querying and comparing cloud prices
+service PricingService {
+  // Get a single price entry by ID
+  rpc GetPrice(GetPriceRequest) returns (GetPriceResponse) {}
+
+  // List prices with filtering
+  rpc ListPrices(ListPricesRequest) returns (ListPricesResponse) {}
+
+  // Compare prices across providers for equivalent resources
+  rpc ComparePrices(ComparePricesRequest) returns (ComparePricesResponse) {}
+
+  // Get price history for a specific SKU
+  rpc GetPriceHistory(GetPriceHistoryRequest) returns (GetPriceHistoryResponse) {}
+
+  // Stream price updates in real-time
+  rpc StreamPriceUpdates(StreamPriceUpdatesRequest) returns (stream PriceUpdate) {}
+}
+
+// Price entry representing a single pricing record
+message PriceEntry {
+  bytes id = 1; // UUID as bytes
+  CloudProvider provider = 2;
+  ResourceType resource_type = 3;
+  string sku = 4; // Provider-specific SKU
+  string service_name = 5; // e.g., "Amazon EC2", "Azure VMs"
+  string product_family = 6; // e.g., "Compute Instance"
+  string instance_type = 7; // e.g., "t3.medium", "Standard_D2s_v3"
+  string region = 8;
+  Money unit_price = 9;
+  PricingUnit pricing_unit = 10;
+  string description = 11;
+  map<string, string> attributes = 12; // Additional attributes (vCPU, memory, etc.)
+  int64 effective_date = 13; // When this price became effective
+  optional int64 expiration_date = 14; // When this price expires (null if current)
+  int64 collected_at = 15; // When we fetched this price
+}
+
+// Pricing tier for volume-based pricing
+message PricingTier {
+  int64 start_usage = 1; // Start of tier (units)
+  optional int64 end_usage = 2; // End of tier (null for unlimited)
+  Money unit_price = 3;
+}
+
+// Request to get a single price
+message GetPriceRequest {
+  bytes id = 1;
+}
+
+message GetPriceResponse {
+  PriceEntry price = 1;
+}
+
+// Request to list prices with filters
+message ListPricesRequest {
+  optional CloudProvider provider = 1;
+  optional ResourceType resource_type = 2;
+  repeated string regions = 3;
+  optional string service_name = 4;
+  optional string instance_type = 5;
+  optional string sku = 6;
+  Pagination pagination = 7;
+}
+
+message ListPricesResponse {
+  repeated PriceEntry prices = 1;
+  int32 total_count = 2;
+}
+
+// Request to compare prices across providers
+message ComparePricesRequest {
+  ResourceType resource_type = 1;
+  // Comparison criteria
+  optional int32 vcpus = 2;
+  optional int32 memory_gb = 3;
+  optional int32 storage_gb = 4;
+  repeated string regions = 5;
+  repeated CloudProvider providers = 6; // Empty means all providers
+}
+
+message ComparePricesResponse {
+  repeated PriceComparison comparisons = 1;
+}
+
+message PriceComparison {
+  string comparison_key = 1; // e.g., "4vcpu-8gb-compute"
+  repeated ProviderPrice provider_prices = 2;
+  ProviderPrice cheapest = 3;
+  Money potential_savings = 4; // vs. most expensive
+}
+
+message ProviderPrice {
+  CloudProvider provider = 1;
+  PriceEntry price = 2;
+  Money monthly_estimate = 3; // Estimated monthly cost
+}
+
+// Request for price history
+message GetPriceHistoryRequest {
+  string sku = 1;
+  CloudProvider provider = 2;
+  string region = 3;
+  TimeRange time_range = 4;
+}
+
+message GetPriceHistoryResponse {
+  repeated PriceEntry history = 1;
+}
+
+// Request to stream price updates
+message StreamPriceUpdatesRequest {
+  repeated CloudProvider providers = 1;
+  repeated ResourceType resource_types = 2;
+  repeated string regions = 3;
+}
+
+message PriceUpdate {
+  PriceEntry price = 1;
+  PriceUpdateType update_type = 2;
+  optional PriceEntry previous_price = 3; // For CHANGED updates
+}
+
+enum PriceUpdateType {
+  PRICE_UPDATE_TYPE_UNSPECIFIED = 0;
+  NEW = 1;
+  CHANGED = 2;
+  REMOVED = 3;
+}

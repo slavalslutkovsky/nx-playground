@@ -1,0 +1,14 @@
+[package]
+name = "observability"
+version = "0.1.0"
+edition = "2024"
+description = "Observability utilities: metrics, tracing, and health checks"
+
+[dependencies]
+axum = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+once_cell = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }

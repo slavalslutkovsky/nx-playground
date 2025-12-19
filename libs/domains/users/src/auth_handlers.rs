@@ -6,8 +6,12 @@ use axum::{
     Json, Router,
 };
 use axum_helpers::{JwtRedisAuth, ValidatedJson, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
-use serde::Deserialize;
+use domain_notifications::NotificationService;
+use redis::aio::ConnectionManager;
+use redis::AsyncCommands;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::error::UserError;
 use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
@@ -37,6 +41,10 @@ pub struct AuthState<R: UserRepository, O: OAuthAccountRepository> {
     pub jwt_auth: JwtRedisAuth,
     pub oauth_state_manager: OAuthStateManager,
     pub account_linking: AccountLinkingService<R, O>,
+    /// Optional notification service for sending welcome/verification emails
+    pub notification_service: Option<Arc<NotificationService>>,
+    /// Redis connection for verification token storage
+    pub redis: Option<Arc<Mutex<ConnectionManager>>>,
 }
 
 /// Check if running in development mode
@@ -55,14 +63,49 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
     let user = state
         .service
         .create_user(crate::models::CreateUser {
-            email: input.email,
-            name: input.name,
+            email: input.email.clone(),
+            name: input.name.clone(),
             password: input.password,
             roles: vec![],
         })
         .await?;
 
     let user_id = user.id.to_string();
+
+    // Queue welcome email with verification link (if notification service and Redis are configured)
+    if let (Some(notification_service), Some(redis)) = (&state.notification_service, &state.redis) {
+        // Generate verification token
+        let verification_token = NotificationService::generate_token();
+
+        // Store verification token in Redis (expires in 24 hours)
+        let token_key = format!("email_verification:{}", verification_token);
+        let store_result: Result<(), redis::RedisError> = {
+            let mut conn = redis.lock().await;
+            conn.set_ex(&token_key, &user_id, 24 * 60 * 60).await
+        };
+
+        if let Err(e) = store_result {
+            tracing::error!("Failed to store verification token: {:?}", e);
+            // Don't fail registration if email queueing fails
+        } else {
+            // Queue welcome email
+            if let Err(e) = notification_service
+                .queue_welcome_email(
+                    user.id,
+                    &user.email,
+                    &user.name,
+                    true, // requires_verification
+                    Some(&verification_token),
+                )
+                .await
+            {
+                tracing::error!("Failed to queue welcome email: {:?}", e);
+                // Don't fail registration if email queueing fails
+            } else {
+                tracing::info!(user_id = %user.id, "Welcome email queued for new user");
+            }
+        }
+    }
 
     // Create access token
     let access_token = state
@@ -655,6 +698,183 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
         .into_response())
 }
 
+/// Query parameters for email verification
+#[derive(Debug, Deserialize)]
+struct VerifyEmailQuery {
+    token: String,
+}
+
+/// Response for email verification
+#[derive(Debug, Serialize)]
+struct VerifyEmailResponse {
+    message: String,
+    email_verified: bool,
+}
+
+/// Verify email address using verification token
+async fn verify_email<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
+    Query(query): Query<VerifyEmailQuery>,
+) -> Result<Json<VerifyEmailResponse>, UserError> {
+    // Get Redis connection
+    let redis = state
+        .redis
+        .as_ref()
+        .ok_or_else(|| UserError::Internal("Email verification not configured".to_string()))?;
+
+    // Look up the verification token in Redis
+    let token_key = format!("email_verification:{}", query.token);
+    let user_id: Option<String> = {
+        let mut conn = redis.lock().await;
+        conn.get(&token_key).await.map_err(|e| {
+            tracing::error!("Redis error looking up verification token: {:?}", e);
+            UserError::Internal("Service temporarily unavailable".to_string())
+        })?
+    };
+
+    let user_id = user_id.ok_or(UserError::InvalidVerificationToken)?;
+
+    // Parse user ID
+    let user_uuid = uuid::Uuid::parse_str(&user_id)
+        .map_err(|_| UserError::InvalidVerificationToken)?;
+
+    // Get user
+    let user = state.service.get_user(user_uuid).await?;
+
+    // Check if already verified
+    if user.email_verified {
+        return Err(UserError::EmailAlreadyVerified);
+    }
+
+    // Update user to mark email as verified
+    state
+        .service
+        .update_user(
+            user_uuid,
+            crate::models::UpdateUser {
+                email_verified: Some(true),
+                ..Default::default()
+            },
+        )
+        .await?;
+
+    // Delete the verification token (one-time use)
+    {
+        let mut conn = redis.lock().await;
+        let _: () = conn.del(&token_key).await.map_err(|e| {
+            tracing::error!("Failed to delete verification token: {:?}", e);
+            UserError::Internal("Service temporarily unavailable".to_string())
+        })?;
+    }
+
+    tracing::info!(user_id = %user_uuid, "Email verified successfully");
+
+    Ok(Json(VerifyEmailResponse {
+        message: "Email verified successfully".to_string(),
+        email_verified: true,
+    }))
+}
+
+/// Request body for resend verification
+#[derive(Debug, Deserialize)]
+struct ResendVerificationRequest {
+    email: String,
+}
+
+/// Resend verification email
+async fn resend_verification<R: UserRepository, O: OAuthAccountRepository>(
+    State(state): State<AuthState<R, O>>,
+    Json(input): Json<ResendVerificationRequest>,
+) -> Result<Json<serde_json::Value>, UserError> {
+    // Check if notification service and Redis are available
+    let notification_service = state
+        .notification_service
+        .as_ref()
+        .ok_or_else(|| UserError::Internal("Email service not configured".to_string()))?;
+
+    let redis = state
+        .redis
+        .as_ref()
+        .ok_or_else(|| UserError::Internal("Email service not configured".to_string()))?;
+
+    // Find user by email
+    let (users, _) = state
+        .service
+        .list_users(crate::models::UserFilter {
+            email: Some(input.email.clone()),
+            ..Default::default()
+        })
+        .await?;
+
+    let user = users.first().ok_or_else(|| {
+        // Don't reveal if email exists or not for security
+        tracing::warn!("Resend verification requested for non-existent email: {}", input.email);
+        UserError::Validation("If this email exists, a verification link will be sent.".to_string())
+    })?;
+
+    // Check if already verified
+    if user.email_verified {
+        // Don't reveal verification status for security
+        return Ok(Json(serde_json::json!({
+            "message": "If this email exists and is not verified, a verification link will be sent."
+        })));
+    }
+
+    // Rate limiting: Check if we've sent a verification email recently
+    let rate_limit_key = format!("verification_rate_limit:{}", user.id);
+    let recent_request: Option<String> = {
+        let mut conn = redis.lock().await;
+        conn.get(&rate_limit_key).await.map_err(|e| {
+            tracing::error!("Redis error checking rate limit: {:?}", e);
+            UserError::Internal("Service temporarily unavailable".to_string())
+        })?
+    };
+
+    if recent_request.is_some() {
+        return Err(UserError::RateLimitExceeded);
+    }
+
+    // Set rate limit (1 request per minute)
+    {
+        let mut conn = redis.lock().await;
+        let _: () = conn.set_ex(&rate_limit_key, "1", 60).await.map_err(|e| {
+            tracing::error!("Redis error setting rate limit: {:?}", e);
+            UserError::Internal("Service temporarily unavailable".to_string())
+        })?;
+    }
+
+    // Generate new verification token
+    let verification_token = NotificationService::generate_token();
+
+    // Store verification token in Redis (expires in 24 hours)
+    let token_key = format!("email_verification:{}", verification_token);
+    {
+        let mut conn = redis.lock().await;
+        let _: () = conn
+            .set_ex(&token_key, &user.id.to_string(), 24 * 60 * 60)
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to store verification token: {:?}", e);
+                UserError::Email("Failed to generate verification token".to_string())
+            })?;
+    }
+
+    // Queue verification email
+    notification_service
+        .queue_verification_email(user.id, &user.email, &user.name, &verification_token)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to queue verification email: {:?}", e);
+            UserError::Email("Failed to send verification email".to_string())
+        })?;
+
+    tracing::info!(user_id = %user.id, "Verification email resent");
+
+    Ok(Json(serde_json::json!({
+        "message": "If this email exists and is not verified, a verification link will be sent."
+    })))
+}
+
 /// Create auth router
 pub fn auth_router<R, O>(state: AuthState<R, O>) -> Router
 where
@@ -666,6 +886,8 @@ where
         .route("/login", post(login::<R, O>))
         .route("/logout", post(logout::<R, O>))
         .route("/me", get(me::<R, O>))
+        .route("/verify-email", get(verify_email::<R, O>))
+        .route("/resend-verification", post(resend_verification::<R, O>))
         .route("/oauth/{provider}", get(authorize::<R, O>))
         .route("/oauth/{provider}/callback", get(callback::<R, O>))
         .with_state(state)

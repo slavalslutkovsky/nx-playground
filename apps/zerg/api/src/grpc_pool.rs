@@ -1,4 +1,3 @@
-use grpc_client::client::ConfigurableClient;
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use tonic::transport::Channel;
 
@@ -15,8 +14,6 @@ use tonic::transport::Channel;
 /// throughput with sub-4ms P99 latency.
 pub async fn create_optimized_tasks_client(addr: String) -> eyre::Result<TasksServiceClient<Channel>> {
     let channel = grpc_client::create_channel(addr).await?;
-    // Note: We need to manually configure the client because TasksServiceClient
-    // doesn't directly implement the ConfigurableClient trait
     let client = TasksServiceClient::new(channel)
         .accept_compressed(tonic::codec::CompressionEncoding::Zstd)
         .send_compressed(tonic::codec::CompressionEncoding::Zstd)

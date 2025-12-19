@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package cloud.v1;
+
+import "v1/cost_types.proto";
+
+// Service for managing cloud provider connections
+service CloudProviderService {
+  // Register a new cloud provider configuration
+  rpc RegisterProvider(RegisterProviderRequest) returns (RegisterProviderResponse) {}
+
+  // List registered providers
+  rpc ListProviders(ListProvidersRequest) returns (ListProvidersResponse) {}
+
+  // Get provider details
+  rpc GetProvider(GetProviderRequest) returns (GetProviderResponse) {}
+
+  // Update provider configuration
+  rpc UpdateProvider(UpdateProviderRequest) returns (UpdateProviderResponse) {}
+
+  // Remove a provider
+  rpc RemoveProvider(RemoveProviderRequest) returns (RemoveProviderResponse) {}
+
+  // Test provider connection
+  rpc TestConnection(TestConnectionRequest) returns (TestConnectionResponse) {}
+
+  // Get provider health status
+  rpc GetProviderHealth(GetProviderHealthRequest) returns (GetProviderHealthResponse) {}
+}
+
+// Provider configuration
+message ProviderConfig {
+  bytes id = 1;
+  CloudProvider provider = 2;
+  string name = 3; // User-friendly name
+  string account_id = 4; // AWS account, Azure subscription, GCP project
+  ProviderCredentials credentials = 5;
+  repeated string enabled_regions = 6;
+  repeated ResourceType enabled_resource_types = 7;
+  bool enabled = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+// Provider credentials (sensitive, stored encrypted)
+message ProviderCredentials {
+  oneof credentials {
+    AwsCredentials aws = 1;
+    AzureCredentials azure = 2;
+    GcpCredentials gcp = 3;
+  }
+}
+
+message AwsCredentials {
+  // For IAM role assumption (preferred)
+  optional string role_arn = 1;
+  optional string external_id = 2;
+  // For access keys (less preferred)
+  optional string access_key_id = 3;
+  optional string secret_access_key = 4;
+  // Region for STS calls
+  string region = 5;
+}
+
+message AzureCredentials {
+  string tenant_id = 1;
+  string client_id = 2;
+  string client_secret = 3;
+  string subscription_id = 4;
+}
+
+message GcpCredentials {
+  // Service account JSON key (base64 encoded)
+  string service_account_key = 1;
+  string project_id = 2;
+}
+
+// Provider status
+message ProviderStatus {
+  bytes provider_id = 1;
+  ProviderHealthStatus health = 2;
+  optional string error_message = 3;
+  int64 last_successful_sync = 4;
+  int64 last_check_at = 5;
+  ProviderMetrics metrics = 6;
+}
+
+enum ProviderHealthStatus {
+  PROVIDER_HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTHY = 1;
+  DEGRADED = 2;
+  UNHEALTHY = 3;
+  UNKNOWN = 4;
+}
+
+message ProviderMetrics {
+  int64 total_prices_collected = 1;
+  int64 total_resources_discovered = 2;
+  int64 last_collection_duration_ms = 3;
+  int64 avg_collection_duration_ms = 4;
+}
+
+// Register provider request
+message RegisterProviderRequest {
+  CloudProvider provider = 1;
+  string name = 2;
+  string account_id = 3;
+  ProviderCredentials credentials = 4;
+  repeated string enabled_regions = 5;
+  repeated ResourceType enabled_resource_types = 6;
+}
+
+message RegisterProviderResponse {
+  ProviderConfig config = 1;
+}
+
+// List providers
+message ListProvidersRequest {
+  optional CloudProvider provider_filter = 1;
+  optional bool enabled_only = 2;
+}
+
+message ListProvidersResponse {
+  repeated ProviderConfig providers = 1;
+}
+
+// Get provider
+message GetProviderRequest {
+  bytes id = 1;
+}
+
+message GetProviderResponse {
+  ProviderConfig config = 1;
+  ProviderStatus status = 2;
+}
+
+// Update provider
+message UpdateProviderRequest {
+  bytes id = 1;
+  optional string name = 2;
+  optional ProviderCredentials credentials = 3;
+  repeated string enabled_regions = 4;
+  repeated ResourceType enabled_resource_types = 5;
+  optional bool enabled = 6;
+}
+
+message UpdateProviderResponse {
+  ProviderConfig config = 1;
+}
+
+// Remove provider
+message RemoveProviderRequest {
+  bytes id = 1;
+}
+
+message RemoveProviderResponse {}
+
+// Test connection
+message TestConnectionRequest {
+  bytes provider_id = 1;
+}
+
+message TestConnectionResponse {
+  bool success = 1;
+  optional string error_message = 2;
+  int64 latency_ms = 3;
+}
+
+// Get provider health
+message GetProviderHealthRequest {
+  bytes provider_id = 1;
+}
+
+message GetProviderHealthResponse {
+  ProviderStatus status = 1;
+}

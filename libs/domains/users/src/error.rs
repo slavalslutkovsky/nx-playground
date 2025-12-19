@@ -30,6 +30,18 @@ pub enum UserError {
     #[error("OAuth error: {0}")]
     OAuth(String),
 
+    #[error("Email already verified")]
+    EmailAlreadyVerified,
+
+    #[error("Invalid or expired verification token")]
+    InvalidVerificationToken,
+
+    #[error("Rate limit exceeded. Please try again later.")]
+    RateLimitExceeded,
+
+    #[error("Email error: {0}")]
+    Email(String),
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -76,6 +88,29 @@ impl IntoResponse for UserError {
                     StatusCode::UNAUTHORIZED,
                     "oauth_error",
                     format!("OAuth authentication failed: {}", msg),
+                )
+            }
+            UserError::EmailAlreadyVerified => (
+                StatusCode::BAD_REQUEST,
+                "email_already_verified",
+                "Email address has already been verified".to_string(),
+            ),
+            UserError::InvalidVerificationToken => (
+                StatusCode::BAD_REQUEST,
+                "invalid_token",
+                "Invalid or expired verification token".to_string(),
+            ),
+            UserError::RateLimitExceeded => (
+                StatusCode::TOO_MANY_REQUESTS,
+                "rate_limit",
+                "Too many requests. Please try again later.".to_string(),
+            ),
+            UserError::Email(msg) => {
+                tracing::error!("Email error: {}", msg);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "email_error",
+                    "Failed to send email. Please try again later.".to_string(),
                 )
             }
             UserError::Internal(msg) => {

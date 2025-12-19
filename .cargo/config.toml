@@ -8,3 +8,4 @@ rustc-wrapper = "sccache"
 # Default export directory for ts-rs (relative to each crate root)
 # Override with #[ts(export_to = "custom/")] per type if needed
 TS_RS_EXPORT_DIR = { value = "types", relative = false }
+PORT="3333"
