@@ -236,8 +236,8 @@ jobs:
           fetch-depth: 0
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
-      - name: Install Rust toolchain
-        run: rustup toolchain install stable --profile minimal
+#      - name: Install Rust toolchain
+#        run: rustup toolchain install stable --profile minimal
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -264,3 +264,5 @@ jobs:
 
       - name: Build and push container images
         run: bun nx affected -t container --configuration=ci
+        env:
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
