@@ -3,7 +3,9 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
     },
     "lint": {
       "cache": true
@@ -26,6 +28,13 @@
   },
   "nxCloudId": "6928516e8756394e71566e68",
   "plugins": [
-    "@monodon/rust"
+    "@monodon/rust",
+    {
+      "plugin": "@nx-tools/nx-container",
+      "options": {
+        "defaultEngine": "docker",
+        "defaultRegistry": "docker.io"
+      }
+    }
   ]
 }

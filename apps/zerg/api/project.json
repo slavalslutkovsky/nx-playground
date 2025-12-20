@@ -50,6 +50,31 @@
           "command": "cargo run --package zerg_api --release"
         }
       }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "options": {
+        "file": "manifests/dockers/rust.Dockerfile",
+        "context": ".",
+        "build-args": ["APP_NAME=zerg_api"],
+        "tags": ["yurikrupnik/zerg-api:latest"],
+        "push": false
+      },
+      "configurations": {
+        "ci": {
+          "push": true,
+          "metadata": {
+            "images": ["yurikrupnik/zerg-api"],
+            "tags": [
+              "type=sha",
+              "type=ref,event=branch",
+              "type=ref,event=tag",
+              "type=ref,event=pr",
+              "type=semver,pattern={{version}}"
+            ]
+          }
+        }
+      }
     }
   },
   "tags": []
