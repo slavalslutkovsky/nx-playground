@@ -223,29 +223,13 @@ jobs:
 
   container:
     runs-on: ubuntu-latest
-    env:
-      CARGO_INCREMENTAL: 0
-      RUSTC_WRAPPER: sccache
-      SCCACHE_GCS_BUCKET: ${{ vars.SCCACHE_GCS_BUCKET }}
-      SCCACHE_GCS_RW_MODE: READ_WRITE
-      SCCACHE_GCS_KEY_PREFIX: sccache
-      SCCACHE_LOG: error
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
-#      - name: Install Rust toolchain
-#        run: rustup toolchain install stable --profile minimal
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.9
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -262,7 +246,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push container images
-        run: bun nx affected -t container --configuration=ci
+      - name: Cache Trivy
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/trivy
+          key: trivy-${{ runner.os }}-v0.58.0
+
+      - name: Install Trivy
+        run: |
+          if ! command -v trivy &> /dev/null; then
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.58.0
+          fi
+
+      - name: Build, push and scan container images
+        run: bun nx affected -t scan --configuration=ci
         env:
           INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY: ${{ vars.REGISTRY }}
+          COMMIT_SHA: ${{ github.sha }}
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: '*.sarif'
+        if: always()

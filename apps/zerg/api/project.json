@@ -57,14 +57,14 @@
         "file": "manifests/dockers/rust.Dockerfile",
         "context": ".",
         "build-args": ["APP_NAME=zerg_api"],
-        "tags": ["yurikrupnik/zerg-api:latest"],
+        "tags": ["$REGISTRY/zerg-api:latest"],
         "push": false
       },
       "configurations": {
         "ci": {
           "push": true,
           "metadata": {
-            "images": ["yurikrupnik/zerg-api"],
+            "images": ["$REGISTRY/zerg-api"],
             "tags": [
               "type=sha",
               "type=ref,event=branch",
@@ -73,6 +73,19 @@
               "type=semver,pattern={{version}}"
             ]
           }
+        }
+      }
+    },
+    "scan": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container"],
+      "options": {
+        "command": "trivy image $REGISTRY/zerg-api:latest --severity CRITICAL,HIGH --exit-code 0",
+        "cwd": "{workspaceRoot}"
+      },
+      "configurations": {
+        "ci": {
+          "command": "trivy image $REGISTRY/zerg-api:sha-${COMMIT_SHA:0:7} --severity CRITICAL,HIGH --format sarif --output trivy-zerg-api.sarif"
         }
       }
     }
