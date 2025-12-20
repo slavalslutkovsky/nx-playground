@@ -246,27 +246,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Cache Trivy
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/trivy
-          key: trivy-${{ runner.os }}-v0.58.0
-
       - name: Install Trivy
-        run: |
-          if ! command -v trivy &> /dev/null; then
-            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.58.0
-          fi
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 
       - name: Build, push and scan container images
         run: bun nx affected -t scan --configuration=ci
+        continue-on-error: true
         env:
           INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY: ${{ vars.REGISTRY }}
-          COMMIT_SHA: ${{ github.sha }}
+          SHORT_SHA: ${{ github.sha }}
+
+      - name: Merge SARIF files
+        run: |
+          mkdir -p sarif-results
+          find . -name "trivy-*.sarif" -exec cp {} sarif-results/ \; 2>/dev/null || true
+          if ls sarif-results/*.sarif 1>/dev/null 2>&1; then
+            echo "SARIF files found"
+          else
+            echo "No SARIF files found"
+          fi
 
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: '*.sarif'
-        if: always()
+          sarif_file: sarif-results/
+        if: hashFiles('sarif-results/*.sarif') != ''

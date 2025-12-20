@@ -85,7 +85,7 @@
       },
       "configurations": {
         "ci": {
-          "command": "trivy image $REGISTRY/zerg-api:sha-${COMMIT_SHA:0:7} --severity CRITICAL,HIGH --format sarif --output trivy-zerg-api.sarif"
+          "command": "trivy image $REGISTRY/zerg-api:sha-$(echo $SHORT_SHA | cut -c1-7) --severity CRITICAL,HIGH --format sarif --output trivy-zerg-api.sarif"
         }
       }
     }
