@@ -1,7 +1,7 @@
 use crate::models::{ResourceStatus, ResourceType, Tag};
 use core_proc_macros::SeaOrmResource;
-use sea_orm::entity::prelude::*;
 use sea_orm::ActiveValue::Set;
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Sea-ORM Entity for cloud_resources table

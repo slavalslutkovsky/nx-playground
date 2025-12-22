@@ -3,9 +3,48 @@
 default:
   just -l
 
-check:
-  cargo check
-  cargo audit
+# Full quality check for Rust monorepo (read-only, CI-safe)
+check: fmt-check lint test audit
+  @echo "All checks passed!"
+
+# Check formatting without modifying files
+fmt-check:
+  cargo fmt --all --check
+
+# Format all Rust code
+fmt:
+  cargo fmt --all
+
+# Run clippy linter on all packages
+lint:
+  cargo clippy --workspace --all-targets -- -D warnings
+
+# Run all tests
+test:
+  cargo nextest run --workspace
+
+# Security and dependency checks
+audit:
+  cargo audit --ignore RUSTSEC-2023-0071  # RSA timing vulnerability - no fix available
+  cargo deny check --config .cargo/deny.toml
+
+# Quick check (no tests, just compile and lint)
+check-quick: fmt-check
+  cargo check --workspace
+  cargo clippy --workspace --all-targets -- -D warnings
+
+# Show outdated dependencies
+outdated:
+  cargo outdated --workspace
+
+# Update Cargo.lock to latest compatible versions
+update:
+  cargo update
+
+# Upgrade Cargo.toml versions to latest (requires cargo-edit)
+upgrade:
+  cargo upgrade --workspace --incompatible
+  cargo update
 
 _docker-up:
   docker compose -f manifests/dockers/compose.yaml up -d

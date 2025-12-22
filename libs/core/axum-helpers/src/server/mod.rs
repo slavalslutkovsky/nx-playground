@@ -29,6 +29,8 @@ pub mod shutdown;
 
 // Re-export commonly used types and functions
 pub use app::{create_app, create_production_app, create_router};
-pub use cleanup::{close_postgres, close_redis, CleanupCoordinator};
-pub use health::{health_router, run_health_checks, HealthCheckFuture, HealthResponse, ReadyResponse};
-pub use shutdown::{shutdown_signal, ShutdownCoordinator};
+pub use cleanup::{CleanupCoordinator, close_postgres, close_redis};
+pub use health::{
+    HealthCheckFuture, HealthResponse, ReadyResponse, health_router, run_health_checks,
+};
+pub use shutdown::{ShutdownCoordinator, shutdown_signal};

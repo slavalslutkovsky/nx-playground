@@ -1,4 +1,4 @@
-use crate::{env_or_default, ConfigError, FromEnv};
+use crate::{ConfigError, FromEnv, env_or_default};
 use std::net::Ipv4Addr;
 
 /// Server configuration for HTTP APIs

@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 axum = { workspace = true }
 axum-helpers = { workspace = true }
+chrono = { workspace = true }
 color-eyre = { workspace = true }
 core_config = { workspace = true }
 database = { workspace = true, features = ["all"] }
@@ -16,7 +17,9 @@ domain_users = { workspace = true }
 eyre = { workspace = true }
 grpc-client = { workspace = true }
 migration = { workspace = true }
+oauth2 = { workspace = true }
 redis = { workspace = true }
+#reqwest = { workspace = true }
 rpc = { workspace = true }
 sea-orm = { workspace = true }
 serde = { workspace = true }
@@ -25,10 +28,7 @@ tokio = { workspace = true }
 tonic = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }
-oauth2 = { workspace = true }
-reqwest = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
-chrono = { workspace = true }

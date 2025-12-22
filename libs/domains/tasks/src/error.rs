@@ -27,7 +27,9 @@ impl From<TaskError> for AppError {
             TaskError::NotFound(id) => AppError::NotFound(format!("Task {} not found", id)),
             TaskError::Validation(msg) => AppError::BadRequest(msg),
             TaskError::Internal(msg) => AppError::InternalServerError(msg),
-            TaskError::Database(msg) => AppError::InternalServerError(format!("Database error: {}", msg)),
+            TaskError::Database(msg) => {
+                AppError::InternalServerError(format!("Database error: {}", msg))
+            }
         }
     }
 }

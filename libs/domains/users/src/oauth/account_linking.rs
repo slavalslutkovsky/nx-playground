@@ -4,8 +4,8 @@ use crate::oauth::types::OAuthUserInfo;
 use crate::oauth::{CreateOAuthAccountParams, OAuthAccountRepository};
 use crate::repository::UserRepository;
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
     Argon2,
+    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use chrono::Utc;
 use uuid::Uuid;
@@ -66,7 +66,7 @@ impl<R: UserRepository, O: OAuthAccountRepository> AccountLinkingService<R, O> {
                 .user_repo
                 .get_by_id(existing_account.user_id)
                 .await?
-                .ok_or_else(|| UserError::NotFound(existing_account.user_id))?;
+                .ok_or(UserError::NotFound(existing_account.user_id))?;
 
             // Update tokens if provided
             if access_token.is_some() || refresh_token.is_some() {
@@ -86,31 +86,29 @@ impl<R: UserRepository, O: OAuthAccountRepository> AccountLinkingService<R, O> {
         }
 
         // Check if user with this email already exists
-        if let Some(email) = &user_info.email {
-            if let Some(existing_user) = self.user_repo.get_by_email(email).await? {
-                // Auto-link if both emails are verified
-                if auto_link_verified_emails
-                    && user_info.email_verified
-                    && existing_user.email_verified
-                {
-                    self.link_oauth_to_user(
-                        existing_user.id,
-                        provider,
-                        &user_info,
-                        access_token,
-                        refresh_token,
-                        expires_in,
-                    )
-                    .await?;
+        if let Some(email) = &user_info.email
+            && let Some(existing_user) = self.user_repo.get_by_email(email).await?
+        {
+            // Auto-link if both emails are verified
+            if auto_link_verified_emails && user_info.email_verified && existing_user.email_verified
+            {
+                self.link_oauth_to_user(
+                    existing_user.id,
+                    provider,
+                    &user_info,
+                    access_token,
+                    refresh_token,
+                    expires_in,
+                )
+                .await?;
 
-                    return Ok(AccountLinkingResult::ExistingUser(existing_user));
-                } else {
-                    // Manual linking required
-                    return Ok(AccountLinkingResult::LinkRequired {
-                        existing_user_id: existing_user.id,
-                        provider_data: user_info,
-                    });
-                }
+                return Ok(AccountLinkingResult::ExistingUser(existing_user));
+            } else {
+                // Manual linking required
+                return Ok(AccountLinkingResult::LinkRequired {
+                    existing_user_id: existing_user.id,
+                    provider_data: user_info,
+                });
             }
         }
 
@@ -183,10 +181,9 @@ impl<R: UserRepository, O: OAuthAccountRepository> AccountLinkingService<R, O> {
         refresh_token: Option<String>,
         expires_in: Option<u64>,
     ) -> UserResult<User> {
-        let email = user_info
-            .email
-            .as_ref()
-            .ok_or_else(|| UserError::Internal("Email required for new user creation".to_string()))?;
+        let email = user_info.email.as_ref().ok_or_else(|| {
+            UserError::Internal("Email required for new user creation".to_string())
+        })?;
 
         let name = user_info
             .name
@@ -250,7 +247,7 @@ impl<R: UserRepository, O: OAuthAccountRepository> AccountLinkingService<R, O> {
                 .user_repo
                 .get_by_id(user_id)
                 .await?
-                .ok_or_else(|| UserError::NotFound(user_id))?;
+                .ok_or(UserError::NotFound(user_id))?;
 
             // Check if user has a real password (not the random OAuth password)
             // A real password would have been set via password reset or account creation

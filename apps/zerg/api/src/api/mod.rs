@@ -23,7 +23,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
     Router::new()
         .nest("/auth", auth::router(state)) // Auth routes at /api/auth
         .nest("/tasks", tasks::router(state.clone()))
-        .nest("/tasks-direct", tasks_direct::router(&state))
+        .nest("/tasks-direct", tasks_direct::router(state))
         .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,

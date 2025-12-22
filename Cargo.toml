@@ -26,8 +26,8 @@ api_resource = { path = 'libs/core/proc_macros/api_resource' }
 argon2 = { version = '0.5.3', features = ['std'] }
 async-stream = '0.3.6'
 async-trait = '0.1.89'
-axum = { version = '0.8.7', features = ['default', 'tracing', 'ws'] }
-axum-extra = { version = '0.12.2', features = ['typed-header'] }
+axum = { version = "0.8.8", features = ['default', 'tracing', 'ws'] }
+axum-extra = { version = "0.12.3", features = ['typed-header'] }
 axum-helpers = { path = 'libs/core/axum-helpers' }
 #bb8 = { version = '0.9.1', features = ['default'] }
 #bb8-redis = { version = '0.26.0' }
@@ -62,9 +62,9 @@ prost = '0.14.1'
 quote = '1.0.42'
 #r2d2 = { version = '0.8.10', features = [] }
 rand = '0.10.0-rc.5'
-redis = { version = '1.0.0', features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
+redis = { version = "1.0.1", features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 regex = '1.12.2'
-reqwest = { version = '0.12.25', features = ['json', 'rustls-tls'], default-features = false }
+reqwest = { version = "0.12.26", features = ['json', 'rustls-tls'], default-features = false }
 rpc = { path = 'libs/rpc' }
 schemars = '1.1.0'
 sea-orm = { version = '2.0.0-rc.20', features = ['sqlx-postgres', 'runtime-tokio-rustls', 'macros', 'with-uuid', 'with-chrono', 'mock', 'debug-print', 'with-json'] }
@@ -79,7 +79,7 @@ strum = { version = '0.27.2', features = ['derive'] }
 syn = { version = '2.0.111', features = ['full', 'extra-traits', 'visit'] }
 #tabled = '0.20.0'
 test-utils = { path = 'libs/testing/test-utils' }
-testcontainers = '0.26.0'
+testcontainers = '0.26.2'
 testcontainers-modules = { version = '0.14.0', features = ['postgres', 'mongo', 'redis'] }
 thiserror = '2.0.17'
 tokio = { version = '1.48.0', features = ['full'] }
@@ -89,7 +89,7 @@ tonic-prost = '0.14.2'
 tower = '0.5.2'
 tower-http = { version = '0.6.8', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
 tower_governor = '0.8.0'
-tracing = '0.1.43'
+tracing = "0.1.44"
 tracing-error = '0.2.1'
 tracing-subscriber = { version = '0.3.22', features = ['env-filter', 'json', 'serde_json'] }
 trybuild = '1.0.114'

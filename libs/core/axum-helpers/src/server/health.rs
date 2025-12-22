@@ -1,14 +1,14 @@
 use axum::{
+    Json, Router,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
-    Json, Router,
 };
 use core_config::AppInfo;
 use futures::future::join_all;
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;

@@ -23,7 +23,7 @@ struct UserRow {
     email: String,
     name: String,
     password_hash: String,
-    roles: Vec<String>,  // PostgreSQL text array
+    roles: Vec<String>, // PostgreSQL text array
     email_verified: bool,
     created_at: chrono::DateTime<chrono::Utc>,
     updated_at: chrono::DateTime<chrono::Utc>,
@@ -43,7 +43,8 @@ impl From<UserRow> for User {
         use std::str::FromStr;
 
         // Convert Vec<String> back to Vec<Role>
-        let roles = row.roles
+        let roles = row
+            .roles
             .iter()
             .filter_map(|s| Role::from_str(s).ok())
             .collect();
@@ -115,11 +116,7 @@ impl UserRepository for PostgresUserRepository {
     async fn get_by_id(&self, id: Uuid) -> UserResult<Option<User>> {
         let sql = "SELECT * FROM users WHERE id = $1";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [id.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [id.into()]);
 
         let row = UserRow::find_by_statement(stmt)
             .one(&self.db)
@@ -132,11 +129,7 @@ impl UserRepository for PostgresUserRepository {
     async fn get_by_email(&self, email: &str) -> UserResult<Option<User>> {
         let sql = "SELECT * FROM users WHERE email = $1";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [email.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [email.into()]);
 
         let row = UserRow::find_by_statement(stmt)
             .one(&self.db)
@@ -149,11 +142,7 @@ impl UserRepository for PostgresUserRepository {
     async fn list(&self, _filter: UserFilter) -> UserResult<Vec<User>> {
         let sql = "SELECT * FROM users ORDER BY created_at DESC";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, []);
 
         let rows = UserRow::find_by_statement(stmt)
             .all(&self.db)
@@ -210,30 +199,28 @@ impl UserRepository for PostgresUserRepository {
     async fn delete(&self, id: Uuid) -> UserResult<bool> {
         let sql = "DELETE FROM users WHERE id = $1";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [id.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [id.into()]);
 
-        let result = self.db.execute_raw(stmt)
+        let result = self
+            .db
+            .execute_raw(stmt)
             .await
             .map_err(|e| UserError::Internal(format!("Database error: {}", e)))?;
 
         Ok(result.rows_affected() > 0)
     }
 
-    async fn get_by_oauth_id(&self, provider: Provider, provider_id: &str) -> UserResult<Option<User>> {
+    async fn get_by_oauth_id(
+        &self,
+        provider: Provider,
+        provider_id: &str,
+    ) -> UserResult<Option<User>> {
         let sql = match provider {
             Provider::Google => "SELECT * FROM users WHERE google_id = $1",
             Provider::Github => "SELECT * FROM users WHERE github_id = $1",
         };
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [provider_id.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [provider_id.into()]);
 
         let row = UserRow::find_by_statement(stmt)
             .one(&self.db)
@@ -243,10 +230,20 @@ impl UserRepository for PostgresUserRepository {
         Ok(row.map(|r| r.into()))
     }
 
-    async fn link_oauth_account(&self, user_id: Uuid, provider: Provider, provider_id: &str, avatar_url: Option<String>) -> UserResult<()> {
+    async fn link_oauth_account(
+        &self,
+        user_id: Uuid,
+        provider: Provider,
+        provider_id: &str,
+        avatar_url: Option<String>,
+    ) -> UserResult<()> {
         let sql = match provider {
-            Provider::Google => "UPDATE users SET google_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
-            Provider::Github => "UPDATE users SET github_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1",
+            Provider::Google => {
+                "UPDATE users SET google_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1"
+            }
+            Provider::Github => {
+                "UPDATE users SET github_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1"
+            }
         };
 
         let stmt = Statement::from_sql_and_values(
@@ -255,7 +252,8 @@ impl UserRepository for PostgresUserRepository {
             [user_id.into(), provider_id.into(), avatar_url.into()],
         );
 
-        self.db.execute_raw(stmt)
+        self.db
+            .execute_raw(stmt)
             .await
             .map_err(|e| UserError::Internal(format!("Database error: {}", e)))?;
 
@@ -265,11 +263,7 @@ impl UserRepository for PostgresUserRepository {
     async fn email_exists(&self, email: &str) -> UserResult<bool> {
         let sql = "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1) as exists";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [email.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [email.into()]);
 
         #[derive(FromQueryResult)]
         struct ExistsResult {
@@ -287,11 +281,7 @@ impl UserRepository for PostgresUserRepository {
     async fn count(&self, _filter: UserFilter) -> UserResult<usize> {
         let sql = "SELECT COUNT(*) as count FROM users";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, []);
 
         #[derive(FromQueryResult)]
         struct CountResult {
@@ -319,13 +309,10 @@ impl UserRepository for PostgresUserRepository {
             "#
         };
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [user_id.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [user_id.into()]);
 
-        self.db.execute_raw(stmt)
+        self.db
+            .execute_raw(stmt)
             .await
             .map_err(|e| UserError::Internal(format!("Database error: {}", e)))?;
 
@@ -335,11 +322,7 @@ impl UserRepository for PostgresUserRepository {
     async fn check_account_locked(&self, user_id: Uuid) -> UserResult<bool> {
         let sql = "SELECT is_locked, locked_until FROM users WHERE id = $1";
 
-        let stmt = Statement::from_sql_and_values(
-            DbBackend::Postgres,
-            sql,
-            [user_id.into()],
-        );
+        let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [user_id.into()]);
 
         #[derive(FromQueryResult)]
         struct LockStatus {
@@ -367,7 +350,8 @@ impl UserRepository for PostgresUserRepository {
                         unlock_sql,
                         [user_id.into()],
                     );
-                    self.db.execute_raw(unlock_stmt)
+                    self.db
+                        .execute_raw(unlock_stmt)
                         .await
                         .map_err(|e| UserError::Internal(format!("Database error: {}", e)))?;
                     return Ok(false);

@@ -43,16 +43,17 @@ impl GithubProvider {
             .header("User-Agent", "Zerg-OAuth-App")
             .send()
             .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to get user emails: {}", e)))?;
+            .map_err(|e| {
+                crate::error::UserError::OAuth(format!("Failed to get user emails: {}", e))
+            })?;
 
         if !response.status().is_success() {
             return Ok(None);
         }
 
-        let emails: Vec<GithubEmail> = response
-            .json()
-            .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to parse emails: {}", e)))?;
+        let emails: Vec<GithubEmail> = response.json().await.map_err(|e| {
+            crate::error::UserError::OAuth(format!("Failed to parse emails: {}", e))
+        })?;
 
         Ok(emails
             .into_iter()
@@ -99,7 +100,9 @@ impl OAuthProvider for GithubProvider {
             .header("User-Agent", "Zerg-OAuth-App")
             .send()
             .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to get user info: {}", e)))?;
+            .map_err(|e| {
+                crate::error::UserError::OAuth(format!("Failed to get user info: {}", e))
+            })?;
 
         if !response.status().is_success() {
             return Err(crate::error::UserError::OAuth(format!(
@@ -108,13 +111,13 @@ impl OAuthProvider for GithubProvider {
             )));
         }
 
-        let user_info: GithubUserInfo = response
-            .json()
-            .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to parse user info: {}", e)))?;
+        let user_info: GithubUserInfo = response.json().await.map_err(|e| {
+            crate::error::UserError::OAuth(format!("Failed to parse user info: {}", e))
+        })?;
 
-        let raw_data = serde_json::to_value(&user_info)
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to serialize user info: {}", e)))?;
+        let raw_data = serde_json::to_value(&user_info).map_err(|e| {
+            crate::error::UserError::OAuth(format!("Failed to serialize user info: {}", e))
+        })?;
 
         let email = if let Some(email) = user_info.email.clone() {
             Some(email)

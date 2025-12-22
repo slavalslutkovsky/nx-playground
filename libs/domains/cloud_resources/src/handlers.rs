@@ -1,11 +1,11 @@
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
 };
-use axum_helpers::{extract_ip_from_headers, extract_user_agent, AuditEvent, AuditOutcome};
+use axum_helpers::{AuditEvent, AuditOutcome, extract_ip_from_headers, extract_user_agent};
 use serde_json::json;
 use std::sync::Arc;
 use uuid::Uuid;

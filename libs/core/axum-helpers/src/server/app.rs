@@ -1,13 +1,13 @@
+use super::shutdown::{ShutdownCoordinator, coordinated_shutdown, shutdown_signal};
 use crate::errors::handlers::not_found;
 use crate::http::security::security_headers;
-use super::shutdown::{coordinated_shutdown, shutdown_signal, ShutdownCoordinator};
-use axum::{middleware, Router};
+use axum::{Router, middleware};
 use core_config::server::ServerConfig;
 use std::io;
 use std::time::Duration;
 use tower_http::compression::CompressionLayer;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
-use tracing::{info, Level};
+use tracing::{Level, info};
 use utoipa::OpenApi;
 
 /// Starts the Axum server with graceful shutdown.
@@ -141,15 +141,17 @@ where
         .filter(|s| !s.is_empty())
         .map(|s| s.parse::<axum::http::HeaderValue>())
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("Invalid CORS_ALLOWED_ORIGIN value: {}", e)
-        ))?;
+        .map_err(|e| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Invalid CORS_ALLOWED_ORIGIN value: {}", e),
+            )
+        })?;
 
     if allowed_origins.is_empty() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "CORS_ALLOWED_ORIGIN cannot be empty"
+            "CORS_ALLOWED_ORIGIN cannot be empty",
         ));
     }
 

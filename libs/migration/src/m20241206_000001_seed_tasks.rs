@@ -9,7 +9,8 @@ impl MigrationTrait for Migration {
         // Insert sample tasks
         manager
             .get_connection()
-            .execute_unprepared(r#"
+            .execute_unprepared(
+                r#"
             INSERT INTO tasks (
                 id, title, description, completed, project_id, priority, status,
                 due_date, created_at, updated_at
@@ -88,7 +89,8 @@ impl MigrationTrait for Migration {
                     NOW()
                 )
             ON CONFLICT (id) DO NOTHING
-            "#)
+            "#,
+            )
             .await?;
 
         Ok(())

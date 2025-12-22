@@ -165,16 +165,16 @@ pub trait SelectableFields: Serialize {
                 }
 
                 // Check role-based access
-                if let Some(required_role) = access_map.get(*field) {
-                    if !auth.has_role(required_role) {
-                        tracing::warn!(
-                            field = field.as_str(),
-                            user_role = ?auth.role,
-                            required_role = ?required_role,
-                            "Insufficient permissions for field access"
-                        );
-                        return false;
-                    }
+                if let Some(required_role) = access_map.get(*field)
+                    && !auth.has_role(required_role)
+                {
+                    tracing::warn!(
+                        field = field.as_str(),
+                        user_role = ?auth.role,
+                        required_role = ?required_role,
+                        "Insufficient permissions for field access"
+                    );
+                    return false;
                 }
 
                 true

@@ -1,20 +1,23 @@
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
-    http::{header, HeaderValue, StatusCode},
+    http::{HeaderValue, StatusCode, header},
     response::{AppendHeaders, IntoResponse, Redirect, Response},
     routing::{get, post},
-    Json, Router,
 };
-use axum_helpers::{JwtRedisAuth, ValidatedJson, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
+use axum_helpers::{ACCESS_TOKEN_TTL, JwtRedisAuth, REFRESH_TOKEN_TTL, ValidatedJson};
 use serde::Deserialize;
 use std::sync::Arc;
 
 use crate::error::UserError;
 use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
+use crate::oauth::providers::OAuthProvider;
 use crate::oauth::providers::github::GithubProvider;
 use crate::oauth::providers::google::GoogleProvider;
-use crate::oauth::providers::OAuthProvider;
-use crate::oauth::{AccountLinkingResult, AccountLinkingService, OAuthAccountRepository, OAuthState, OAuthStateManager};
+use crate::oauth::{
+    AccountLinkingResult, AccountLinkingService, OAuthAccountRepository, OAuthState,
+    OAuthStateManager,
+};
 use crate::repository::UserRepository;
 use crate::service::UserService;
 
@@ -105,11 +108,7 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 
     state
         .jwt_auth
-        .whitelist_token(
-            &refresh_claims.jti,
-            &user_id,
-            REFRESH_TOKEN_TTL as u64,
-        )
+        .whitelist_token(&refresh_claims.jti, &user_id, REFRESH_TOKEN_TTL as u64)
         .await
         .map_err(|e| {
             tracing::error!("Failed to whitelist refresh token: {:?}", e);
@@ -129,12 +128,10 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 
     let response = LoginResponse { user };
 
-    let access_cookie_header = HeaderValue::from_str(&access_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
-    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
+    let access_cookie_header = HeaderValue::from_str(&access_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
+    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
 
     Ok((
         AppendHeaders([
@@ -197,11 +194,7 @@ async fn login<R: UserRepository, O: OAuthAccountRepository>(
 
     state
         .jwt_auth
-        .whitelist_token(
-            &refresh_claims.jti,
-            &user_id,
-            REFRESH_TOKEN_TTL as u64,
-        )
+        .whitelist_token(&refresh_claims.jti, &user_id, REFRESH_TOKEN_TTL as u64)
         .await
         .map_err(|e| {
             tracing::error!("Failed to whitelist refresh token: {:?}", e);
@@ -221,12 +214,10 @@ async fn login<R: UserRepository, O: OAuthAccountRepository>(
 
     let response = LoginResponse { user };
 
-    let access_cookie_header = HeaderValue::from_str(&access_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
-    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
+    let access_cookie_header = HeaderValue::from_str(&access_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
+    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
 
     Ok((
         AppendHeaders([
@@ -248,27 +239,33 @@ async fn logout<R: UserRepository, O: OAuthAccountRepository>(
 
     if let Some(cookies) = cookies_str {
         // Revoke access token if present
-        if let Some(access_token) = extract_cookie_value(cookies, "access_token") {
-            if let Ok(claims) = state.jwt_auth.verify_token(&access_token) {
-                let now = chrono::Utc::now().timestamp();
-                let remaining_ttl = (claims.exp - now).max(0) as u64;
+        if let Some(access_token) = extract_cookie_value(cookies, "access_token")
+            && let Ok(claims) = state.jwt_auth.verify_token(&access_token)
+        {
+            let now = chrono::Utc::now().timestamp();
+            let remaining_ttl = (claims.exp - now).max(0) as u64;
 
-                let _ = state.jwt_auth.revoke_token(&claims.jti).await;
-                let _ = state.jwt_auth.blacklist_token(&claims.jti, remaining_ttl).await;
-                tracing::debug!("Revoked and blacklisted access token: {}", claims.jti);
-            }
+            let _ = state.jwt_auth.revoke_token(&claims.jti).await;
+            let _ = state
+                .jwt_auth
+                .blacklist_token(&claims.jti, remaining_ttl)
+                .await;
+            tracing::debug!("Revoked and blacklisted access token: {}", claims.jti);
         }
 
         // Revoke refresh token if present
-        if let Some(refresh_token) = extract_cookie_value(cookies, "refresh_token") {
-            if let Ok(claims) = state.jwt_auth.verify_token(&refresh_token) {
-                let now = chrono::Utc::now().timestamp();
-                let remaining_ttl = (claims.exp - now).max(0) as u64;
+        if let Some(refresh_token) = extract_cookie_value(cookies, "refresh_token")
+            && let Ok(claims) = state.jwt_auth.verify_token(&refresh_token)
+        {
+            let now = chrono::Utc::now().timestamp();
+            let remaining_ttl = (claims.exp - now).max(0) as u64;
 
-                let _ = state.jwt_auth.revoke_token(&claims.jti).await;
-                let _ = state.jwt_auth.blacklist_token(&claims.jti, remaining_ttl).await;
-                tracing::debug!("Revoked and blacklisted refresh token: {}", claims.jti);
-            }
+            let _ = state.jwt_auth.revoke_token(&claims.jti).await;
+            let _ = state
+                .jwt_auth
+                .blacklist_token(&claims.jti, remaining_ttl)
+                .await;
+            tracing::debug!("Revoked and blacklisted refresh token: {}", claims.jti);
         }
     }
 
@@ -283,12 +280,10 @@ async fn logout<R: UserRepository, O: OAuthAccountRepository>(
         secure_flag
     );
 
-    let clear_access_header = HeaderValue::from_str(&clear_access).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
-    let clear_refresh_header = HeaderValue::from_str(&clear_refresh).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
+    let clear_access_header = HeaderValue::from_str(&clear_access)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
+    let clear_refresh_header = HeaderValue::from_str(&clear_refresh)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
 
     Ok((
         AppendHeaders([
@@ -341,8 +336,7 @@ async fn me<R: UserRepository, O: OAuthAccountRepository>(
     }
 
     // Get full user from database
-    let user_id = uuid::Uuid::parse_str(&claims.sub)
-        .map_err(|_| UserError::Unauthorized)?;
+    let user_id = uuid::Uuid::parse_str(&claims.sub).map_err(|_| UserError::Unauthorized)?;
 
     let user = state.service.get_user(user_id).await?;
 
@@ -355,7 +349,12 @@ fn extract_token(headers: &axum::http::HeaderMap) -> Option<String> {
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|auth| auth.strip_prefix("Bearer ").map(|s| s.to_string()))
-        .or_else(|| extract_cookie_value(headers.get("cookie").and_then(|v| v.to_str().ok())?, "access_token"))
+        .or_else(|| {
+            extract_cookie_value(
+                headers.get("cookie").and_then(|v| v.to_str().ok())?,
+                "access_token",
+            )
+        })
 }
 
 /// Helper: Extract cookie value by name
@@ -414,7 +413,10 @@ fn generate_oauth_password() -> String {
 }
 
 /// Get OAuth provider by name
-fn get_provider(provider_name: &str, config: &OAuthConfig) -> Result<Arc<dyn OAuthProvider>, UserError> {
+fn get_provider(
+    provider_name: &str,
+    config: &OAuthConfig,
+) -> Result<Arc<dyn OAuthProvider>, UserError> {
     match provider_name.to_lowercase().as_str() {
         "google" => Ok(Arc::new(GoogleProvider::new(
             config.google_client_id.clone(),
@@ -424,7 +426,10 @@ fn get_provider(provider_name: &str, config: &OAuthConfig) -> Result<Arc<dyn OAu
             config.github_client_id.clone(),
             config.github_client_secret.clone(),
         )) as Arc<dyn OAuthProvider>),
-        _ => Err(UserError::OAuth(format!("Unsupported provider: {}", provider_name))),
+        _ => Err(UserError::OAuth(format!(
+            "Unsupported provider: {}",
+            provider_name
+        ))),
     }
 }
 
@@ -458,8 +463,8 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
 
     // Build authorization URL with PKCE
     use oauth2::{
-        basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge,
-        PkceCodeVerifier, RedirectUrl, Scope,
+        AuthUrl, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, PkceCodeVerifier,
+        RedirectUrl, Scope, basic::BasicClient,
     };
 
     let client = BasicClient::new(ClientId::new(provider.client_id().to_string()))
@@ -499,7 +504,8 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     tracing::info!("OAuth callback started for provider: {}", provider_name);
 
     // Verify and consume OAuth state (CSRF protection + retrieve PKCE verifier)
-    let oauth_state = state.oauth_state_manager
+    let oauth_state = state
+        .oauth_state_manager
         .verify_and_consume_state(&query.state)
         .await
         .map_err(|e| {
@@ -517,7 +523,11 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
 
     // Use the trait's exchange_code method with PKCE verification
     let token_response = provider
-        .exchange_code(&query.code, &oauth_state.pkce_verifier, &oauth_state.redirect_uri)
+        .exchange_code(
+            &query.code,
+            &oauth_state.pkce_verifier,
+            &oauth_state.redirect_uri,
+        )
         .await
         .map_err(|e| {
             tracing::error!("Failed to exchange OAuth code: {:?}", e);
@@ -531,13 +541,16 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     let expires_in = token_response.expires_in;
 
     // Fetch user info from provider
-    let user_info = provider.get_user_info(&access_token).await
-        .map_err(|e| {
-            tracing::error!("Failed to get user info from provider: {:?}", e);
-            e
-        })?;
+    let user_info = provider.get_user_info(&access_token).await.map_err(|e| {
+        tracing::error!("Failed to get user info from provider: {:?}", e);
+        e
+    })?;
 
-    tracing::info!("User info retrieved: email={:?}, name={:?}", user_info.email, user_info.name);
+    tracing::info!(
+        "User info retrieved: email={:?}, name={:?}",
+        user_info.email,
+        user_info.name
+    );
 
     // Use AccountLinkingService to handle account linking logic
     let linking_result = state
@@ -561,7 +574,10 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     // Handle different linking results
     let user = match linking_result {
         AccountLinkingResult::NewUser(user) | AccountLinkingResult::ExistingUser(user) => user,
-        AccountLinkingResult::LinkRequired { existing_user_id: _, provider_data } => {
+        AccountLinkingResult::LinkRequired {
+            existing_user_id: _,
+            provider_data,
+        } => {
             // For now, return an error. In a real app, you'd redirect to a linking confirmation page
             return Err(UserError::OAuth(format!(
                 "Account linking required. An account with email '{}' already exists. Please log in first and link your {} account from your profile.",
@@ -612,11 +628,7 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
 
     state
         .jwt_auth
-        .whitelist_token(
-            &refresh_claims.jti,
-            &user_id,
-            REFRESH_TOKEN_TTL as u64,
-        )
+        .whitelist_token(&refresh_claims.jti, &user_id, REFRESH_TOKEN_TTL as u64)
         .await
         .map_err(|e| {
             tracing::error!("Failed to whitelist refresh token: {:?}", e);
@@ -637,18 +649,19 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     // Redirect to frontend with cookies set
     let redirect_url = format!("{}/tasks", state.oauth_config.frontend_url);
 
-    let access_cookie_header = HeaderValue::from_str(&access_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
-    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie).map_err(|e| {
-        UserError::Internal(format!("Failed to create cookie: {}", e))
-    })?;
+    let access_cookie_header = HeaderValue::from_str(&access_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
+    let refresh_cookie_header = HeaderValue::from_str(&refresh_cookie)
+        .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;
 
     Ok((
         AppendHeaders([
             (header::SET_COOKIE, access_cookie_header),
             (header::SET_COOKIE, refresh_cookie_header),
-            (header::LOCATION, HeaderValue::from_str(&redirect_url).unwrap()),
+            (
+                header::LOCATION,
+                HeaderValue::from_str(&redirect_url).unwrap(),
+            ),
         ]),
         StatusCode::FOUND,
     )

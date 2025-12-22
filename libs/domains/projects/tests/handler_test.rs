@@ -252,9 +252,11 @@ async fn test_list_projects_handler_with_filters() {
 
     let projects: Vec<Project> = json_body(response.into_body()).await;
     assert_eq!(projects.len(), 2);
-    assert!(projects
-        .iter()
-        .all(|p| p.cloud_provider == CloudProvider::Aws));
+    assert!(
+        projects
+            .iter()
+            .all(|p| p.cloud_provider == CloudProvider::Aws)
+    );
 }
 
 #[tokio::test]

@@ -1,5 +1,5 @@
 use axum_helpers::JwtConfig;
-use core_config::{app_info, server::ServerConfig, AppInfo, FromEnv};
+use core_config::{AppInfo, FromEnv, app_info, server::ServerConfig};
 
 // Import database configs from the database library
 use database::postgres::PostgresConfig;
@@ -19,6 +19,7 @@ pub struct Config {
     pub environment: Environment,
     // Auth configuration (using library config structs)
     pub jwt: JwtConfig,
+    #[allow(dead_code)] // Will be used for CORS configuration
     pub cors_allowed_origin: String,
     pub frontend_url: String,
     pub redirect_base_url: String,

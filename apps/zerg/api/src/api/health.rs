@@ -5,7 +5,7 @@ use axum::{
     extract::State,
     response::{IntoResponse, Response},
 };
-use axum_helpers::server::{run_health_checks, HealthCheckFuture};
+use axum_helpers::server::{HealthCheckFuture, run_health_checks};
 
 /// Readiness check endpoint that actually checks database and redis connections.
 ///

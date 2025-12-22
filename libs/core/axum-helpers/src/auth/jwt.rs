@@ -1,7 +1,7 @@
 use super::config::JwtConfig;
 use super::store::RedisAuthStore;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use redis::aio::ConnectionManager;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

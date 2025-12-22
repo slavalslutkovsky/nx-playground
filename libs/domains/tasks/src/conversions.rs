@@ -9,8 +9,8 @@
 //! and shared across all domains (tasks, users, projects, etc.)
 
 use rpc::tasks::{
-    CreateRequest, CreateResponse, GetByIdResponse, ListResponse, ListStreamResponse,
-    Priority, Status, UpdateByIdRequest, UpdateByIdResponse,
+    CreateRequest, CreateResponse, GetByIdResponse, ListResponse, ListStreamResponse, Priority,
+    Status, UpdateByIdRequest, UpdateByIdResponse,
 };
 
 use crate::models::{CreateTask, Task, TaskPriority, TaskStatus, UpdateTask};
@@ -49,9 +49,7 @@ impl TryFrom<i32> for TaskPriority {
             Ok(Priority::Medium) => Ok(TaskPriority::Medium),
             Ok(Priority::High) => Ok(TaskPriority::High),
             Ok(Priority::Urgent) => Ok(TaskPriority::Urgent),
-            Ok(Priority::Unspecified) | Err(_) => {
-                Err(format!("Invalid priority: {}", value))
-            }
+            Ok(Priority::Unspecified) | Err(_) => Err(format!("Invalid priority: {}", value)),
         }
     }
 }
@@ -84,9 +82,7 @@ impl TryFrom<i32> for TaskStatus {
             Ok(Status::Todo) => Ok(TaskStatus::Todo),
             Ok(Status::InProgress) => Ok(TaskStatus::InProgress),
             Ok(Status::Done) => Ok(TaskStatus::Done),
-            Ok(Status::Unspecified) | Err(_) => {
-                Err(format!("Invalid status: {}", value))
-            }
+            Ok(Status::Unspecified) | Err(_) => Err(format!("Invalid status: {}", value)),
         }
     }
 }
@@ -115,10 +111,10 @@ impl From<UpdateTask> for UpdateByIdRequest {
             title: input.title,
             description: input.description,
             completed: input.completed,
-            project_id: input.project_id.map(opt_uuid_to_bytes).flatten(),
+            project_id: input.project_id.and_then(opt_uuid_to_bytes),
             priority: input.priority.map(Into::into),
             status: input.status.map(Into::into),
-            due_date: input.due_date.map(opt_datetime_to_timestamp).flatten(),
+            due_date: input.due_date.and_then(opt_datetime_to_timestamp),
         }
     }
 }
@@ -152,10 +148,7 @@ impl TryFrom<UpdateByIdRequest> for UpdateTask {
             title: proto.title,
             description: proto.description,
             completed: proto.completed,
-            project_id: match proto.project_id {
-                None => None,
-                Some(bytes) => Some(bytes_to_uuid(&bytes).ok()),
-            },
+            project_id: proto.project_id.map(|bytes| bytes_to_uuid(&bytes).ok()),
             priority: proto.priority.map(|p| p.try_into()).transpose()?,
             status: proto.status.map(|s| s.try_into()).transpose()?,
             due_date: proto.due_date.map(|ts| Some(timestamp_to_datetime(ts))),
@@ -302,8 +295,5 @@ impl From<Task> for ListStreamResponse {
 
 // Helper function for ListResponse conversion (can't implement TryFrom due to orphan rules)
 pub fn list_response_to_tasks(proto: ListResponse) -> Result<Vec<Task>, String> {
-    proto.data
-        .into_iter()
-        .map(|item| item.try_into())
-        .collect()
+    proto.data.into_iter().map(|item| item.try_into()).collect()
 }

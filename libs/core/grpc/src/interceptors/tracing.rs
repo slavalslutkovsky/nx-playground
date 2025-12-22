@@ -21,7 +21,7 @@ pub struct TracingInterceptor;
 impl TracingInterceptor {
     /// Create a new tracing interceptor
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 }
 

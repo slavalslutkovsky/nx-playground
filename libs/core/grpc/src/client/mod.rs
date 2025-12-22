@@ -58,8 +58,8 @@ where
     client
         .accept_compressed(CompressionEncoding::Zstd)
         .send_compressed(CompressionEncoding::Zstd)
-        .max_decoding_message_size(8 * 1024 * 1024)  // 8MB
-        .max_encoding_message_size(8 * 1024 * 1024)  // 8MB
+        .max_decoding_message_size(8 * 1024 * 1024) // 8MB
+        .max_encoding_message_size(8 * 1024 * 1024) // 8MB
 }
 
 /// Apply compression configuration to any tonic client
@@ -80,9 +80,7 @@ pub fn with_compression<T>(client: T, encoding: CompressionEncoding) -> T
 where
     T: ConfigurableClient,
 {
-    client
-        .accept_compressed(encoding)
-        .send_compressed(encoding)
+    client.accept_compressed(encoding).send_compressed(encoding)
 }
 
 /// Apply zstd compression to any tonic client

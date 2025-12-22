@@ -27,11 +27,7 @@ pub trait OAuthAccountRepository: Send + Sync + Clone {
         refresh_token: Option<&str>,
         token_expires_at: Option<DateTime<Utc>>,
     ) -> UserResult<()>;
-    async fn delete_by_user_and_provider(
-        &self,
-        user_id: Uuid,
-        provider: &str,
-    ) -> UserResult<bool>;
+    async fn delete_by_user_and_provider(&self, user_id: Uuid, provider: &str) -> UserResult<bool>;
 }
 
 /// PostgreSQL implementation of OAuthAccountRepository
@@ -225,11 +221,7 @@ impl OAuthAccountRepository for PostgresOAuthAccountRepository {
         Ok(())
     }
 
-    async fn delete_by_user_and_provider(
-        &self,
-        user_id: Uuid,
-        provider: &str,
-    ) -> UserResult<bool> {
+    async fn delete_by_user_and_provider(&self, user_id: Uuid, provider: &str) -> UserResult<bool> {
         let sql = "DELETE FROM oauth_accounts WHERE user_id = $1 AND provider = $2";
 
         let stmt = Statement::from_sql_and_values(

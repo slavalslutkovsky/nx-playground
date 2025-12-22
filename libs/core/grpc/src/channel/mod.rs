@@ -2,8 +2,8 @@ pub mod config;
 
 pub use config::ChannelConfig;
 
-use tonic::transport::{Channel, Endpoint};
 use crate::error::{GrpcError, GrpcResult};
+use tonic::transport::{Channel, Endpoint};
 
 /// Creates an optimized gRPC channel with production-ready defaults
 ///
@@ -55,11 +55,10 @@ pub async fn create_channel_with_config(
 ) -> GrpcResult<Channel> {
     let addr_string = addr.into();
 
-    let endpoint = Endpoint::from_shared(addr_string.clone())
-        .map_err(|e| {
-            tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
-            GrpcError::InvalidUri(e)
-        })?;
+    let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
+        tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
+        GrpcError::InvalidUri(e)
+    })?;
 
     let endpoint = config.apply_to_endpoint(endpoint);
 
@@ -69,18 +68,15 @@ pub async fn create_channel_with_config(
         "Creating gRPC channel"
     );
 
-    endpoint
-        .connect()
-        .await
-        .map_err(|e| {
-            tracing::error!(
-                target: "grpc_client",
-                addr = %addr_string,
-                error = ?e,
-                "Failed to connect to gRPC service"
-            );
-            GrpcError::ConnectionFailed(e)
-        })
+    endpoint.connect().await.map_err(|e| {
+        tracing::error!(
+            target: "grpc_client",
+            addr = %addr_string,
+            error = ?e,
+            "Failed to connect to gRPC service"
+        );
+        GrpcError::ConnectionFailed(e)
+    })
 }
 
 /// Creates a channel with retry logic
