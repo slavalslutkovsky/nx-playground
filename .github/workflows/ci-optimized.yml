@@ -224,6 +224,8 @@ jobs:
   # Build amd64 containers (native x64 runner)
   container-amd64:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       affected: ${{ steps.affected.outputs.has_affected }}
     steps:
@@ -274,6 +276,8 @@ jobs:
   # Build arm64 containers (native ARM64 runner - 37% cheaper!) - runs in PARALLEL with amd64
   container-arm64:
     runs-on: ubuntu-24.04-arm
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       affected: ${{ steps.affected.outputs.has_affected }}
     steps:
