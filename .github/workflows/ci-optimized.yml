@@ -7,7 +7,6 @@ on:
   pull_request:
 env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 permissions:
   actions: read
   contents: read
@@ -252,8 +251,7 @@ jobs:
           else
             echo "has_affected=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Set up Docker Buildx
         if: steps.affected.outputs.has_affected == 'true'
@@ -272,13 +270,11 @@ jobs:
         env:
           REGISTRY: ${{ vars.REGISTRY }}
           ARCH: amd64
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build arm64 containers (native ARM64 runner - 37% cheaper!) - runs in PARALLEL with amd64
   container-arm64:
     runs-on: ubuntu-24.04-arm
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       affected: ${{ steps.affected.outputs.has_affected }}
     steps:
@@ -304,8 +300,7 @@ jobs:
           else
             echo "has_affected=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Set up Docker Buildx
         if: steps.affected.outputs.has_affected == 'true'
@@ -324,7 +319,7 @@ jobs:
         env:
           REGISTRY: ${{ vars.REGISTRY }}
           ARCH: arm64
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Create multi-arch manifest combining amd64 + arm64
   container-manifest:
