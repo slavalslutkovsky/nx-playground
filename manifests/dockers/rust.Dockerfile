@@ -2,7 +2,7 @@ ARG APP_NAME
 
 # Use Alpine for native musl support (multi-arch image)
 FROM rust:alpine AS chef
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev curl
 RUN cargo install cargo-chef --locked
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM rust:alpine AS builder
 ARG APP_NAME
 
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev curl
 
 WORKDIR /app
 ENV RUST_BACKTRACE=1
