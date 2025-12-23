@@ -1,7 +1,9 @@
 ARG APP_NAME
 
-FROM rust:1 AS chef
-RUN cargo install cargo-chef
+# Use Alpine for native musl support (multi-arch image)
+FROM rust:alpine AS chef
+RUN apk add --no-cache musl-dev curl
+RUN cargo install cargo-chef --locked
 WORKDIR /app
 
 FROM chef AS planner
@@ -10,26 +12,35 @@ COPY apps/ apps/
 COPY libs/ libs/
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM messense/rust-musl-cross:x86_64-musl AS builder
+# Builder stage - Alpine has native musl
+FROM rust:alpine AS builder
 ARG APP_NAME
+
+RUN apk add --no-cache musl-dev curl
 
 WORKDIR /app
 ENV RUST_BACKTRACE=1
 
-COPY --from=planner /app/recipe.json recipe.json
+# Install cargo-chef
 RUN cargo install cargo-chef --locked
-RUN cargo chef cook --release --recipe-path recipe.json --target x86_64-unknown-linux-musl
+
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies (native musl - no cross-compilation needed)
+RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY Cargo.toml Cargo.lock ./
 COPY apps/ apps/
 COPY libs/ libs/
 
-RUN cargo build --release -p ${APP_NAME} --target x86_64-unknown-linux-musl
+# Build the application
+RUN cargo build --release -p ${APP_NAME} && \
+    cp /app/target/release/${APP_NAME} /app/binary
 
 FROM scratch AS rust
 ARG APP_NAME
 
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/${APP_NAME} /app
+COPY --from=builder /app/binary /app
 
 # Environment
 ENV PORT=8080

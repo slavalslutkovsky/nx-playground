@@ -221,8 +221,13 @@ jobs:
       - run: bun nx fix-ci
         if: always()
 
-  container:
+  # Build amd64 containers (native x64 runner)
+  container-amd64:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      affected: ${{ steps.affected.outputs.has_affected }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -237,8 +242,103 @@ jobs:
 
       - run: bun install --no-cache
 
+      - name: Check affected projects
+        id: affected
+        run: |
+          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || echo "")
+          if [ -n "$AFFECTED" ]; then
+            echo "has_affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_affected=false" >> $GITHUB_OUTPUT
+          fi
+
+
       - name: Set up Docker Buildx
+        if: steps.affected.outputs.has_affected == 'true'
         uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.affected.outputs.has_affected == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push amd64 containers
+        if: steps.affected.outputs.has_affected == 'true'
+        run: bun nx affected -t container --configuration=ci
+        env:
+          REGISTRY: ${{ vars.REGISTRY }}
+          ARCH: amd64
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build arm64 containers (native ARM64 runner - 37% cheaper!) - runs in PARALLEL with amd64
+  container-arm64:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      affected: ${{ steps.affected.outputs.has_affected }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --no-cache
+
+      - name: Check affected projects
+        id: affected
+        run: |
+          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || echo "")
+          if [ -n "$AFFECTED" ]; then
+            echo "has_affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_affected=false" >> $GITHUB_OUTPUT
+          fi
+
+
+      - name: Set up Docker Buildx
+        if: steps.affected.outputs.has_affected == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: steps.affected.outputs.has_affected == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push arm64 containers
+        if: steps.affected.outputs.has_affected == 'true'
+        run: bun nx affected -t container --configuration=ci
+        env:
+          REGISTRY: ${{ vars.REGISTRY }}
+          ARCH: arm64
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Create multi-arch manifest combining amd64 + arm64
+  container-manifest:
+    runs-on: ubuntu-latest
+    needs: [container-amd64, container-arm64]
+    if: needs.container-amd64.outputs.affected == 'true' || needs.container-arm64.outputs.affected == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --no-cache
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -246,26 +346,77 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Create and push multi-arch manifests
+        run: |
+          REGISTRY="${{ vars.REGISTRY }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          BRANCH="${{ github.ref_name }}"
+
+          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || echo "")
+          for PROJECT in $AFFECTED; do
+            IMAGE_NAME=$(echo "$PROJECT" | tr '_' '-')
+            echo "Creating multi-arch manifest for: ${IMAGE_NAME}"
+
+            # SHA manifest
+            docker manifest create ${REGISTRY}/${IMAGE_NAME}:sha-${SHORT_SHA} \
+              ${REGISTRY}/${IMAGE_NAME}:sha-${SHORT_SHA}-amd64 \
+              ${REGISTRY}/${IMAGE_NAME}:sha-${SHORT_SHA}-arm64
+            docker manifest push ${REGISTRY}/${IMAGE_NAME}:sha-${SHORT_SHA}
+
+            # Branch manifest
+            docker manifest create ${REGISTRY}/${IMAGE_NAME}:${BRANCH} \
+              ${REGISTRY}/${IMAGE_NAME}:${BRANCH}-amd64 \
+              ${REGISTRY}/${IMAGE_NAME}:${BRANCH}-arm64
+            docker manifest push ${REGISTRY}/${IMAGE_NAME}:${BRANCH}
+
+            # PR manifest
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              PR_NUM="${{ github.event.pull_request.number }}"
+              docker manifest create ${REGISTRY}/${IMAGE_NAME}:pr-${PR_NUM} \
+                ${REGISTRY}/${IMAGE_NAME}:pr-${PR_NUM}-amd64 \
+                ${REGISTRY}/${IMAGE_NAME}:pr-${PR_NUM}-arm64
+              docker manifest push ${REGISTRY}/${IMAGE_NAME}:pr-${PR_NUM}
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Scan final multi-arch images
+  container-scan:
+    runs-on: ubuntu-latest
+    needs: [container-amd64, container-arm64, container-manifest]
+    if: needs.container-amd64.outputs.affected == 'true' || needs.container-arm64.outputs.affected == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --no-cache
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
       - name: Install Trivy
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 
-      - name: Build, push and scan container images
-        run: bun nx affected -t scan --configuration=ci
+      - name: Scan container images
+        run: |
+          REGISTRY="${{ vars.REGISTRY }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          mkdir -p sarif-results
+
+          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || echo "")
+          for PROJECT in $AFFECTED; do
+            IMAGE_NAME=$(echo "$PROJECT" | tr '_' '-')
+            trivy image ${REGISTRY}/${IMAGE_NAME}:sha-${SHORT_SHA} \
+              --severity CRITICAL,HIGH --format sarif \
+              --output sarif-results/trivy-${IMAGE_NAME}.sarif || true
+          done
         continue-on-error: true
         env:
-          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY: ${{ vars.REGISTRY }}
-          SHORT_SHA: ${{ github.sha }}
-
-      - name: Merge SARIF files
-        run: |
-          mkdir -p sarif-results
-          find . -name "trivy-*.sarif" -exec cp {} sarif-results/ \; 2>/dev/null || true
-          if ls sarif-results/*.sarif 1>/dev/null 2>&1; then
-            echo "SARIF files found"
-          else
-            echo "No SARIF files found"
-          fi
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v4

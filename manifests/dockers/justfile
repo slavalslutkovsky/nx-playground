@@ -1,0 +1,31 @@
+# Docker commands for local development
+# Used as mod: just docker::up, just docker::down
+
+compose_file := "manifests/dockers/compose.yaml"
+
+[no-cd]
+
+# Start docker compose services
+[group("services")]
+up:
+  docker compose -f {{compose_file}} up -d
+
+# Stop docker compose services
+[group("services")]
+down:
+  docker compose -f {{compose_file}} down
+
+# Restart docker compose services
+[group("services")]
+restart:
+  docker compose -f {{compose_file}} restart
+
+# Show docker compose logs
+[group("services")]
+logs *args:
+  docker compose -f {{compose_file}} logs {{args}}
+
+# Show running containers
+[group("services")]
+ps:
+  docker compose -f {{compose_file}} ps
