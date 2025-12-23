@@ -249,6 +249,8 @@ jobs:
           else
             echo "has_affected=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         if: steps.affected.outputs.has_affected == 'true'
@@ -267,12 +269,13 @@ jobs:
         env:
           REGISTRY: ${{ vars.REGISTRY }}
           ARCH: amd64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Build arm64 containers (native ARM64 runner - 37% cheaper!)
+  # Build arm64 containers (native ARM64 runner - 37% cheaper!) - runs in PARALLEL with amd64
   container-arm64:
     runs-on: ubuntu-24.04-arm
-    needs: container-amd64
-    if: needs.container-amd64.outputs.affected == 'true'
+    outputs:
+      affected: ${{ steps.affected.outputs.has_affected }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -287,26 +290,42 @@ jobs:
 
       - run: bun install --no-cache
 
+      - name: Check affected projects
+        id: affected
+        run: |
+          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || echo "")
+          if [ -n "$AFFECTED" ]; then
+            echo "has_affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_affected=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up Docker Buildx
+        if: steps.affected.outputs.has_affected == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        if: steps.affected.outputs.has_affected == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push arm64 containers
+        if: steps.affected.outputs.has_affected == 'true'
         run: bun nx affected -t container --configuration=ci
         env:
           REGISTRY: ${{ vars.REGISTRY }}
           ARCH: arm64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Create multi-arch manifest combining amd64 + arm64
   container-manifest:
     runs-on: ubuntu-latest
     needs: [container-amd64, container-arm64]
-    if: needs.container-amd64.outputs.affected == 'true'
+    if: needs.container-amd64.outputs.affected == 'true' || needs.container-arm64.outputs.affected == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -359,12 +378,14 @@ jobs:
               docker manifest push ${REGISTRY}/${IMAGE_NAME}:pr-${PR_NUM}
             fi
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Scan final multi-arch images
   container-scan:
     runs-on: ubuntu-latest
-    needs: container-manifest
-    if: needs.container-amd64.outputs.affected == 'true'
+    needs: [container-amd64, container-arm64, container-manifest]
+    if: needs.container-amd64.outputs.affected == 'true' || needs.container-arm64.outputs.affected == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -394,6 +415,8 @@ jobs:
               --output sarif-results/trivy-${IMAGE_NAME}.sarif || true
           done
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
