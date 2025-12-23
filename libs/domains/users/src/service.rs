@@ -1,6 +1,6 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 use std::sync::Arc;
 use uuid::Uuid;
@@ -88,12 +88,11 @@ impl<R: UserRepository> UserService<R> {
         };
 
         // Check for duplicate email if email is being changed
-        if let Some(ref new_email) = input.email {
-            if new_email.to_lowercase() != user.email.to_lowercase() {
-                if self.repository.email_exists(new_email).await? {
-                    return Err(UserError::DuplicateEmail(new_email.clone()));
-                }
-            }
+        if let Some(ref new_email) = input.email
+            && new_email.to_lowercase() != user.email.to_lowercase()
+            && self.repository.email_exists(new_email).await?
+        {
+            return Err(UserError::DuplicateEmail(new_email.clone()));
         }
 
         user.apply_update(input, new_password_hash);
@@ -132,12 +131,14 @@ impl<R: UserRepository> UserService<R> {
 
         // Check if account is locked
         if self.repository.check_account_locked(user.id).await? {
-            let locked_until = user.locked_until
+            let locked_until = user
+                .locked_until
                 .map(|dt| dt.to_rfc3339())
                 .unwrap_or_else(|| "unknown".to_string());
-            return Err(UserError::Validation(
-                format!("Account is locked until {}", locked_until)
-            ));
+            return Err(UserError::Validation(format!(
+                "Account is locked until {}",
+                locked_until
+            )));
         }
 
         // Verify password
@@ -273,7 +274,8 @@ impl<R: UserRepository> UserService<R> {
         let special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
         if !password.chars().any(|c| special_chars.contains(c)) {
             return Err(UserError::Validation(
-                "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)".to_string(),
+                "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)"
+                    .to_string(),
             ));
         }
 
@@ -293,8 +295,14 @@ impl<R: UserRepository> UserService<R> {
         let password_hash = self.hash_password(&random_password)?;
 
         let mut user = User::new(
-            oauth_info.email.clone().unwrap_or_else(|| "noemail@oauth.local".to_string()),
-            oauth_info.name.clone().unwrap_or_else(|| "OAuth User".to_string()),
+            oauth_info
+                .email
+                .clone()
+                .unwrap_or_else(|| "noemail@oauth.local".to_string()),
+            oauth_info
+                .name
+                .clone()
+                .unwrap_or_else(|| "OAuth User".to_string()),
             password_hash,
             vec![Role::User],
         );
@@ -321,7 +329,10 @@ impl<R: UserRepository> UserService<R> {
         provider: Provider,
         provider_id: &str,
     ) -> UserResult<Option<UserResponse>> {
-        let user = self.repository.get_by_oauth_id(provider, provider_id).await?;
+        let user = self
+            .repository
+            .get_by_oauth_id(provider, provider_id)
+            .await?;
         Ok(user.map(|u| u.into()))
     }
 
@@ -333,7 +344,12 @@ impl<R: UserRepository> UserService<R> {
         provider: Provider,
     ) -> UserResult<()> {
         self.repository
-            .link_oauth_account(user_id, provider, &oauth_info.provider_user_id, oauth_info.avatar_url)
+            .link_oauth_account(
+                user_id,
+                provider,
+                &oauth_info.provider_user_id,
+                oauth_info.avatar_url,
+            )
             .await
     }
 }

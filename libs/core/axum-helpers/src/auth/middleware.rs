@@ -123,15 +123,18 @@ pub async fn optional_jwt_auth_middleware(
     mut request: Request,
     next: Next,
 ) -> Response {
-    if let Some(token) = extract_token_from_request(&headers) {
-        if let Ok(claims) = auth.verify_token(&token) {
-            // Check if token is valid (not blacklisted, is whitelisted)
-            let is_blacklisted = auth.is_token_blacklisted(&claims.jti).await.unwrap_or(true);
-            let is_whitelisted = auth.is_token_whitelisted(&claims.jti).await.unwrap_or(false);
+    if let Some(token) = extract_token_from_request(&headers)
+        && let Ok(claims) = auth.verify_token(&token)
+    {
+        // Check if token is valid (not blacklisted, is whitelisted)
+        let is_blacklisted = auth.is_token_blacklisted(&claims.jti).await.unwrap_or(true);
+        let is_whitelisted = auth
+            .is_token_whitelisted(&claims.jti)
+            .await
+            .unwrap_or(false);
 
-            if !is_blacklisted && is_whitelisted {
-                request.extensions_mut().insert(claims);
-            }
+        if !is_blacklisted && is_whitelisted {
+            request.extensions_mut().insert(claims);
         }
     }
 

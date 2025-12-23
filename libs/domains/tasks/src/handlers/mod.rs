@@ -1,7 +1,7 @@
 mod direct;
 mod grpc;
 
-use axum::{routing::get, Router};
+use axum::{Router, routing::get};
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use std::sync::Arc;
 use tonic::transport::Channel;
@@ -55,7 +55,12 @@ pub fn direct_router<R: TaskRepository + 'static>(service: TaskService<R>) -> Ro
 
     Router::new()
         .route("/", get(direct::list_tasks).post(direct::create_task))
-        .route("/{id}", get(direct::get_task).put(direct::update_task).delete(direct::delete_task))
+        .route(
+            "/{id}",
+            get(direct::get_task)
+                .put(direct::update_task)
+                .delete(direct::delete_task),
+        )
         .with_state(shared_service)
 }
 
@@ -63,6 +68,11 @@ pub fn direct_router<R: TaskRepository + 'static>(service: TaskService<R>) -> Ro
 pub fn grpc_router(client: TasksServiceClient<Channel>) -> Router {
     Router::new()
         .route("/", get(grpc::list_tasks).post(grpc::create_task))
-        .route("/{id}", get(grpc::get_task).put(grpc::update_task).delete(grpc::delete_task))
+        .route(
+            "/{id}",
+            get(grpc::get_task)
+                .put(grpc::update_task)
+                .delete(grpc::delete_task),
+        )
         .with_state(client)
 }

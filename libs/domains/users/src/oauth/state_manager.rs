@@ -1,7 +1,7 @@
-use crate::oauth::types::OAuthState;
 use crate::error::UserError;
-use redis::aio::ConnectionManager;
+use crate::oauth::types::OAuthState;
 use redis::AsyncCommands;
+use redis::aio::ConnectionManager;
 
 /// TTL for OAuth state in Redis (10 minutes)
 const STATE_TTL: i64 = 600;
@@ -62,7 +62,9 @@ impl OAuthStateManager {
                     .map_err(|e| UserError::OAuth(format!("Invalid state format: {}", e)))?;
                 Ok(oauth_state)
             }
-            None => Err(UserError::OAuth("Invalid or expired OAuth state".to_string())),
+            None => Err(UserError::OAuth(
+                "Invalid or expired OAuth state".to_string(),
+            )),
         }
     }
 }

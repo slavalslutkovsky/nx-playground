@@ -174,7 +174,7 @@ pub struct CreateProject {
 }
 
 /// DTO for updating an existing project
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Validate, ToSchema)]
 pub struct UpdateProject {
     #[validate(length(min = 1, max = 100), custom(function = "validate_project_name"))]
     pub name: Option<String>,

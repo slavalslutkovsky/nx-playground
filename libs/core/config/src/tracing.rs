@@ -1,6 +1,6 @@
 use crate::Environment;
 use tracing::{debug, info};
-use tracing_subscriber::{prelude::*, EnvFilter};
+use tracing_subscriber::{EnvFilter, prelude::*};
 
 /// Install color-eyre with a project-standard configuration.
 ///

@@ -3,7 +3,7 @@ use std::time::Duration;
 use tracing::log::LevelFilter;
 
 #[cfg(feature = "config")]
-use core_config::{env_or_default, env_required, ConfigError, FromEnv};
+use core_config::{ConfigError, FromEnv, env_or_default, env_required};
 
 /// PostgreSQL database configuration
 ///

@@ -7,7 +7,7 @@
 //! - Concurrent operations are handled properly
 
 use domain_projects::*;
-use test_utils::{assertions::*, TestDataBuilder, TestDatabase};
+use test_utils::{TestDataBuilder, TestDatabase, assertions::*};
 use uuid::Uuid;
 
 // ============================================================================
@@ -470,7 +470,6 @@ async fn test_concurrent_creates() {
     let mut handles = vec![];
     for i in 0..5 {
         let repo_clone = PgProjectRepository::new(db.connection());
-        let user_id = user_id;
         let name = builder.name("project", &format!("concurrent-{}", i));
 
         let handle = tokio::spawn(async move {

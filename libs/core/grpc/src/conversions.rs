@@ -178,10 +178,10 @@ mod tests {
 
     #[test]
     fn test_opt_timestamp_roundtrip() {
-        let now = Some(Utc::now());
-        let timestamp = opt_datetime_to_timestamp(now);
+        let now = Utc::now();
+        let timestamp = opt_datetime_to_timestamp(Some(now));
         let dt_back = opt_timestamp_to_datetime(timestamp);
-        assert_eq!(now.unwrap().timestamp(), dt_back.unwrap().timestamp());
+        assert_eq!(now.timestamp(), dt_back.unwrap().timestamp());
     }
 
     #[test]

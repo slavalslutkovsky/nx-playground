@@ -1,5 +1,5 @@
 use axum::Router;
-use domain_users::{handlers, PostgresUserRepository, UserService};
+use domain_users::{PostgresUserRepository, UserService, handlers};
 
 pub fn router(state: &crate::state::AppState) -> Router {
     // Use PostgreSQL repository with database connection

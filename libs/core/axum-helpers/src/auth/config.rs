@@ -3,7 +3,7 @@
 //! This module provides configuration structs that implement the `FromEnv` trait
 //! from `core_config`, following the same pattern as `PostgresConfig` and `RedisConfig`.
 
-use core_config::{env_required, ConfigError, FromEnv};
+use core_config::{ConfigError, FromEnv, env_required};
 
 /// JWT authentication configuration.
 ///

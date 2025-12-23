@@ -8,10 +8,10 @@ mod health;
 
 pub use config::RedisConfig;
 pub use connector::{
-    connect, connect_from_config, connect_from_config_with_retry, connect_with_retry,
-    RedisConnector,
+    RedisConnector, connect, connect_from_config, connect_from_config_with_retry,
+    connect_with_retry,
 };
-pub use health::{check_health, check_health_detailed, check_health_with_command, HealthStatus};
+pub use health::{HealthStatus, check_health, check_health_detailed, check_health_with_command};
 
 // Re-export redis types for convenience
 pub use redis::aio::ConnectionManager;

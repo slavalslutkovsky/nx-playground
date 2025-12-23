@@ -1,11 +1,8 @@
 use axum::Router;
 use domain_users::{
-    auth_handlers::{auth_router, AuthState, OAuthConfig},
-    AccountLinkingService,
-    OAuthStateManager,
-    PostgresOAuthAccountRepository,
-    PostgresUserRepository,
-    UserService,
+    AccountLinkingService, OAuthStateManager, PostgresOAuthAccountRepository,
+    PostgresUserRepository, UserService,
+    auth_handlers::{AuthState, OAuthConfig, auth_router},
 };
 
 pub fn router(state: &crate::state::AppState) -> Router {
@@ -28,10 +25,8 @@ pub fn router(state: &crate::state::AppState) -> Router {
     let oauth_state_manager = OAuthStateManager::new(state.redis.clone());
 
     // Create account linking service
-    let account_linking = AccountLinkingService::new(
-        user_repository.clone(),
-        oauth_repository.clone(),
-    );
+    let account_linking =
+        AccountLinkingService::new(user_repository.clone(), oauth_repository.clone());
 
     // Create auth state with JWT authentication
     let auth_state = AuthState {

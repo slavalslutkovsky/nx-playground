@@ -1,5 +1,5 @@
-use tonic::{Request, Status};
 use std::sync::atomic::{AtomicU64, Ordering};
+use tonic::{Request, Status};
 
 /// Simple metrics interceptor for counting requests
 ///

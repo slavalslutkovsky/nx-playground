@@ -187,21 +187,6 @@ impl<R: ProjectRepository> ProjectService<R> {
     }
 }
 
-impl Default for UpdateProject {
-    fn default() -> Self {
-        Self {
-            name: None,
-            description: None,
-            region: None,
-            environment: None,
-            status: None,
-            budget_limit: None,
-            tags: None,
-            enabled: None,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

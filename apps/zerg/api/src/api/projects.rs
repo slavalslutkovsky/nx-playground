@@ -1,5 +1,5 @@
 use axum::Router;
-use domain_projects::{handlers, PgProjectRepository, ProjectService};
+use domain_projects::{PgProjectRepository, ProjectService, handlers};
 
 pub fn router(state: &crate::state::AppState) -> Router {
     let repository = PgProjectRepository::new(state.db.clone());

@@ -143,12 +143,11 @@ where
 /// Uses a random value between 50% and 100% of the original delay
 fn apply_jitter(delay: u64) -> u64 {
     use std::collections::hash_map::RandomState;
-    use std::hash::{BuildHasher, Hash, Hasher};
+    use std::hash::BuildHasher;
 
     // Use a simple pseudo-random approach based on current time
-    let mut hasher = RandomState::new().build_hasher();
-    std::time::SystemTime::now().hash(&mut hasher);
-    let random_factor = (hasher.finish() % 50) as f64 / 100.0 + 0.5; // 0.5 to 1.0
+    let random_factor =
+        (RandomState::new().hash_one(std::time::SystemTime::now()) % 50) as f64 / 100.0 + 0.5; // 0.5 to 1.0
 
     (delay as f64 * random_factor) as u64
 }
@@ -177,8 +176,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     #[tokio::test]
     async fn test_retry_success_first_attempt() {

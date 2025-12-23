@@ -4,4 +4,4 @@ pub mod error;
 pub mod retry;
 
 pub use error::{DatabaseError, DatabaseResult};
-pub use retry::{retry, retry_with_backoff, RetryConfig};
+pub use retry::{RetryConfig, retry, retry_with_backoff};

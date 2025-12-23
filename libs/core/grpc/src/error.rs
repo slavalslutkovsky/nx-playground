@@ -36,9 +36,7 @@ impl From<GrpcError> for tonic::Status {
             }
             GrpcError::ConnectionFailed(_)
             | GrpcError::ConnectionTimeout(_)
-            | GrpcError::MaxRetriesExceeded(_) => {
-                tonic::Status::unavailable(err.to_string())
-            }
+            | GrpcError::MaxRetriesExceeded(_) => tonic::Status::unavailable(err.to_string()),
         }
     }
 }
@@ -76,7 +74,7 @@ pub trait ToTonicResult<T> {
 
 impl<T> ToTonicResult<T> for Result<T, String> {
     fn to_tonic(self) -> Result<T, tonic::Status> {
-        self.map_err(|e| tonic::Status::invalid_argument(e))
+        self.map_err(tonic::Status::invalid_argument)
     }
 
     fn to_tonic_with_code(self, code: tonic::Code) -> Result<T, tonic::Status> {

@@ -4,23 +4,23 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# Core gRPC dependencies
-tonic = { workspace = true }
+
+# Conversions
+chrono = { workspace = true }
+eyre = { workspace = true }
+futures = { workspace = true }
 prost = { workspace = true }
 
 # Error handling
 thiserror = { workspace = true }
-eyre = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }
-futures = { workspace = true }
+# Core gRPC dependencies
+tonic = { workspace = true }
 
 # Tracing
 tracing = { workspace = true }
-
-# Conversions
-chrono = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]

@@ -49,7 +49,7 @@ use darling::FromDeriveInput;
 use pluralizer::pluralize;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{DeriveInput, parse_macro_input};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(api_resource))]

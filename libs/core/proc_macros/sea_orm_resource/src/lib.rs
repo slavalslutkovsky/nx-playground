@@ -69,7 +69,7 @@ extern crate proc_macro;
 use darling::FromDeriveInput;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Lit, Meta};
+use syn::{DeriveInput, Lit, Meta, parse_macro_input};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(sea_orm_resource), forward_attrs(sea_orm))]
@@ -168,22 +168,22 @@ fn snake_case_to_title_case(input: &str) -> String {
 
 fn extract_table_name(attrs: &[syn::Attribute]) -> Option<String> {
     for attr in attrs {
-        if attr.path().is_ident("sea_orm") {
-            if let Meta::List(meta_list) = &attr.meta {
-                let mut table_name = None;
-                let _ = meta_list.parse_nested_meta(|meta| {
-                    if meta.path.is_ident("table_name") {
-                        let value = meta.value()?;
-                        let lit: Lit = value.parse()?;
-                        if let Lit::Str(lit_str) = lit {
-                            table_name = Some(lit_str.value());
-                        }
+        if attr.path().is_ident("sea_orm")
+            && let Meta::List(meta_list) = &attr.meta
+        {
+            let mut table_name = None;
+            let _ = meta_list.parse_nested_meta(|meta| {
+                if meta.path.is_ident("table_name") {
+                    let value = meta.value()?;
+                    let lit: Lit = value.parse()?;
+                    if let Lit::Str(lit_str) = lit {
+                        table_name = Some(lit_str.value());
                     }
-                    Ok(())
-                });
-                if table_name.is_some() {
-                    return table_name;
                 }
+                Ok(())
+            });
+            if table_name.is_some() {
+                return table_name;
             }
         }
     }

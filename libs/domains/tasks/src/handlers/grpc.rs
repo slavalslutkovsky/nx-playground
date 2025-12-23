@@ -1,11 +1,11 @@
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    Json,
 };
-use rpc::tasks::{GetByIdRequest, UpdateByIdRequest, DeleteByIdRequest, ListRequest};
 use rpc::tasks::tasks_service_client::TasksServiceClient;
+use rpc::tasks::{DeleteByIdRequest, GetByIdRequest, ListRequest, UpdateByIdRequest};
 use tonic::transport::Channel;
 use uuid::Uuid;
 
@@ -28,16 +28,17 @@ use crate::conversions::*;
 pub async fn list_tasks(
     State(mut client): State<TasksServiceClient<Channel>>,
 ) -> TaskResult<Json<Vec<Task>>> {
-    let response = client.list(ListRequest {
-        project_id: None,
-        status: None,
-        priority: None,
-        completed: None,
-        limit: 50,
-        offset: 0,
-    })
-    .await
-    .map_err(|e| TaskError::Internal(e.to_string()))?;
+    let response = client
+        .list(ListRequest {
+            project_id: None,
+            status: None,
+            priority: None,
+            completed: None,
+            limit: 50,
+            offset: 0,
+        })
+        .await
+        .map_err(|e| TaskError::Internal(e.to_string()))?;
 
     let tasks = list_response_to_tasks(response.into_inner())
         .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
@@ -64,22 +65,24 @@ pub async fn get_task(
     State(mut client): State<TasksServiceClient<Channel>>,
     Path(id): Path<String>,
 ) -> TaskResult<impl IntoResponse> {
-    let uuid = Uuid::parse_str(&id)
-        .map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
+    let uuid =
+        Uuid::parse_str(&id).map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
 
-    let response = client.get_by_id(GetByIdRequest {
-        id: uuid_to_bytes(uuid),
-    })
-    .await
-    .map_err(|e| {
-        if e.code() == tonic::Code::NotFound {
-            TaskError::NotFound(uuid)
-        } else {
-            TaskError::Internal(e.to_string())
-        }
-    })?;
+    let response = client
+        .get_by_id(GetByIdRequest {
+            id: uuid_to_bytes(uuid),
+        })
+        .await
+        .map_err(|e| {
+            if e.code() == tonic::Code::NotFound {
+                TaskError::NotFound(uuid)
+            } else {
+                TaskError::Internal(e.to_string())
+            }
+        })?;
 
-    let task: Task = response.into_inner()
+    let task: Task = response
+        .into_inner()
         .try_into()
         .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
@@ -102,11 +105,13 @@ pub async fn create_task(
     State(mut client): State<TasksServiceClient<Channel>>,
     Json(input): Json<CreateTask>,
 ) -> TaskResult<impl IntoResponse> {
-    let response = client.create(rpc::tasks::CreateRequest::from(input))
+    let response = client
+        .create(rpc::tasks::CreateRequest::from(input))
         .await
         .map_err(|e| TaskError::Internal(e.to_string()))?;
 
-    let task: Task = response.into_inner()
+    let task: Task = response
+        .into_inner()
         .try_into()
         .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
@@ -134,23 +139,22 @@ pub async fn update_task(
     Path(id): Path<String>,
     Json(input): Json<UpdateTask>,
 ) -> TaskResult<impl IntoResponse> {
-    let uuid = Uuid::parse_str(&id)
-        .map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
+    let uuid =
+        Uuid::parse_str(&id).map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
 
     let mut request: UpdateByIdRequest = input.into();
     request.id = uuid_to_bytes(uuid);
 
-    let response = client.update_by_id(request)
-        .await
-        .map_err(|e| {
-            if e.code() == tonic::Code::NotFound {
-                TaskError::NotFound(uuid)
-            } else {
-                TaskError::Internal(e.to_string())
-            }
-        })?;
+    let response = client.update_by_id(request).await.map_err(|e| {
+        if e.code() == tonic::Code::NotFound {
+            TaskError::NotFound(uuid)
+        } else {
+            TaskError::Internal(e.to_string())
+        }
+    })?;
 
-    let task: Task = response.into_inner()
+    let task: Task = response
+        .into_inner()
         .try_into()
         .map_err(|e| TaskError::Internal(format!("Conversion error: {}", e)))?;
 
@@ -176,20 +180,21 @@ pub async fn delete_task(
     State(mut client): State<TasksServiceClient<Channel>>,
     Path(id): Path<String>,
 ) -> TaskResult<impl IntoResponse> {
-    let uuid = Uuid::parse_str(&id)
-        .map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
+    let uuid =
+        Uuid::parse_str(&id).map_err(|_| TaskError::Validation("Invalid task ID".to_string()))?;
 
-    client.delete_by_id(DeleteByIdRequest {
-        id: uuid_to_bytes(uuid),
-    })
-    .await
-    .map_err(|e| {
-        if e.code() == tonic::Code::NotFound {
-            TaskError::NotFound(uuid)
-        } else {
-            TaskError::Internal(e.to_string())
-        }
-    })?;
+    client
+        .delete_by_id(DeleteByIdRequest {
+            id: uuid_to_bytes(uuid),
+        })
+        .await
+        .map_err(|e| {
+            if e.code() == tonic::Code::NotFound {
+                TaskError::NotFound(uuid)
+            } else {
+                TaskError::Internal(e.to_string())
+            }
+        })?;
 
     Ok(StatusCode::NO_CONTENT)
 }

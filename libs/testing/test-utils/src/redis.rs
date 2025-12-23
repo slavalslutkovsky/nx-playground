@@ -2,8 +2,8 @@
 //!
 //! Provides a `TestRedis` helper that creates a Redis container for testing.
 
-use redis::aio::MultiplexedConnection;
 use redis::Client;
+use redis::aio::MultiplexedConnection;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, ImageExt};
 use testcontainers_modules::redis::Redis;

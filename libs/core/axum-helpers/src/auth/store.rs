@@ -1,4 +1,4 @@
-use redis::{aio::ConnectionManager, AsyncCommands, RedisResult};
+use redis::{AsyncCommands, RedisResult, aio::ConnectionManager};
 
 /// Redis-backed store for JWT authentication
 /// Handles whitelist/blacklist for tokens and CSRF tokens

@@ -10,10 +10,10 @@ chrono.workspace = true
 
 # Internal dependencies
 core_config = { workspace = true }
-futures.workspace = true
 
 # JWT and error handling
 eyre.workspace = true
+futures.workspace = true
 jsonwebtoken.workspace = true
 
 # Redis - no longer optional, required for auth

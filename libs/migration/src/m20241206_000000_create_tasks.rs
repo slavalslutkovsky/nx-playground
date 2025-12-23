@@ -27,11 +27,7 @@ impl MigrationTrait for Migration {
             .create_type(
                 Type::create()
                     .as_enum(TaskStatus::Enum)
-                    .values([
-                        TaskStatus::Todo,
-                        TaskStatus::InProgress,
-                        TaskStatus::Done,
-                    ])
+                    .values([TaskStatus::Todo, TaskStatus::InProgress, TaskStatus::Done])
                     .to_owned(),
             )
             .await?;
@@ -65,11 +61,7 @@ impl MigrationTrait for Migration {
                         ColumnDef::new(Tasks::Status)
                             .enumeration(
                                 TaskStatus::Enum,
-                                [
-                                    TaskStatus::Todo,
-                                    TaskStatus::InProgress,
-                                    TaskStatus::Done,
-                                ],
+                                [TaskStatus::Todo, TaskStatus::InProgress, TaskStatus::Done],
                             )
                             .not_null()
                             .default("todo"),

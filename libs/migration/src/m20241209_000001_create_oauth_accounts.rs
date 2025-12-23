@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -23,15 +23,31 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Alias::new("user_id")).uuid().not_null())
                     .col(ColumnDef::new(Alias::new("provider")).string().not_null())
-                    .col(ColumnDef::new(Alias::new("provider_user_id")).string().not_null())
-                    .col(ColumnDef::new(Alias::new("provider_username")).string().null())
+                    .col(
+                        ColumnDef::new(Alias::new("provider_user_id"))
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Alias::new("provider_username"))
+                            .string()
+                            .null(),
+                    )
                     .col(ColumnDef::new(Alias::new("email")).string().null())
                     .col(ColumnDef::new(Alias::new("display_name")).string().null())
                     .col(ColumnDef::new(Alias::new("avatar_url")).text().null())
                     .col(ColumnDef::new(Alias::new("access_token")).text().null())
                     .col(ColumnDef::new(Alias::new("refresh_token")).text().null())
-                    .col(ColumnDef::new(Alias::new("token_expires_at")).timestamp_with_time_zone().null())
-                    .col(ColumnDef::new(Alias::new("scopes")).array(ColumnType::Text).null())
+                    .col(
+                        ColumnDef::new(Alias::new("token_expires_at"))
+                            .timestamp_with_time_zone()
+                            .null(),
+                    )
+                    .col(
+                        ColumnDef::new(Alias::new("scopes"))
+                            .array(ColumnType::Text)
+                            .null(),
+                    )
                     .col(ColumnDef::new(Alias::new("raw_user_data")).json().null())
                     .col(
                         ColumnDef::new(Alias::new("created_at"))

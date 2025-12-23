@@ -35,31 +35,29 @@
 //! ```
 
 // Domain modules
+pub mod audit;
 pub mod auth;
-pub mod server;
-pub mod http;
 pub mod errors;
 pub mod extractors;
-pub mod audit;
+pub mod http;
+pub mod server;
 
 // Re-export auth types
 pub use auth::{
-    JwtClaims, JwtConfig, JwtRedisAuth, RedisAuthStore,
+    ACCESS_TOKEN_TTL, JwtClaims, JwtConfig, JwtRedisAuth, REFRESH_TOKEN_TTL, RedisAuthStore,
     jwt_auth_middleware, optional_jwt_auth_middleware,
-    ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
 };
 
 // Re-export server types
 pub use server::{
-    create_app, create_production_app, create_router,
-    health_router, run_health_checks, HealthCheckFuture, HealthResponse, ReadyResponse,
-    shutdown_signal, ShutdownCoordinator, CleanupCoordinator,
+    CleanupCoordinator, HealthCheckFuture, HealthResponse, ReadyResponse, ShutdownCoordinator,
+    create_app, create_production_app, create_router, health_router, run_health_checks,
+    shutdown_signal,
 };
 
 // Re-export HTTP middleware
 pub use http::{
-    create_cors_layer, create_permissive_cors_layer,
-    csrf_validation_middleware, security_headers,
+    create_cors_layer, create_permissive_cors_layer, csrf_validation_middleware, security_headers,
 };
 
 // Re-export error types
@@ -70,6 +68,5 @@ pub use extractors::{UuidPath, ValidatedJson};
 
 // Re-export audit types
 pub use audit::{
-    extract_ip_from_headers, extract_ip_from_socket, extract_user_agent,
-    AuditEvent, AuditOutcome,
+    AuditEvent, AuditOutcome, extract_ip_from_headers, extract_ip_from_socket, extract_user_agent,
 };

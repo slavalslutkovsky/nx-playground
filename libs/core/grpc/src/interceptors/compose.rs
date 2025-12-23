@@ -75,10 +75,7 @@ mod tests {
         let metrics = MetricsInterceptor::new();
 
         // Compose all three: auth -> (tracing -> metrics)
-        let mut composed = compose_interceptors(
-            auth,
-            compose_interceptors(tracing, metrics),
-        );
+        let mut composed = compose_interceptors(auth, compose_interceptors(tracing, metrics));
 
         let request = Request::new(());
         let result = composed.call(request);

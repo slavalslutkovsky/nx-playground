@@ -11,7 +11,7 @@ use core_config::{Environment, FromEnv};
 use database::postgres::PostgresConfig;
 use domain_tasks::{PgTaskRepository, TaskService};
 use eyre::{Result, WrapErr};
-use rpc::tasks::tasks_service_server::{TasksServiceServer, SERVICE_NAME};
+use rpc::tasks::tasks_service_server::{SERVICE_NAME, TasksServiceServer};
 use tonic::transport::Server;
 use tonic_health::server::health_reporter;
 use tracing::info;

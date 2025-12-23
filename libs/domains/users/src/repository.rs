@@ -112,20 +112,20 @@ impl UserRepository for InMemoryUserRepository {
         let mut result: Vec<User> = users
             .values()
             .filter(|u| {
-                if let Some(ref email) = filter.email {
-                    if !u.email.to_lowercase().contains(&email.to_lowercase()) {
-                        return false;
-                    }
+                if let Some(ref email) = filter.email
+                    && !u.email.to_lowercase().contains(&email.to_lowercase())
+                {
+                    return false;
                 }
-                if let Some(ref role) = filter.role {
-                    if !u.roles.iter().any(|r| r.to_string() == *role) {
-                        return false;
-                    }
+                if let Some(ref role) = filter.role
+                    && !u.roles.iter().any(|r| r.to_string() == *role)
+                {
+                    return false;
                 }
-                if let Some(verified) = filter.email_verified {
-                    if u.email_verified != verified {
-                        return false;
-                    }
+                if let Some(verified) = filter.email_verified
+                    && u.email_verified != verified
+                {
+                    return false;
                 }
                 true
             })
@@ -193,20 +193,20 @@ impl UserRepository for InMemoryUserRepository {
         let count = users
             .values()
             .filter(|u| {
-                if let Some(ref email) = filter.email {
-                    if !u.email.to_lowercase().contains(&email.to_lowercase()) {
-                        return false;
-                    }
+                if let Some(ref email) = filter.email
+                    && !u.email.to_lowercase().contains(&email.to_lowercase())
+                {
+                    return false;
                 }
-                if let Some(ref role) = filter.role {
-                    if !u.roles.iter().any(|r| r.to_string() == *role) {
-                        return false;
-                    }
+                if let Some(ref role) = filter.role
+                    && !u.roles.iter().any(|r| r.to_string() == *role)
+                {
+                    return false;
                 }
-                if let Some(verified) = filter.email_verified {
-                    if u.email_verified != verified {
-                        return false;
-                    }
+                if let Some(verified) = filter.email_verified
+                    && u.email_verified != verified
+                {
+                    return false;
                 }
                 true
             })
@@ -221,14 +221,21 @@ impl UserRepository for InMemoryUserRepository {
         provider_id: &str,
     ) -> UserResult<Option<User>> {
         let users = self.users.read().await;
-        let user = users.values().find(|u| match provider {
-            Provider::Google => {
-                u.google_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
-            }
-            Provider::Github => {
-                u.github_id.as_ref().map(|id| id == provider_id).unwrap_or(false)
-            }
-        }).cloned();
+        let user = users
+            .values()
+            .find(|u| match provider {
+                Provider::Google => u
+                    .google_id
+                    .as_ref()
+                    .map(|id| id == provider_id)
+                    .unwrap_or(false),
+                Provider::Github => u
+                    .github_id
+                    .as_ref()
+                    .map(|id| id == provider_id)
+                    .unwrap_or(false),
+            })
+            .cloned();
         Ok(user)
     }
 

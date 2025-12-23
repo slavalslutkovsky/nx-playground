@@ -28,6 +28,6 @@ pub mod store;
 
 // Re-export commonly used types
 pub use config::JwtConfig;
-pub use jwt::{JwtClaims, JwtRedisAuth, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL};
+pub use jwt::{ACCESS_TOKEN_TTL, JwtClaims, JwtRedisAuth, REFRESH_TOKEN_TTL};
 pub use middleware::{jwt_auth_middleware, optional_jwt_auth_middleware};
 pub use store::RedisAuthStore;

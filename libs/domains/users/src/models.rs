@@ -4,18 +4,13 @@ use uuid::Uuid;
 use validator::Validate;
 
 /// User roles
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Role {
+    #[default]
     User,
     Admin,
     Moderator,
-}
-
-impl Default for Role {
-    fn default() -> Self {
-        Self::User
-    }
 }
 
 impl std::fmt::Display for Role {

@@ -221,16 +221,54 @@ jobs:
       - run: bun nx fix-ci
         if: always()
 
-  # Container build job - commented out for future implementation
-  # container:
-  #   runs-on: ubuntu-latest
-  #   needs: [build]  # Only run after build succeeds
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     # Add container build steps here
-  #     # - name: Build container image
-  #     #   run: docker build -t myapp:latest .
-  #
-  #     # - name: Push to registry
-  #     #   run: docker push myapp:latest
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --no-cache
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Install Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+      - name: Build, push and scan container images
+        run: bun nx affected -t scan --configuration=ci
+        continue-on-error: true
+        env:
+          INPUT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY: ${{ vars.REGISTRY }}
+          SHORT_SHA: ${{ github.sha }}
+
+      - name: Merge SARIF files
+        run: |
+          mkdir -p sarif-results
+          find . -name "trivy-*.sarif" -exec cp {} sarif-results/ \; 2>/dev/null || true
+          if ls sarif-results/*.sarif 1>/dev/null 2>&1; then
+            echo "SARIF files found"
+          else
+            echo "No SARIF files found"
+          fi
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: sarif-results/
+        if: hashFiles('sarif-results/*.sarif') != ''

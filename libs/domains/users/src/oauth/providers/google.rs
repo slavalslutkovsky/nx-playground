@@ -66,7 +66,9 @@ impl OAuthProvider for GoogleProvider {
             .bearer_auth(access_token)
             .send()
             .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to get user info: {}", e)))?;
+            .map_err(|e| {
+                crate::error::UserError::OAuth(format!("Failed to get user info: {}", e))
+            })?;
 
         if !response.status().is_success() {
             return Err(crate::error::UserError::OAuth(format!(
@@ -75,13 +77,13 @@ impl OAuthProvider for GoogleProvider {
             )));
         }
 
-        let user_info: GoogleUserInfo = response
-            .json()
-            .await
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to parse user info: {}", e)))?;
+        let user_info: GoogleUserInfo = response.json().await.map_err(|e| {
+            crate::error::UserError::OAuth(format!("Failed to parse user info: {}", e))
+        })?;
 
-        let raw_data = serde_json::to_value(&user_info)
-            .map_err(|e| crate::error::UserError::OAuth(format!("Failed to serialize user info: {}", e)))?;
+        let raw_data = serde_json::to_value(&user_info).map_err(|e| {
+            crate::error::UserError::OAuth(format!("Failed to serialize user info: {}", e))
+        })?;
 
         Ok(OAuthUserInfo {
             provider_user_id: user_info.sub,

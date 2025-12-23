@@ -8,13 +8,13 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use domain_tasks::{
-    conversions as conv, CreateTask, TaskFilter, TaskRepository, TaskService, UpdateTask,
+    CreateTask, TaskFilter, TaskRepository, TaskService, UpdateTask, conversions as conv,
 };
 use grpc_client::ToTonicResult;
 use rpc::tasks::{
-    tasks_service_server::TasksService, CreateRequest, CreateResponse, DeleteByIdRequest,
-    DeleteByIdResponse, GetByIdRequest, GetByIdResponse, ListRequest, ListResponse,
-    ListStreamRequest, ListStreamResponse, UpdateByIdRequest, UpdateByIdResponse,
+    CreateRequest, CreateResponse, DeleteByIdRequest, DeleteByIdResponse, GetByIdRequest,
+    GetByIdResponse, ListRequest, ListResponse, ListStreamRequest, ListStreamResponse,
+    UpdateByIdRequest, UpdateByIdResponse, tasks_service_server::TasksService,
 };
 use tokio_stream::Stream;
 use tonic::{Request, Response, Status};
@@ -106,10 +106,7 @@ where
         Ok(Response::new(task.into()))
     }
 
-    async fn list(
-        &self,
-        request: Request<ListRequest>,
-    ) -> Result<Response<ListResponse>, Status> {
+    async fn list(&self, request: Request<ListRequest>) -> Result<Response<ListResponse>, Status> {
         let req = request.into_inner();
         let filter = TaskFilter {
             project_id: conv::opt_bytes_to_uuid(req.project_id).to_tonic()?,
@@ -209,9 +206,7 @@ mod tests {
 
         async fn update(&self, id: Uuid, input: UpdateTask) -> Result<Task, TaskError> {
             let mut tasks = self.tasks.lock().unwrap();
-            let task = tasks
-                .get_mut(&id)
-                .ok_or(TaskError::NotFound(id))?;
+            let task = tasks.get_mut(&id).ok_or(TaskError::NotFound(id))?;
 
             if let Some(title) = input.title {
                 task.title = title;
@@ -248,25 +243,25 @@ mod tests {
             let mut result: Vec<Task> = tasks
                 .values()
                 .filter(|task| {
-                    if let Some(project_id) = filter.project_id {
-                        if task.project_id != Some(project_id) {
-                            return false;
-                        }
+                    if let Some(project_id) = filter.project_id
+                        && task.project_id != Some(project_id)
+                    {
+                        return false;
                     }
-                    if let Some(status) = filter.status {
-                        if task.status != status {
-                            return false;
-                        }
+                    if let Some(status) = filter.status
+                        && task.status != status
+                    {
+                        return false;
                     }
-                    if let Some(priority) = filter.priority {
-                        if task.priority != priority {
-                            return false;
-                        }
+                    if let Some(priority) = filter.priority
+                        && task.priority != priority
+                    {
+                        return false;
                     }
-                    if let Some(completed) = filter.completed {
-                        if task.completed != completed {
-                            return false;
-                        }
+                    if let Some(completed) = filter.completed
+                        && task.completed != completed
+                    {
+                        return false;
                     }
                     true
                 })
@@ -274,7 +269,11 @@ mod tests {
                 .collect();
 
             result.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-            Ok(result.into_iter().skip(filter.offset).take(filter.limit).collect())
+            Ok(result
+                .into_iter()
+                .skip(filter.offset)
+                .take(filter.limit)
+                .collect())
         }
 
         async fn count(&self) -> Result<usize, TaskError> {
@@ -505,7 +504,7 @@ mod tests {
 
         let request = Request::new(ListRequest {
             project_id: None,
-            status: Some(2), // InProgress (proto: 2 = IN_PROGRESS)
+            status: Some(2),   // InProgress (proto: 2 = IN_PROGRESS)
             priority: Some(3), // High (proto: 3 = HIGH)
             completed: None,
             limit: 10,

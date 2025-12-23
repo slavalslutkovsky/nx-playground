@@ -6,10 +6,10 @@ pub mod responses;
 pub use codes::ErrorCode;
 
 use axum::{
+    Json,
     extract::rejection::JsonRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use sea_orm::SqlxError;
 use sea_orm_migration::DbErr;

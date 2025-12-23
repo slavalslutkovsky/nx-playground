@@ -4,7 +4,7 @@ use std::time::Duration;
 use tracing::{info, log::LevelFilter};
 
 use super::PostgresConfig;
-use crate::common::{retry, retry_with_backoff, RetryConfig};
+use crate::common::{RetryConfig, retry, retry_with_backoff};
 
 /// Connect to a PostgreSQL database with optimized connection pool settings
 ///
