@@ -2,8 +2,8 @@ ARG APP_NAME
 # TARGETARCH is auto-set by Docker buildx (amd64 or arm64)
 ARG TARGETARCH=amd64
 
-FROM rust:1 AS chef
-RUN cargo install cargo-chef
+# Multi-arch chef image (runs natively on both x86_64 and ARM64)
+FROM --platform=$BUILDPLATFORM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -12,29 +12,35 @@ COPY apps/ apps/
 COPY libs/ libs/
 RUN cargo chef prepare --recipe-path recipe.json
 
-# Architecture-specific builder images
-FROM messense/rust-musl-cross:x86_64-musl AS builder-amd64
-FROM messense/rust-musl-cross:aarch64-musl AS builder-arm64
-
-# Select builder based on target architecture
-FROM builder-${TARGETARCH} AS builder
+# Multi-arch builder with musl support
+FROM --platform=$BUILDPLATFORM rust:1-slim AS builder
 ARG APP_NAME
 ARG TARGETARCH
 
 WORKDIR /app
 ENV RUST_BACKTRACE=1
 
-# Set Rust target based on architecture
-ENV RUST_TARGET_amd64=x86_64-unknown-linux-musl
-ENV RUST_TARGET_arm64=aarch64-unknown-linux-musl
+# Install build dependencies and musl toolchain
+RUN apt-get update && apt-get install -y \
+    musl-tools \
+    musl-dev \
+    gcc-aarch64-linux-gnu \
+    gcc-x86-64-linux-gnu \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=planner /app/recipe.json recipe.json
+# Add musl targets
+RUN rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+
+# Install cargo-chef
 RUN cargo install cargo-chef --locked
 
-# Build dependencies
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies based on target architecture
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
       cargo chef cook --release --recipe-path recipe.json --target x86_64-unknown-linux-musl; \
     else \
+      export CC_aarch64_unknown_linux_musl=aarch64-linux-gnu-gcc && \
       cargo chef cook --release --recipe-path recipe.json --target aarch64-unknown-linux-musl; \
     fi
 
@@ -47,6 +53,7 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
       cargo build --release -p ${APP_NAME} --target x86_64-unknown-linux-musl && \
       cp /app/target/x86_64-unknown-linux-musl/release/${APP_NAME} /app/binary; \
     else \
+      export CC_aarch64_unknown_linux_musl=aarch64-linux-gnu-gcc && \
       cargo build --release -p ${APP_NAME} --target aarch64-unknown-linux-musl && \
       cp /app/target/aarch64-unknown-linux-musl/release/${APP_NAME} /app/binary; \
     fi
