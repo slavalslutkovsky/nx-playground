@@ -12,7 +12,9 @@ patches:
         path: /spec/template/spec/containers/0/env
         value:
           - name: APP_ENV
-            value: "production"
+            value: "development"
+          - name: JWT_SECRET
+            value: "op6+Jy1wGQX1qaCKT5ImrqCQPGKMIojWaQLg8wM9a6A=22"
           - name: PORT
             value: "8080"
           - name: RUST_LOG
@@ -29,8 +31,6 @@ patches:
             value: "http://localhost:5206"
           - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
             value: "true"
-          - name: JWT_SECRET
-            value: "dev-secret-change-in-production"
           - name: GOOGLE_CLIENT_ID
             value: "your-google-client-id"
           - name: GOOGLE_CLIENT_SECRET

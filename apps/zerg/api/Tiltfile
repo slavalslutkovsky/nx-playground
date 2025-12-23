@@ -1,7 +1,12 @@
+# Detect local architecture for native builds
+local_arch = str(local('uname -m')).strip()
+target_arch = 'arm64' if local_arch == 'arm64' else 'amd64'
+
 docker_build(
   'yurikrupnik/zerg-api',
   build_args={
     'APP_NAME': 'zerg_api',
+    'TARGETARCH': target_arch,
   },
   context='../../..',
   dockerfile='../../../manifests/dockers/rust.Dockerfile',
