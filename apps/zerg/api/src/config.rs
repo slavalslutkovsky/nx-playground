@@ -23,11 +23,14 @@ pub struct Config {
     pub cors_allowed_origin: String,
     pub frontend_url: String,
     pub redirect_base_url: String,
-    // OAuth configuration
+    // OAuth configuration (legacy - can be removed after WorkOS migration)
     pub google_client_id: String,
     pub google_client_secret: String,
     pub github_client_id: String,
     pub github_client_secret: String,
+    // WorkOS AuthKit configuration
+    pub workos_client_id: Option<String>,
+    pub workos_api_key: Option<String>,
 }
 
 impl Config {
@@ -45,11 +48,15 @@ impl Config {
         let redirect_base_url =
             core_config::env_or_default("REDIRECT_BASE_URL", "http://localhost:8080");
 
-        // OAuth configuration
+        // OAuth configuration (legacy)
         let google_client_id = core_config::env_required("GOOGLE_CLIENT_ID")?;
         let google_client_secret = core_config::env_required("GOOGLE_CLIENT_SECRET")?;
         let github_client_id = core_config::env_required("GITHUB_CLIENT_ID")?;
         let github_client_secret = core_config::env_required("GITHUB_CLIENT_SECRET")?;
+
+        // WorkOS AuthKit configuration (optional - enables WorkOS auth when set)
+        let workos_client_id = std::env::var("WORKOS_CLIENT_ID").ok();
+        let workos_api_key = std::env::var("WORKOS_API_KEY").ok();
 
         Ok(Self {
             app: app_info!(),
@@ -65,6 +72,8 @@ impl Config {
             google_client_secret,
             github_client_id,
             github_client_secret,
+            workos_client_id,
+            workos_api_key,
         })
     }
 }

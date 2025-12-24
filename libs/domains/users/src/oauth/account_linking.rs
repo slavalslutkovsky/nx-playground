@@ -209,6 +209,14 @@ impl<R: UserRepository, O: OAuthAccountRepository> AccountLinkingService<R, O> {
             user.avatar_url = user_info.avatar_url.clone();
         }
 
+        // Set OAuth provider ID on the user for direct lookup
+        match provider.to_lowercase().as_str() {
+            "google" => user.google_id = Some(user_info.provider_user_id.clone()),
+            "github" => user.github_id = Some(user_info.provider_user_id.clone()),
+            "workos" => user.workos_id = Some(user_info.provider_user_id.clone()),
+            _ => {}
+        }
+
         let user = self.user_repo.create(user).await?;
 
         // Link OAuth account

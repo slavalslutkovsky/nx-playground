@@ -15,7 +15,6 @@ import { ProtectedRoute } from './components/protected-route';
 import { UserMenu } from './components/user-menu';
 import { AuthProvider } from './lib/auth-context';
 import { LoginPage } from './pages/login';
-import { RegisterPage } from './pages/register';
 import { TaskDetailPage } from './pages/task-detail';
 import { TasksListPage } from './pages/tasks-list';
 
@@ -63,12 +62,6 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
-const registerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/register',
-  component: RegisterPage,
-});
-
 // Protected routes
 const tasksRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -94,7 +87,6 @@ const taskDetailRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
-  registerRoute,
   tasksRoute,
   taskDetailRoute,
 ]);

@@ -1,5 +1,6 @@
 pub mod github;
 pub mod google;
+pub mod workos;
 
 use crate::oauth::types::{OAuthUserInfo, TokenResponse};
 use async_trait::async_trait;

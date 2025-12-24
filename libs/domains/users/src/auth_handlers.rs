@@ -14,9 +14,10 @@ use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
 use crate::oauth::providers::OAuthProvider;
 use crate::oauth::providers::github::GithubProvider;
 use crate::oauth::providers::google::GoogleProvider;
+use crate::oauth::providers::workos::{WorkOsProvider, workos_user_to_oauth_info};
 use crate::oauth::{
     AccountLinkingResult, AccountLinkingService, OAuthAccountRepository, OAuthState,
-    OAuthStateManager,
+    OAuthStateManager, UpstreamOAuthTokenRepository, UpsertUpstreamTokenParams,
 };
 use crate::repository::UserRepository;
 use crate::service::UserService;
@@ -30,16 +31,21 @@ pub struct OAuthConfig {
     pub github_client_secret: String,
     pub redirect_base_url: String,
     pub frontend_url: String,
+    // WorkOS AuthKit configuration (optional)
+    pub workos_client_id: Option<String>,
+    pub workos_api_key: Option<String>,
 }
 
 /// Application state for auth handlers
 #[derive(Clone)]
-pub struct AuthState<R: UserRepository, O: OAuthAccountRepository> {
+pub struct AuthState<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>
+{
     pub service: UserService<R>,
     pub oauth_config: OAuthConfig,
     pub jwt_auth: JwtRedisAuth,
     pub oauth_state_manager: OAuthStateManager,
     pub account_linking: AccountLinkingService<R, O>,
+    pub upstream_token_repo: U,
 }
 
 /// Check if running in development mode
@@ -50,8 +56,8 @@ fn is_development() -> bool {
 }
 
 /// Register a new user
-async fn register<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn register<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     ValidatedJson(input): ValidatedJson<RegisterRequest>,
 ) -> Result<Response, UserError> {
     // Create user
@@ -144,8 +150,8 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Login with email/password
-async fn login<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn login<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     ValidatedJson(input): ValidatedJson<LoginRequest>,
 ) -> Result<Response, UserError> {
     // Verify credentials
@@ -230,8 +236,8 @@ async fn login<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Logout
-async fn logout<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn logout<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     headers: axum::http::HeaderMap,
 ) -> Result<Response, UserError> {
     // Extract tokens from cookies
@@ -296,8 +302,8 @@ async fn logout<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Get current user from JWT claims
-async fn me<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn me<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     headers: axum::http::HeaderMap,
 ) -> Result<Json<crate::models::UserResponse>, UserError> {
     // Extract token from Authorization header or cookie
@@ -426,6 +432,16 @@ fn get_provider(
             config.github_client_id.clone(),
             config.github_client_secret.clone(),
         )) as Arc<dyn OAuthProvider>),
+        "workos" => {
+            let client_id = config.workos_client_id.clone().ok_or_else(|| {
+                UserError::OAuth("WorkOS client ID not configured".to_string())
+            })?;
+            let api_key = config.workos_api_key.clone().ok_or_else(|| {
+                UserError::OAuth("WorkOS API key not configured".to_string())
+            })?;
+            let redirect_uri = format!("{}/api/auth/oauth/workos/callback", config.redirect_base_url);
+            Ok(Arc::new(WorkOsProvider::new(client_id, api_key, redirect_uri)) as Arc<dyn OAuthProvider>)
+        }
         _ => Err(UserError::OAuth(format!(
             "Unsupported provider: {}",
             provider_name
@@ -433,9 +449,21 @@ fn get_provider(
     }
 }
 
+/// Get WorkOS provider specifically (for special handling)
+fn get_workos_provider(config: &OAuthConfig) -> Result<WorkOsProvider, UserError> {
+    let client_id = config.workos_client_id.clone().ok_or_else(|| {
+        UserError::OAuth("WorkOS client ID not configured".to_string())
+    })?;
+    let api_key = config.workos_api_key.clone().ok_or_else(|| {
+        UserError::OAuth("WorkOS API key not configured".to_string())
+    })?;
+    let redirect_uri = format!("{}/api/auth/oauth/workos/callback", config.redirect_base_url);
+    Ok(WorkOsProvider::new(client_id, api_key, redirect_uri))
+}
+
 /// Initiate OAuth flow for any provider
-async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn authorize<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     Path(provider_name): Path<String>,
 ) -> Result<Redirect, UserError> {
     let provider = get_provider(&provider_name, &state.oauth_config)?;
@@ -461,7 +489,13 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
     };
     state.oauth_state_manager.store_state(&oauth_state).await?;
 
-    // Build authorization URL with PKCE
+    // Handle WorkOS specially - uses its own authorize_url method
+    if provider_name.to_lowercase() == "workos" {
+        let auth_url = provider.authorize_url(&csrf_state, &pkce_verifier, &redirect_uri, None)?;
+        return Ok(Redirect::to(&auth_url));
+    }
+
+    // Build authorization URL with PKCE for standard OAuth providers
     use oauth2::{
         AuthUrl, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, PkceCodeVerifier,
         RedirectUrl, Scope, basic::BasicClient,
@@ -496,8 +530,8 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Handle OAuth callback for any provider
-async fn callback<R: UserRepository, O: OAuthAccountRepository>(
-    State(state): State<AuthState<R, O>>,
+async fn callback<R: UserRepository, O: OAuthAccountRepository, U: UpstreamOAuthTokenRepository>(
+    State(state): State<AuthState<R, O, U>>,
     Path(provider_name): Path<String>,
     Query(query): Query<OAuthCallbackQuery>,
 ) -> Result<Response, UserError> {
@@ -521,30 +555,75 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
         return Err(UserError::OAuth("Provider mismatch".to_string()));
     }
 
-    // Use the trait's exchange_code method with PKCE verification
-    let token_response = provider
-        .exchange_code(
-            &query.code,
-            &oauth_state.pkce_verifier,
-            &oauth_state.redirect_uri,
-        )
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to exchange OAuth code: {:?}", e);
+    // Handle WorkOS specially - it returns user info directly from authenticate
+    // Also capture upstream OAuth tokens (Google, GitHub, etc.) if available
+    // TODO: Store upstream_oauth_tokens (Google/GitHub) for GCP access if needed
+    let (user_info, access_token, refresh_token, expires_in, _upstream_oauth_tokens) = if provider_name.to_lowercase() == "workos" {
+        let workos_provider = get_workos_provider(&state.oauth_config)?;
+        let auth_response = workos_provider.authenticate(&query.code).await.map_err(|e| {
+            tracing::error!("Failed to authenticate with WorkOS: {:?}", e);
             e
         })?;
 
-    tracing::debug!("Token exchange successful");
+        tracing::debug!("WorkOS authentication successful");
 
-    let access_token = token_response.access_token.clone();
-    let refresh_token = token_response.refresh_token;
-    let expires_in = token_response.expires_in;
+        // Log upstream OAuth tokens if present (e.g., Google tokens for GCP access)
+        if let Some(ref oauth_tokens) = auth_response.oauth_tokens {
+            tracing::info!(
+                "Upstream OAuth tokens received - has_refresh: {}, expires_in: {:?}, scopes: {:?}",
+                oauth_tokens.refresh_token.is_some(),
+                oauth_tokens.expires_in,
+                oauth_tokens.scopes
+            );
+        }
 
-    // Fetch user info from provider
-    let user_info = provider.get_user_info(&access_token).await.map_err(|e| {
-        tracing::error!("Failed to get user info from provider: {:?}", e);
-        e
-    })?;
+        let user_info = workos_user_to_oauth_info(&auth_response.user);
+        // Bundle oauth_tokens with authentication_method so we know the provider
+        let auth_method = auth_response.authentication_method.clone();
+        let upstream_data = auth_response.oauth_tokens.map(|tokens| {
+            (tokens, auth_method)
+        });
+
+        tracing::info!(
+            "upstream_data is_some: {}, auth_method: {:?}",
+            upstream_data.is_some(),
+            auth_response.authentication_method
+        );
+        (
+            user_info,
+            auth_response.access_token,
+            auth_response.refresh_token,
+            None::<u64>,
+            upstream_data,
+        )
+    } else {
+        // Standard OAuth flow for other providers
+        let token_response = provider
+            .exchange_code(
+                &query.code,
+                &oauth_state.pkce_verifier,
+                &oauth_state.redirect_uri,
+            )
+            .await
+            .map_err(|e| {
+                tracing::error!("Failed to exchange OAuth code: {:?}", e);
+                e
+            })?;
+
+        tracing::debug!("Token exchange successful");
+
+        let access_token = token_response.access_token.clone();
+        let refresh_token = token_response.refresh_token;
+        let expires_in = token_response.expires_in;
+
+        // Fetch user info from provider
+        let user_info = provider.get_user_info(&access_token).await.map_err(|e| {
+            tracing::error!("Failed to get user info from provider: {:?}", e);
+            e
+        })?;
+
+        (user_info, access_token, refresh_token, expires_in, None)
+    };
 
     tracing::info!(
         "User info retrieved: email={:?}, name={:?}",
@@ -586,6 +665,42 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
             )));
         }
     };
+
+    // Store upstream OAuth tokens if present (e.g., Google tokens for GCP access)
+    if let Some((upstream_tokens, auth_method)) = _upstream_oauth_tokens {
+        // Determine the upstream provider from the authentication method
+        // auth_method is a string like "GitHubOAuth", "GoogleOAuth", etc.
+        let upstream_provider = auth_method
+            .map(|m| {
+                // Convert WorkOS provider names to lowercase (e.g., "GoogleOAuth" -> "google")
+                m.to_lowercase()
+                    .replace("oauth", "")
+            })
+            .unwrap_or_else(|| "unknown".to_string());
+
+        tracing::info!(
+            "Storing upstream OAuth tokens for user {} from provider {}",
+            user.id,
+            upstream_provider
+        );
+
+        if let Err(e) = state
+            .upstream_token_repo
+            .upsert(UpsertUpstreamTokenParams {
+                user_id: user.id,
+                provider: upstream_provider,
+                auth_source: "workos".to_string(),
+                access_token: upstream_tokens.access_token,
+                refresh_token: upstream_tokens.refresh_token,
+                expires_in: upstream_tokens.expires_in,
+                scopes: upstream_tokens.scopes,
+            })
+            .await
+        {
+            // Log error but don't fail the authentication
+            tracing::error!("Failed to store upstream OAuth tokens: {:?}", e);
+        }
+    }
 
     let user_id = user.id.to_string();
     let user_roles: Vec<String> = user.roles.iter().map(|r| r.to_string()).collect();
@@ -669,17 +784,18 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Create auth router
-pub fn auth_router<R, O>(state: AuthState<R, O>) -> Router
+pub fn auth_router<R, O, U>(state: AuthState<R, O, U>) -> Router
 where
     R: UserRepository + Clone + Send + Sync + 'static,
     O: OAuthAccountRepository + Clone + Send + Sync + 'static,
+    U: UpstreamOAuthTokenRepository + Clone + Send + Sync + 'static,
 {
     Router::new()
-        .route("/register", post(register::<R, O>))
-        .route("/login", post(login::<R, O>))
-        .route("/logout", post(logout::<R, O>))
-        .route("/me", get(me::<R, O>))
-        .route("/oauth/{provider}", get(authorize::<R, O>))
-        .route("/oauth/{provider}/callback", get(callback::<R, O>))
+        .route("/register", post(register::<R, O, U>))
+        .route("/login", post(login::<R, O, U>))
+        .route("/logout", post(logout::<R, O, U>))
+        .route("/me", get(me::<R, O, U>))
+        .route("/oauth/{provider}", get(authorize::<R, O, U>))
+        .route("/oauth/{provider}/callback", get(callback::<R, O, U>))
         .with_state(state)
 }

@@ -20,7 +20,7 @@ pub fn install_color_eyre() {
 /// Initialize tracing with environment-aware configuration and error span capture.
 ///
 /// This function sets up:
-/// 1. **color-eyre** for beautiful error display with span traces
+/// 1. **color-eyre** for a beautiful error display with span traces
 /// 2. **tracing-subscriber** with ErrorLayer for span capture
 ///
 /// When errors occur, you'll see the full execution path with structured data
@@ -93,14 +93,16 @@ pub fn init_tracing(environment: &Environment) {
             .with(filter)
             .try_init()
     } else {
-        // Development: Pretty format for readability
+        // Development: Compact format for readability (no file paths, no span traces)
         tracing_subscriber::registry()
             .with(
                 tracing_subscriber::fmt::layer()
                     .with_target(true) // Show module paths for debugging
-                    .with_file(true)
-                    .with_line_number(true)
-                    .pretty(),
+                    .with_file(false)
+                    // .with_ansi(true)
+                    .without_time()
+                    .with_line_number(false),
+                  // .pretty(),
             )
             .with(tracing_error::ErrorLayer::default()) // Capture span traces on errors
             .with(filter)

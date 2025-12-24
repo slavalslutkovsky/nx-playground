@@ -311,6 +311,7 @@ impl<R: UserRepository> UserService<R> {
         match provider {
             Provider::Google => user.google_id = Some(oauth_info.provider_user_id.clone()),
             Provider::Github => user.github_id = Some(oauth_info.provider_user_id.clone()),
+            Provider::Workos => user.workos_id = Some(oauth_info.provider_user_id.clone()),
         }
 
         // Set avatar from OAuth

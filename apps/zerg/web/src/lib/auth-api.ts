@@ -13,63 +13,6 @@ export interface UserResponse {
   last_login_at?: string;
 }
 
-export interface LoginResponse {
-  user: UserResponse;
-}
-
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  name: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-/**
- * Register a new user
- */
-export async function register(data: RegisterRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Important: include cookies
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Registration failed');
-  }
-
-  return response.json();
-}
-
-/**
- * Login with email and password
- */
-export async function login(data: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Important: include cookies
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Login failed');
-  }
-
-  return response.json();
-}
-
 /**
  * Logout current user
  */
@@ -103,15 +46,8 @@ export async function getCurrentUser(): Promise<UserResponse> {
 }
 
 /**
- * Redirect to Google OAuth flow
+ * Redirect to WorkOS AuthKit for authentication
  */
-export function loginWithGoogle(): void {
-  window.location.href = `${API_BASE_URL}/auth/oauth/google`;
-}
-
-/**
- * Redirect to GitHub OAuth flow
- */
-export function loginWithGithub(): void {
-  window.location.href = `${API_BASE_URL}/auth/oauth/github`;
+export function loginWithWorkOS(): void {
+  window.location.href = `${API_BASE_URL}/auth/oauth/workos`;
 }

@@ -1,7 +1,7 @@
 use axum::Router;
 use domain_users::{
     AccountLinkingService, OAuthStateManager, PostgresOAuthAccountRepository,
-    PostgresUserRepository, UserService,
+    PostgresUpstreamOAuthTokenRepository, PostgresUserRepository, UserService,
     auth_handlers::{AuthState, OAuthConfig, auth_router},
 };
 
@@ -9,6 +9,7 @@ pub fn router(state: &crate::state::AppState) -> Router {
     // Use PostgreSQL repository with database connection
     let user_repository = PostgresUserRepository::new(state.db.clone());
     let oauth_repository = PostgresOAuthAccountRepository::new(state.db.clone());
+    let upstream_token_repository = PostgresUpstreamOAuthTokenRepository::new(state.db.clone());
     let service = UserService::new(user_repository.clone());
 
     // Create OAuth configuration from app config
@@ -19,6 +20,8 @@ pub fn router(state: &crate::state::AppState) -> Router {
         github_client_secret: state.config.github_client_secret.clone(),
         redirect_base_url: state.config.redirect_base_url.clone(),
         frontend_url: state.config.frontend_url.clone(),
+        workos_client_id: state.config.workos_client_id.clone(),
+        workos_api_key: state.config.workos_api_key.clone(),
     };
 
     // Create OAuth state manager for PKCE and CSRF protection
@@ -35,6 +38,7 @@ pub fn router(state: &crate::state::AppState) -> Router {
         jwt_auth: state.jwt_auth.clone(),
         oauth_state_manager,
         account_linking,
+        upstream_token_repo: upstream_token_repository,
     };
 
     // Return auth router

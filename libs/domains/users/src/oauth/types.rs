@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum Provider {
     Google,
     Github,
+    Workos,
 }
 
 impl std::fmt::Display for Provider {
@@ -13,6 +14,7 @@ impl std::fmt::Display for Provider {
         match self {
             Provider::Google => write!(f, "google"),
             Provider::Github => write!(f, "github"),
+            Provider::Workos => write!(f, "workos"),
         }
     }
 }

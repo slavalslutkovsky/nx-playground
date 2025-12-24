@@ -4,15 +4,13 @@ import {
   useQueryClient,
 } from '@tanstack/solid-query';
 import { createContext, type ParentComponent, useContext } from 'solid-js';
-import type { LoginRequest, RegisterRequest, UserResponse } from './auth-api';
+import type { UserResponse } from './auth-api';
 import * as authApi from './auth-api';
 
 interface AuthContextValue {
   user: () => UserResponse | null | undefined;
   isLoading: () => boolean;
   isAuthenticated: () => boolean;
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => void;
 }
@@ -32,24 +30,6 @@ export const AuthProvider: ParentComponent = (props) => {
     throwOnError: false,
   }));
 
-  // Login mutation
-  const loginMutation = createMutation(() => ({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      // Update user in cache
-      queryClient.setQueryData(['currentUser'], data.user);
-    },
-  }));
-
-  // Register mutation
-  const registerMutation = createMutation(() => ({
-    mutationFn: authApi.register,
-    onSuccess: (data) => {
-      // Update user in cache
-      queryClient.setQueryData(['currentUser'], data.user);
-    },
-  }));
-
   // Logout mutation
   const logoutMutation = createMutation(() => ({
     mutationFn: authApi.logout,
@@ -60,14 +40,6 @@ export const AuthProvider: ParentComponent = (props) => {
       window.location.href = '/login';
     },
   }));
-
-  const login = async (data: LoginRequest) => {
-    await loginMutation.mutateAsync(data);
-  };
-
-  const register = async (data: RegisterRequest) => {
-    await registerMutation.mutateAsync(data);
-  };
 
   const logout = async () => {
     await logoutMutation.mutateAsync();
@@ -89,8 +61,6 @@ export const AuthProvider: ParentComponent = (props) => {
     user: () => userQuery.data,
     isLoading,
     isAuthenticated,
-    login,
-    register,
     logout,
     checkAuth,
   };

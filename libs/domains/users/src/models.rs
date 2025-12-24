@@ -62,6 +62,8 @@ pub struct User {
     pub google_id: Option<String>,
     /// GitHub OAuth ID
     pub github_id: Option<String>,
+    /// WorkOS AuthKit ID
+    pub workos_id: Option<String>,
     /// Last login timestamp
     pub last_login_at: Option<DateTime<Utc>>,
     /// Account active status
@@ -188,6 +190,7 @@ impl User {
             avatar_url: None,
             google_id: None,
             github_id: None,
+            workos_id: None,
             last_login_at: None,
             is_active: true,
             is_locked: false,

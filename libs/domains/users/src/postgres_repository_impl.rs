@@ -30,6 +30,7 @@ struct UserRow {
     avatar_url: Option<String>,
     google_id: Option<String>,
     github_id: Option<String>,
+    workos_id: Option<String>,
     last_login_at: Option<chrono::DateTime<chrono::Utc>>,
     is_active: bool,
     is_locked: bool,
@@ -61,6 +62,7 @@ impl From<UserRow> for User {
             avatar_url: row.avatar_url,
             google_id: row.google_id,
             github_id: row.github_id,
+            workos_id: row.workos_id,
             last_login_at: row.last_login_at,
             is_active: row.is_active,
             is_locked: row.is_locked,
@@ -74,8 +76,8 @@ impl From<UserRow> for User {
 impl UserRepository for PostgresUserRepository {
     async fn create(&self, user: User) -> UserResult<User> {
         let sql = r#"
-            INSERT INTO users (id, email, name, password_hash, roles, email_verified, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO users (id, email, name, password_hash, roles, email_verified, created_at, updated_at, avatar_url, google_id, github_id, workos_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
         "#;
 
@@ -94,6 +96,10 @@ impl UserRepository for PostgresUserRepository {
                 user.email_verified.into(),
                 user.created_at.into(),
                 user.updated_at.into(),
+                user.avatar_url.clone().into(),
+                user.google_id.clone().into(),
+                user.github_id.clone().into(),
+                user.workos_id.clone().into(),
             ],
         );
 
@@ -157,8 +163,8 @@ impl UserRepository for PostgresUserRepository {
             UPDATE users
             SET email = $2, name = $3, password_hash = $4, roles = $5,
                 email_verified = $6, updated_at = $7, avatar_url = $8, last_login_at = $9,
-                google_id = $10, github_id = $11, is_active = $12, is_locked = $13,
-                failed_login_attempts = $14, locked_until = $15
+                google_id = $10, github_id = $11, workos_id = $12, is_active = $13, is_locked = $14,
+                failed_login_attempts = $15, locked_until = $16
             WHERE id = $1
             RETURNING *
         "#;
@@ -181,6 +187,7 @@ impl UserRepository for PostgresUserRepository {
                 user.last_login_at.into(),
                 user.google_id.clone().into(),
                 user.github_id.clone().into(),
+                user.workos_id.clone().into(),
                 user.is_active.into(),
                 user.is_locked.into(),
                 user.failed_login_attempts.into(),
@@ -218,6 +225,7 @@ impl UserRepository for PostgresUserRepository {
         let sql = match provider {
             Provider::Google => "SELECT * FROM users WHERE google_id = $1",
             Provider::Github => "SELECT * FROM users WHERE github_id = $1",
+            Provider::Workos => "SELECT * FROM users WHERE workos_id = $1",
         };
 
         let stmt = Statement::from_sql_and_values(DbBackend::Postgres, sql, [provider_id.into()]);
@@ -243,6 +251,9 @@ impl UserRepository for PostgresUserRepository {
             }
             Provider::Github => {
                 "UPDATE users SET github_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1"
+            }
+            Provider::Workos => {
+                "UPDATE users SET workos_id = $2, avatar_url = COALESCE($3, avatar_url) WHERE id = $1"
             }
         };
 

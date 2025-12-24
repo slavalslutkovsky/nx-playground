@@ -20,5 +20,6 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+urlencoding = "2.1"
 uuid = { workspace = true }
 validator = { workspace = true }

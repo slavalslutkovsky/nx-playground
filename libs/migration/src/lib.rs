@@ -8,6 +8,8 @@ mod m20241201_000000_seed_initial_data;
 mod m20241206_000000_create_tasks;
 mod m20241206_000001_seed_tasks;
 mod m20241209_000001_create_oauth_accounts;
+mod m20241223_000000_add_oauth_ids_to_users;
+mod m20241224_000000_create_upstream_oauth_tokens;
 
 pub struct Migrator;
 
@@ -23,6 +25,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20241206_000000_create_tasks::Migration),
             Box::new(m20241206_000001_seed_tasks::Migration),
             Box::new(m20241209_000001_create_oauth_accounts::Migration),
+            Box::new(m20241223_000000_add_oauth_ids_to_users::Migration),
+            Box::new(m20241224_000000_create_upstream_oauth_tokens::Migration),
         ]
     }
 }

@@ -4,6 +4,7 @@ pub mod account_repository;
 pub mod providers;
 pub mod state_manager;
 pub mod types;
+pub mod upstream_token;
 
 pub use account::{CreateOAuthAccountParams, OAuthAccount};
 pub use account_linking::{AccountLinkingResult, AccountLinkingService};
@@ -11,3 +12,7 @@ pub use account_repository::{OAuthAccountRepository, PostgresOAuthAccountReposit
 pub use providers::{OAuthProvider, OAuthResult};
 pub use state_manager::OAuthStateManager;
 pub use types::{OAuthCallbackParams, OAuthState, OAuthUserInfo, Provider, TokenResponse};
+pub use upstream_token::{
+    PostgresUpstreamOAuthTokenRepository, UpstreamOAuthToken, UpstreamOAuthTokenRepository,
+    UpsertUpstreamTokenParams,
+};

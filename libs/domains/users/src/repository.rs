@@ -234,6 +234,11 @@ impl UserRepository for InMemoryUserRepository {
                     .as_ref()
                     .map(|id| id == provider_id)
                     .unwrap_or(false),
+                Provider::Workos => u
+                    .workos_id
+                    .as_ref()
+                    .map(|id| id == provider_id)
+                    .unwrap_or(false),
             })
             .cloned();
         Ok(user)
@@ -254,6 +259,9 @@ impl UserRepository for InMemoryUserRepository {
                 }
                 Provider::Github => {
                     user.github_id = Some(provider_id.to_string());
+                }
+                Provider::Workos => {
+                    user.workos_id = Some(provider_id.to_string());
                 }
             }
             if avatar_url.is_some() {
