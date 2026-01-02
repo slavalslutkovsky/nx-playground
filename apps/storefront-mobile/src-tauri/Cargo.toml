@@ -1,0 +1,20 @@
+[package]
+name = "storefront-mobile"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "storefront_mobile_lib"
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-http = "2"
+tauri-plugin-store = "2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }

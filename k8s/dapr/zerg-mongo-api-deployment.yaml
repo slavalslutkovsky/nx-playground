@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-mongo-api
+  labels:
+    app: zerg-mongo-api
+    app.kubernetes.io/name: zerg-mongo-api
+    app.kubernetes.io/part-of: nx-playground
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zerg-mongo-api
+  template:
+    metadata:
+      labels:
+        app: zerg-mongo-api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "zerg-mongo-api"
+        dapr.io/app-port: "3001"
+        dapr.io/app-protocol: "http"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/log-level: "info"
+        dapr.io/config: "daprConfig"
+        dapr.io/enable-metrics: "true"
+        dapr.io/metrics-port: "9090"
+    spec:
+      containers:
+        - name: zerg-mongo-api
+          image: ghcr.io/yurikrupnik/nx-playground/zerg-mongo-api:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: APP_PORT
+              value: "3001"
+            - name: RUST_LOG
+              value: "info"
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: connectionString
+            - name: DAPR_HTTP_PORT
+              value: "3500"
+            - name: DAPR_GRPC_PORT
+              value: "50001"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zerg-mongo-api
+  labels:
+    app: zerg-mongo-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3001
+      protocol: TCP
+      name: http
+  selector:
+    app: zerg-mongo-api

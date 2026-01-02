@@ -1,0 +1,154 @@
+---
+# k6 Load Test Job
+# Run with: kubectl apply -f k6-job.yaml
+# Monitor: kubectl logs -f job/k6-load-test
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-load-test
+  namespace: default
+  labels:
+    app: k6
+    purpose: load-testing
+spec:
+  ttlSecondsAfterFinished: 3600  # Clean up 1 hour after completion
+  backoffLimit: 0  # Don't retry on failure
+  template:
+    metadata:
+      labels:
+        app: k6
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command:
+            - k6
+            - run
+            - --out
+            - json=/results/results.json
+            - /scripts/zerg-api.js
+          env:
+            - name: ZERG_API_URL
+              value: "http://zerg-api.default.svc.cluster.local:3000"
+            - name: ZERG_MONGO_API_URL
+              value: "http://zerg-mongo-api.default.svc.cluster.local:3001"
+            - name: PRODUCTS_API_URL
+              value: "http://products-api.default.svc.cluster.local:3003"
+            - name: K6_OUT
+              value: "json=/results/results.json"
+          volumeMounts:
+            - name: k6-scripts
+              mountPath: /scripts
+            - name: k6-results
+              mountPath: /results
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: k6-scripts
+          configMap:
+            name: k6-tests
+        - name: k6-results
+          emptyDir: {}
+---
+# Job for testing all APIs
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-all-apis-test
+  namespace: default
+  labels:
+    app: k6
+    purpose: load-testing
+    scope: all-apis
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: k6
+    spec:
+      restartPolicy: Never
+      initContainers:
+        # Wait for services to be ready
+        - name: wait-for-services
+          image: busybox:1.35
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for services..."
+              until wget -q --spider http://zerg-api.default.svc.cluster.local:3000/health 2>/dev/null; do
+                echo "Waiting for zerg-api..."
+                sleep 5
+              done
+              echo "zerg-api is ready"
+              until wget -q --spider http://zerg-mongo-api.default.svc.cluster.local:3001/health 2>/dev/null; do
+                echo "Waiting for zerg-mongo-api..."
+                sleep 5
+              done
+              echo "zerg-mongo-api is ready"
+              until wget -q --spider http://products-api.default.svc.cluster.local:3003/health 2>/dev/null; do
+                echo "Waiting for products-api..."
+                sleep 5
+              done
+              echo "All services are ready!"
+      containers:
+        - name: k6-zerg-api
+          image: grafana/k6:latest
+          command: ["k6", "run", "/scripts/zerg-api.js"]
+          env:
+            - name: ZERG_API_URL
+              value: "http://zerg-api.default.svc.cluster.local:3000"
+          volumeMounts:
+            - name: k6-scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+        - name: k6-zerg-mongo-api
+          image: grafana/k6:latest
+          command: ["k6", "run", "/scripts/zerg-mongo-api.js"]
+          env:
+            - name: ZERG_MONGO_API_URL
+              value: "http://zerg-mongo-api.default.svc.cluster.local:3001"
+          volumeMounts:
+            - name: k6-scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+        - name: k6-products-api
+          image: grafana/k6:latest
+          command: ["k6", "run", "/scripts/products-api.js"]
+          env:
+            - name: PRODUCTS_API_URL
+              value: "http://products-api.default.svc.cluster.local:3003"
+          volumeMounts:
+            - name: k6-scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+      volumes:
+        - name: k6-scripts
+          configMap:
+            name: k6-tests

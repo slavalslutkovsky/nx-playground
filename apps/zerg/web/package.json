@@ -21,10 +21,12 @@
     "typescript": "^5.7.2",
     "vite": "^7.1.4",
     "vite-plugin-solid": "2.11.9",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "@sentry/vite-plugin": "^2.22.0"
   },
   "dependencies": {
     "@domain/tasks": "workspace:*",
+    "@sentry/browser": "^8.42.0",
     "@tanstack/solid-query": "^5.90.15",
     "@tanstack/solid-router": "^1.139.14",
     "class-variance-authority": "^0.7.1",

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-tasks
+  labels:
+    app: zerg-tasks
+    app.kubernetes.io/name: zerg-tasks
+    app.kubernetes.io/part-of: nx-playground
+spec:
+  replicas: 1  # Single replica for background worker
+  selector:
+    matchLabels:
+      app: zerg-tasks
+  template:
+    metadata:
+      labels:
+        app: zerg-tasks
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "zerg-tasks"
+        dapr.io/app-port: "3002"
+        dapr.io/app-protocol: "http"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/log-level: "info"
+        dapr.io/config: "daprConfig"
+        dapr.io/enable-metrics: "true"
+        dapr.io/metrics-port: "9090"
+    spec:
+      containers:
+        - name: zerg-tasks
+          image: ghcr.io/yurikrupnik/nx-playground/zerg-tasks:latest
+          ports:
+            - containerPort: 3002
+              name: http
+          env:
+            - name: APP_PORT
+              value: "3002"
+            - name: RUST_LOG
+              value: "info"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: connectionString
+            - name: DAPR_HTTP_PORT
+              value: "3500"
+            - name: DAPR_GRPC_PORT
+              value: "50001"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zerg-tasks
+  labels:
+    app: zerg-tasks
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3002
+      protocol: TCP
+      name: http
+  selector:
+    app: zerg-tasks

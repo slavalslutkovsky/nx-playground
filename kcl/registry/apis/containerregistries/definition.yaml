@@ -1,0 +1,308 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: containerregistries.platform.yurikrupnik.com
+spec:
+  group: platform.yurikrupnik.com
+  names:
+    categories:
+    - crossplane
+    - registry
+    - containers
+    kind: ContainerRegistry
+    plural: containerregistries
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        description: |
+          ContainerRegistry is a multi-cloud container registry abstraction supporting
+          AWS ECR, GCP Artifact Registry, and Azure Container Registry. Includes
+          security scanning, lifecycle policies, replication, and access control.
+        properties:
+          spec:
+            description: ContainerRegistrySpec defines the desired state of ContainerRegistry.
+            properties:
+              parameters:
+                description: Parameters for the container registry across all providers.
+                properties:
+                  # Core Configuration
+                  region:
+                    description: Primary region/location for the registry
+                    type: string
+                  repositoryName:
+                    description: Name of the repository (used as prefix for multi-repo setups)
+                    type: string
+                  tags:
+                    description: Tags/labels to apply to all resources
+                    type: object
+                    additionalProperties:
+                      type: string
+
+                  # Image Settings
+                  imageTagMutability:
+                    description: Whether image tags can be overwritten
+                    type: string
+                    enum: ["MUTABLE", "IMMUTABLE"]
+                    default: "MUTABLE"
+
+                  # Security Configuration
+                  security:
+                    description: Security configuration for the registry
+                    type: object
+                    properties:
+                      scanOnPush:
+                        description: Enable automatic vulnerability scanning on image push
+                        type: boolean
+                        default: true
+                      encryptionType:
+                        description: Encryption type for images at rest
+                        type: string
+                        enum: ["AES256", "KMS"]
+                        default: "AES256"
+                      kmsKeyId:
+                        description: KMS key ID for encryption (required if encryptionType is KMS)
+                        type: string
+                      publicAccess:
+                        description: Allow public access to the registry (not recommended)
+                        type: boolean
+                        default: false
+
+                  # Lifecycle Policy
+                  lifecycle:
+                    description: Image lifecycle policy configuration
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable lifecycle policies for automatic cleanup
+                        type: boolean
+                        default: true
+                      maxImageAge:
+                        description: Maximum age of untagged images in days
+                        type: integer
+                        default: 14
+                        minimum: 1
+                        maximum: 365
+                      maxImageCount:
+                        description: Maximum number of images to retain
+                        type: integer
+                        default: 100
+                        minimum: 1
+                        maximum: 10000
+                      keepTagPatterns:
+                        description: Tag patterns to always keep (e.g., "v*", "release-*")
+                        type: array
+                        items:
+                          type: string
+                        default: ["latest", "v*"]
+
+                  # Replication Configuration
+                  replication:
+                    description: Cross-region replication configuration
+                    type: object
+                    properties:
+                      enabled:
+                        description: Enable cross-region replication
+                        type: boolean
+                        default: false
+                      destinationRegions:
+                        description: List of regions to replicate to
+                        type: array
+                        items:
+                          type: string
+                        default: []
+
+                  # Access Control
+                  accessControl:
+                    description: Access control configuration
+                    type: object
+                    properties:
+                      pullPrincipals:
+                        description: IAM principals (ARNs/emails) that can pull images
+                        type: array
+                        items:
+                          type: string
+                        default: []
+                      pushPrincipals:
+                        description: IAM principals (ARNs/emails) that can push images
+                        type: array
+                        items:
+                          type: string
+                        default: []
+                      adminPrincipals:
+                        description: IAM principals (ARNs/emails) with admin access
+                        type: array
+                        items:
+                          type: string
+                        default: []
+
+                  # AWS ECR-specific parameters
+                  aws:
+                    description: AWS ECR specific configuration
+                    type: object
+                    properties:
+                      forceDelete:
+                        description: Force delete repository even if it contains images
+                        type: boolean
+                        default: false
+                      scanType:
+                        description: Type of scanning (BASIC or ENHANCED)
+                        type: string
+                        enum: ["BASIC", "ENHANCED"]
+                        default: "BASIC"
+                      pullThroughCache:
+                        description: Pull-through cache configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable pull-through cache rules
+                            type: boolean
+                            default: false
+                          upstreamRegistries:
+                            description: List of upstream registries to cache
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                prefix:
+                                  description: ECR repository prefix
+                                  type: string
+                                upstream:
+                                  description: Upstream registry URL
+                                  type: string
+                                  enum: ["public.ecr.aws", "quay.io", "registry.k8s.io", "docker.io", "ghcr.io"]
+
+                  # GCP Artifact Registry-specific parameters
+                  gcp:
+                    description: GCP Artifact Registry specific configuration
+                    type: object
+                    properties:
+                      project:
+                        description: GCP project ID
+                        type: string
+                      format:
+                        description: Repository format
+                        type: string
+                        enum: ["DOCKER", "MAVEN", "NPM", "PYTHON", "APT", "YUM", "GO", "KFP"]
+                        default: "DOCKER"
+                      mode:
+                        description: Repository mode
+                        type: string
+                        enum: ["STANDARD_REPOSITORY", "REMOTE_REPOSITORY", "VIRTUAL_REPOSITORY"]
+                        default: "STANDARD_REPOSITORY"
+                      cleanupPolicies:
+                        description: Cleanup policies for the repository
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable cleanup policies
+                            type: boolean
+                            default: true
+                          dryRun:
+                            description: Run in dry-run mode (don't actually delete)
+                            type: boolean
+                            default: false
+
+                  # Azure ACR-specific parameters
+                  azure:
+                    description: Azure Container Registry specific configuration
+                    type: object
+                    properties:
+                      resourceGroup:
+                        description: Azure resource group name
+                        type: string
+                      sku:
+                        description: ACR SKU tier
+                        type: string
+                        enum: ["Basic", "Standard", "Premium"]
+                        default: "Standard"
+                      adminUserEnabled:
+                        description: Enable admin user for the registry
+                        type: boolean
+                        default: false
+                      zoneRedundancy:
+                        description: Enable zone redundancy (Premium SKU only)
+                        type: boolean
+                        default: false
+                      networkRules:
+                        description: Network access rules
+                        type: object
+                        properties:
+                          defaultAction:
+                            description: Default network action
+                            type: string
+                            enum: ["Allow", "Deny"]
+                            default: "Allow"
+                          ipRules:
+                            description: IP addresses/ranges to allow
+                            type: array
+                            items:
+                              type: string
+                            default: []
+                          virtualNetworkRules:
+                            description: Virtual network subnet IDs to allow
+                            type: array
+                            items:
+                              type: string
+                            default: []
+                      retentionPolicy:
+                        description: Retention policy for untagged manifests
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable retention policy
+                            type: boolean
+                            default: true
+                          days:
+                            description: Days to retain untagged manifests
+                            type: integer
+                            default: 7
+                            minimum: 0
+                            maximum: 365
+                      trustPolicy:
+                        description: Content trust policy
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable content trust (image signing)
+                            type: boolean
+                            default: false
+                type: object
+                required:
+                - region
+                - repositoryName
+            type: object
+          status:
+            description: ContainerRegistryStatus defines the observed state of ContainerRegistry.
+            properties:
+              providers:
+                description: List of active providers for this registry
+                type: array
+                items:
+                  type: string
+              registryUrls:
+                description: Registry URLs/endpoints per provider
+                type: object
+                additionalProperties:
+                  type: string
+              repositoryArns:
+                description: Repository ARNs per provider
+                type: object
+                additionalProperties:
+                  type: string
+              scanningEnabled:
+                description: Whether scanning is enabled per provider
+                type: object
+                additionalProperties:
+                  type: boolean
+              ready:
+                description: Overall readiness status
+                type: boolean
+                default: false
+            type: object
+        required:
+        - spec
+        type: object
+    served: true

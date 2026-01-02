@@ -11,13 +11,18 @@ import {
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
+import { SentryErrorBoundary } from './components/error-boundary';
 import { ProtectedRoute } from './components/protected-route';
 import { UserMenu } from './components/user-menu';
 import { AuthProvider } from './lib/auth-context';
+import { initSentry } from './lib/sentry';
 import { LoginPage } from './pages/login';
 import { RegisterPage } from './pages/register';
 import { TaskDetailPage } from './pages/task-detail';
 import { TasksListPage } from './pages/tasks-list';
+
+// Initialize Sentry before anything else
+initSentry();
 
 const queryClient = new QueryClient();
 
@@ -113,11 +118,13 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 if (root) {
   render(
     () => (
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </QueryClientProvider>
+      <SentryErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </QueryClientProvider>
+      </SentryErrorBoundary>
     ),
     root,
   );

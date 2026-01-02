@@ -1,0 +1,41 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-nats
+  namespace: default
+spec:
+  type: pubsub.nats-jetstream
+  version: v1
+  metadata:
+    - name: natsURL
+      value: "nats://localhost:4222"
+    - name: name
+      value: "products-stream"
+    - name: durableName
+      value: "products-consumer"
+    - name: queueGroupName
+      value: "products-queue"
+    - name: startSequence
+      value: "1"
+    - name: startTime
+      value: ""
+    - name: flowControl
+      value: "false"
+    - name: ackWait
+      value: "30s"
+    - name: maxDeliver
+      value: "5"
+    - name: backOff
+      value: "1s,5s,10s"
+    - name: maxAckPending
+      value: "1000"
+    - name: replicas
+      value: "1"
+    - name: memoryStorage
+      value: "false"
+    - name: rateLimit
+      value: "0"
+    - name: heartbeat
+      value: "15s"
+scopes:
+  - products-api

@@ -199,20 +199,20 @@ impl Priority {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             Self::Unspecified => "PRIORITY_UNSPECIFIED",
-            Self::Low => "LOW",
-            Self::Medium => "MEDIUM",
-            Self::High => "HIGH",
-            Self::Urgent => "URGENT",
+            Self::Low => "PRIORITY_LOW",
+            Self::Medium => "PRIORITY_MEDIUM",
+            Self::High => "PRIORITY_HIGH",
+            Self::Urgent => "PRIORITY_URGENT",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "PRIORITY_UNSPECIFIED" => Some(Self::Unspecified),
-            "LOW" => Some(Self::Low),
-            "MEDIUM" => Some(Self::Medium),
-            "HIGH" => Some(Self::High),
-            "URGENT" => Some(Self::Urgent),
+            "PRIORITY_LOW" => Some(Self::Low),
+            "PRIORITY_MEDIUM" => Some(Self::Medium),
+            "PRIORITY_HIGH" => Some(Self::High),
+            "PRIORITY_URGENT" => Some(Self::Urgent),
             _ => None,
         }
     }
@@ -233,18 +233,18 @@ impl Status {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             Self::Unspecified => "STATUS_UNSPECIFIED",
-            Self::Todo => "TODO",
-            Self::InProgress => "IN_PROGRESS",
-            Self::Done => "DONE",
+            Self::Todo => "STATUS_TODO",
+            Self::InProgress => "STATUS_IN_PROGRESS",
+            Self::Done => "STATUS_DONE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "STATUS_UNSPECIFIED" => Some(Self::Unspecified),
-            "TODO" => Some(Self::Todo),
-            "IN_PROGRESS" => Some(Self::InProgress),
-            "DONE" => Some(Self::Done),
+            "STATUS_TODO" => Some(Self::Todo),
+            "STATUS_IN_PROGRESS" => Some(Self::InProgress),
+            "STATUS_DONE" => Some(Self::Done),
             _ => None,
         }
     }

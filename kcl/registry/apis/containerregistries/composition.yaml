@@ -1,0 +1,32 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: containerregistries.platform.yurikrupnik.com
+  labels:
+    crossplane.io/xrd: containerregistries.platform.yurikrupnik.com
+  annotations:
+    description: |
+      Multi-cloud container registry composition using KCL functions.
+      Supports AWS ECR, GCP Artifact Registry, and Azure Container Registry
+      with security scanning, lifecycle policies, and replication.
+spec:
+  compositeTypeRef:
+    apiVersion: platform.yurikrupnik.com/v1alpha1
+    kind: ContainerRegistry
+  mode: Pipeline
+  pipeline:
+  - step: create-registry-resources
+    functionRef:
+      name: function-kcl
+    input:
+      apiVersion: krm.kcl.dev/v1alpha1
+      kind: KCLInput
+      metadata:
+        name: registry-function
+      spec:
+        source: |
+          # Import the unified registry function
+          import functions.registry.composition as comp
+
+          # Output the rendered items
+          items = comp.items

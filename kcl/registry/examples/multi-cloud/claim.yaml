@@ -1,0 +1,80 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: global-registry
+  namespace: default
+  labels:
+    cloud.provider/aws: "true"
+    cloud.provider/gcp: "true"
+    cloud.provider/azure: "true"
+    environment: production
+    multi-cloud: "true"
+spec:
+  parameters:
+    region: us-east-1
+    repositoryName: global-app
+    imageTagMutability: IMMUTABLE
+    tags:
+      Environment: production
+      Team: platform
+      CostCenter: infrastructure
+      ManagedBy: crossplane
+      MultiCloud: "true"
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 60
+      maxImageCount: 500
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+        - "release-*"
+        - "sha-*"
+
+    replication:
+      enabled: true
+      destinationRegions:
+        - us-west-2
+        - eu-west-1
+        - ap-northeast-1
+
+    accessControl:
+      pullPrincipals:
+        - "arn:aws:iam::123456789012:role/CrossCloudPull"
+      pushPrincipals:
+        - "arn:aws:iam::123456789012:role/CrossCloudPush"
+
+    aws:
+      forceDelete: false
+      scanType: ENHANCED
+      pullThroughCache:
+        enabled: true
+        upstreamRegistries:
+          - prefix: "docker-hub"
+            upstream: "docker.io"
+
+    gcp:
+      project: global-platform-project
+      format: DOCKER
+      mode: STANDARD_REPOSITORY
+      cleanupPolicies:
+        enabled: true
+        dryRun: false
+
+    azure:
+      resourceGroup: global-registry-rg
+      sku: Premium
+      adminUserEnabled: false
+      zoneRedundancy: true
+      networkRules:
+        defaultAction: Allow
+      retentionPolicy:
+        enabled: true
+        days: 14
+      trustPolicy:
+        enabled: true

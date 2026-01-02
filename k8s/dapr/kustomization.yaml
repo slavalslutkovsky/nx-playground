@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: nx-playground-dapr
+
+namespace: default
+
+resources:
+  - zerg-api-deployment.yaml
+  - zerg-mongo-api-deployment.yaml
+  - zerg-tasks-deployment.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  dapr.io/enabled: "true"
+
+# Image customization for different environments
+images:
+  - name: yurikrupnik/zerg-api
+    newTag: latest
+  - name: yurikrupni/zerg-mongo-api
+    newTag: latest
+  - name: yurikrupnik/zerg-tasks
+    newTag: latest
+
+# ConfigMap generator for environment-specific settings
+configMapGenerator:
+  - name: dapr-config
+    literals:
+      - DAPR_LOG_LEVEL=info
+      - DAPR_HTTP_PORT=3500
+      - DAPR_GRPC_PORT=50001
+
+# Secret generator (use external secrets in production)
+secretGenerator:
+  - name: postgres-secret
+    literals:
+      - connectionString=postgres://postgres:postgres@postgres:5432/nx_playground
+  - name: mongo-secret
+    literals:
+      - connectionString=mongodb://mongodb:27017/nx_playground

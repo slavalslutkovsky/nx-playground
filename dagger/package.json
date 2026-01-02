@@ -1,0 +1,17 @@
+{
+  "name": "nx-playground-dagger",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "dagger develop",
+    "call": "dagger call"
+  },
+  "dependencies": {
+    "@dagger.io/dagger": "^0.14.0",
+    "typescript": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

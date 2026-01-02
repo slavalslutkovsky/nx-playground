@@ -1,0 +1,51 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: test-multicloud-registry
+  namespace: default
+  labels:
+    cloud.provider/aws: "true"
+    cloud.provider/gcp: "true"
+    cloud.provider/azure: "true"
+spec:
+  parameters:
+    region: us-east-1
+    repositoryName: shared-app
+    imageTagMutability: IMMUTABLE
+    tags:
+      Environment: integration-test
+      Team: platform
+      MultiCloud: "true"
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 14
+      maxImageCount: 200
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+        - "sha-*"
+
+    replication:
+      enabled: true
+      destinationRegions:
+        - us-west-2
+        - eu-west-1
+
+    aws:
+      scanType: ENHANCED
+      forceDelete: false
+
+    gcp:
+      project: multicloud-project
+      format: DOCKER
+
+    azure:
+      resourceGroup: multicloud-rg
+      sku: Premium
+      zoneRedundancy: true

@@ -1,0 +1,32 @@
+[package]
+name = "zerg_nats_worker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Messaging
+async-nats = "0.40"
+
+# Async runtime
+tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Domain
+domain_tasks = { path = "../../../libs/domains/tasks" }
+
+# Core libs
+core_config = { workspace = true }
+eyre = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Utils
+uuid = { workspace = true }
+chrono = { workspace = true }

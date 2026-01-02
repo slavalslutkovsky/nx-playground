@@ -1,0 +1,311 @@
+syntax = "proto3";
+
+package products;
+
+option go_package = "grpc/products";
+
+// ProductsService with inventory management
+service ProductsService {
+  // CRUD Operations
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc GetById(GetByIdRequest) returns (GetByIdResponse) {}
+  rpc GetBySku(GetBySkuRequest) returns (GetBySkuResponse) {}
+  rpc GetByBarcode(GetByBarcodeRequest) returns (GetByBarcodeResponse) {}
+  rpc UpdateById(UpdateByIdRequest) returns (UpdateByIdResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (DeleteByIdResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {}
+  rpc ListStream(ListStreamRequest) returns (stream ListStreamResponse) {}
+  rpc Search(SearchRequest) returns (SearchResponse) {}
+  rpc Count(CountRequest) returns (CountResponse) {}
+
+  // Category Operations
+  rpc GetByCategory(GetByCategoryRequest) returns (GetByCategoryResponse) {}
+
+  // Inventory Operations
+  rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse) {}
+  rpc ReserveStock(ReserveStockRequest) returns (ReservationResponse) {}
+  rpc ReleaseStock(ReleaseStockRequest) returns (ReleaseStockResponse) {}
+  rpc CommitStock(CommitStockRequest) returns (CommitStockResponse) {}
+  rpc GetLowStock(GetLowStockRequest) returns (GetLowStockResponse) {}
+
+  // Status Operations
+  rpc Activate(ActivateRequest) returns (ActivateResponse) {}
+  rpc Deactivate(DeactivateRequest) returns (DeactivateResponse) {}
+  rpc Discontinue(DiscontinueRequest) returns (DiscontinueResponse) {}
+}
+
+// Product Status
+enum ProductStatus {
+  PRODUCT_STATUS_UNSPECIFIED = 0;
+  PRODUCT_STATUS_ACTIVE = 1;
+  PRODUCT_STATUS_INACTIVE = 2;
+  PRODUCT_STATUS_OUT_OF_STOCK = 3;
+  PRODUCT_STATUS_DISCONTINUED = 4;
+  PRODUCT_STATUS_DRAFT = 5;
+}
+
+// Product Category
+enum ProductCategory {
+  PRODUCT_CATEGORY_UNSPECIFIED = 0;
+  PRODUCT_CATEGORY_GENERAL = 1;
+  PRODUCT_CATEGORY_ELECTRONICS = 2;
+  PRODUCT_CATEGORY_CLOTHING = 3;
+  PRODUCT_CATEGORY_FOOD = 4;
+  PRODUCT_CATEGORY_BOOKS = 5;
+  PRODUCT_CATEGORY_HOME_GARDEN = 6;
+  PRODUCT_CATEGORY_SPORTS = 7;
+  PRODUCT_CATEGORY_TOYS = 8;
+  PRODUCT_CATEGORY_HEALTH = 9;
+  PRODUCT_CATEGORY_AUTOMOTIVE = 10;
+  PRODUCT_CATEGORY_OTHER = 11;
+}
+
+// Product Image
+message ProductImage {
+  string url = 1;
+  optional string alt = 2;
+  bool is_primary = 3;
+  int32 sort_order = 4;
+}
+
+// Shared Product data structure
+message Product {
+  bytes id = 1; // 16 bytes UUID
+  string name = 2;
+  string description = 3;
+  int64 price = 4; // Price in cents
+  double display_price = 5; // Price in decimal
+  int32 stock = 6;
+  int32 reserved_stock = 7;
+  ProductCategory category = 8;
+  ProductStatus status = 9;
+  repeated ProductImage images = 10;
+  optional string sku = 11;
+  optional string barcode = 12;
+  optional string brand = 13;
+  optional int32 weight = 14;
+  repeated string tags = 15;
+  optional string metadata = 16; // JSON string
+  int64 created_at = 17; // Unix timestamp
+  int64 updated_at = 18; // Unix timestamp
+}
+
+// Create product request
+message CreateRequest {
+  string name = 1;
+  string description = 2;
+  int64 price = 3; // Price in cents for precision
+  int32 stock = 4;
+  ProductCategory category = 5;
+  ProductStatus status = 6;
+  repeated ProductImage images = 7;
+  optional string sku = 8;
+  optional string barcode = 9;
+  optional string brand = 10;
+  optional int32 weight = 11; // Weight in grams
+  repeated string tags = 12;
+  optional string metadata = 13; // JSON string
+}
+
+message CreateResponse {
+  Product product = 1;
+}
+
+// Get by ID request/response
+message GetByIdRequest {
+  bytes id = 1; // Binary UUID
+}
+
+message GetByIdResponse {
+  Product product = 1;
+}
+
+// Get by SKU request/response
+message GetBySkuRequest {
+  string sku = 1;
+}
+
+message GetBySkuResponse {
+  Product product = 1;
+}
+
+// Get by barcode request/response
+message GetByBarcodeRequest {
+  string barcode = 1;
+}
+
+message GetByBarcodeResponse {
+  Product product = 1;
+}
+
+// Update product request/response
+message UpdateByIdRequest {
+  bytes id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional int64 price = 4;
+  optional int32 stock = 5;
+  optional ProductCategory category = 6;
+  optional ProductStatus status = 7;
+  repeated ProductImage images = 8;
+  optional string sku = 9;
+  optional string barcode = 10;
+  optional string brand = 11;
+  optional int32 weight = 12;
+  repeated string tags = 13;
+  optional string metadata = 14;
+}
+
+message UpdateByIdResponse {
+  Product product = 1;
+}
+
+// Delete by ID request/response
+message DeleteByIdRequest {
+  bytes id = 1;
+}
+
+message DeleteByIdResponse {}
+
+// List products request with filters
+message ListRequest {
+  optional ProductStatus status = 1;
+  optional ProductCategory category = 2;
+  optional string brand = 3;
+  optional int64 min_price = 4;
+  optional int64 max_price = 5;
+  optional bool in_stock = 6;
+  optional string tag = 7;
+  optional string search = 8;
+  int32 limit = 9;
+  int64 offset = 10;
+}
+
+// List response
+message ListResponse {
+  repeated Product data = 1;
+  int64 total = 2;
+}
+
+// Streaming list request/response
+message ListStreamRequest {
+  optional ProductStatus status = 1;
+  optional ProductCategory category = 2;
+  optional bool in_stock = 3;
+  int32 limit = 4;
+}
+
+message ListStreamResponse {
+  Product product = 1;
+}
+
+// Search request/response
+message SearchRequest {
+  string query = 1;
+  int32 limit = 2;
+  int64 offset = 3;
+}
+
+message SearchResponse {
+  repeated Product data = 1;
+  int64 total = 2;
+}
+
+// Count request/response
+message CountRequest {
+  optional ProductStatus status = 1;
+  optional ProductCategory category = 2;
+  optional bool in_stock = 3;
+}
+
+message CountResponse {
+  int64 count = 1;
+}
+
+// Get by category request/response
+message GetByCategoryRequest {
+  ProductCategory category = 1;
+  int32 limit = 2;
+  int64 offset = 3;
+}
+
+message GetByCategoryResponse {
+  repeated Product data = 1;
+  int64 total = 2;
+}
+
+// Stock operations
+message UpdateStockRequest {
+  bytes id = 1;
+  int32 quantity_change = 2; // Positive to add, negative to remove
+  string reason = 3;
+}
+
+message UpdateStockResponse {
+  Product product = 1;
+}
+
+message ReserveStockRequest {
+  bytes id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+  optional int32 ttl_seconds = 4; // Reservation TTL, default 900 (15 min)
+}
+
+message ReservationResponse {
+  string reservation_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message ReleaseStockRequest {
+  bytes id = 1;
+  int32 quantity = 2;
+}
+
+message ReleaseStockResponse {
+  Product product = 1;
+}
+
+message CommitStockRequest {
+  bytes id = 1;
+  int32 quantity = 2;
+}
+
+message CommitStockResponse {
+  Product product = 1;
+}
+
+message GetLowStockRequest {
+  int32 threshold = 1; // Default 10
+  int32 limit = 2;
+}
+
+message GetLowStockResponse {
+  repeated Product data = 1;
+}
+
+// Status change requests/responses
+message ActivateRequest {
+  bytes id = 1;
+}
+
+message ActivateResponse {
+  Product product = 1;
+}
+
+message DeactivateRequest {
+  bytes id = 1;
+}
+
+message DeactivateResponse {
+  Product product = 1;
+}
+
+message DiscontinueRequest {
+  bytes id = 1;
+}
+
+message DiscontinueResponse {
+  Product product = 1;
+}

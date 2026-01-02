@@ -1,0 +1,19 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: my-aws-bucket
+  namespace: default
+  labels:
+    # Provider selection label - AWS only
+    cloud.provider/aws: "true"
+spec:
+  parameters:
+    location: us-east-1
+    acl: private
+    version: true
+    tags:
+      environment: dev
+      team: platform
+    aws:
+      region: us-east-1
+      objectLockEnabled: false

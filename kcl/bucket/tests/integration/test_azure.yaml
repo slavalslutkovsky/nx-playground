@@ -1,0 +1,35 @@
+# Integration test: Azure Blob Storage creation
+# This test validates the full composition pipeline for Azure
+
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: integration-test-azure
+  namespace: crossplane-test
+  labels:
+    cloud.provider/azure: "true"
+    test.crossplane.io/type: integration
+spec:
+  parameters:
+    location: eastus
+    acl: private
+    version: true
+    tags:
+      test: integration
+      provider: azure
+    azure:
+      resourceGroup: test-rg
+      accountTier: Standard
+      accountReplicationType: LRS
+---
+# Expected outputs validation
+apiVersion: storage.azure.upbound.io/v1beta2
+kind: Account
+metadata:
+  name: integrationtestazuresa
+  labels:
+    cloud.provider/azure: "true"
+spec:
+  forProvider:
+    location: eastus
+    accountTier: Standard

@@ -1,0 +1,50 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: production-artifact-registry
+  namespace: default
+  labels:
+    cloud.provider/gcp: "true"
+    environment: production
+spec:
+  parameters:
+    region: us-central1
+    repositoryName: production-app
+    imageTagMutability: IMMUTABLE
+    tags:
+      environment: production
+      team: platform
+      cost-center: infrastructure
+      managed-by: crossplane
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 90
+      maxImageCount: 1000
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+        - "release-*"
+
+    accessControl:
+      pullPrincipals:
+        - "serviceAccount:gke-prod-nodes@production-project.iam.gserviceaccount.com"
+        - "serviceAccount:cloud-run@production-project.iam.gserviceaccount.com"
+      pushPrincipals:
+        - "serviceAccount:github-cicd@production-project.iam.gserviceaccount.com"
+        - "serviceAccount:cloud-build@production-project.iam.gserviceaccount.com"
+      adminPrincipals:
+        - "group:platform-admins@example.com"
+
+    gcp:
+      project: production-project-123
+      format: DOCKER
+      mode: STANDARD_REPOSITORY
+      cleanupPolicies:
+        enabled: true
+        dryRun: false

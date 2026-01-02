@@ -1,0 +1,490 @@
+version: "3.8"
+
+# =============================================================================
+# Dapr Development Environment for Nx Monorepo
+# Usage: docker-compose -f docker-compose.dapr.yml up -d
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: dapr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dapr-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: dapr-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nx_playground
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dapr-network
+
+  mongodb:
+    image: mongo:7
+    container_name: dapr-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ping:1})"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dapr-network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: dapr-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["--jetstream", "--http_port", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dapr-network
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: dapr-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
+      DOCKER_INFLUXDB_INIT_ORG: nx-playground
+      DOCKER_INFLUXDB_INIT_BUCKET: events
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: dev-token-nx-playground
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dapr-network
+
+  # ===========================================================================
+  # Observability Stack
+  # ===========================================================================
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: dapr-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - dapr-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: dapr-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+    depends_on:
+      - zipkin
+    networks:
+      - dapr-network
+
+  # ===========================================================================
+  # Dapr Placement Service (for Actors)
+  # ===========================================================================
+
+  placement:
+    image: "daprio/dapr:1.14.4"
+    container_name: dapr-placement
+    command: ["./placement", "-port", "50006"]
+    ports:
+      - "50006:50006"
+    networks:
+      - dapr-network
+
+  # ===========================================================================
+  # Application Services with Dapr Sidecars
+  # ===========================================================================
+
+  # Zerg API Service
+  zerg-api:
+    build:
+      context: .
+      dockerfile: apps/zerg/api/Dockerfile
+    container_name: zerg-api
+    environment:
+      - APP_PORT=3000
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/nx_playground
+      - REDIS_URL=redis://redis:6379
+      - RUST_LOG=info
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=zerg-api"
+      - "dapr.io/app-port=3000"
+
+  zerg-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: zerg-api-dapr
+    command: [
+      "./daprd",
+      "-app-id", "zerg-api",
+      "-app-port", "3000",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - zerg-api
+      - placement
+      - redis
+    network_mode: "service:zerg-api"
+
+  # Zerg Mongo API Service
+  zerg-mongo-api:
+    build:
+      context: .
+      dockerfile: apps/zerg-mongo-api/Dockerfile
+    container_name: zerg-mongo-api
+    environment:
+      - APP_PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/nx_playground
+      - REDIS_URL=redis://redis:6379
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=dev-token-nx-playground
+      - INFLUXDB_ORG=nx-playground
+      - INFLUXDB_BUCKET=events
+      - DAPR_HTTP_PORT=3500
+      - RUST_LOG=info
+    ports:
+      - "3001:3001"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=zerg-mongo-api"
+      - "dapr.io/app-port=3001"
+
+  zerg-mongo-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: zerg-mongo-api-dapr
+    command: [
+      "./daprd",
+      "-app-id", "zerg-mongo-api",
+      "-app-port", "3001",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - zerg-mongo-api
+      - placement
+      - redis
+    network_mode: "service:zerg-mongo-api"
+
+  # Zerg Tasks Service (Background Worker)
+  zerg-tasks:
+    build:
+      context: .
+      dockerfile: apps/zerg/tasks/Dockerfile
+    container_name: zerg-tasks
+    environment:
+      - APP_PORT=3002
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/nx_playground
+      - REDIS_URL=redis://redis:6379
+      - RUST_LOG=info
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=zerg-tasks"
+      - "dapr.io/app-port=3002"
+
+  zerg-tasks-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: zerg-tasks-dapr
+    command: [
+      "./daprd",
+      "-app-id", "zerg-tasks",
+      "-app-port", "3002",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - zerg-tasks
+      - placement
+      - redis
+    network_mode: "service:zerg-tasks"
+
+  # Products API Service
+  products-api:
+    build:
+      context: .
+      dockerfile: apps/products-api/Dockerfile
+    container_name: products-api
+    environment:
+      - APP_PORT=3003
+      - GRPC_PORT=50051
+      - MONGODB_URI=mongodb://mongodb:27017/nx_playground
+      - REDIS_URL=redis://redis:6379
+      - DAPR_HTTP_PORT=3500
+      - RUST_LOG=info
+    ports:
+      - "3003:3003"
+      - "50051:50051"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=products-api"
+      - "dapr.io/app-port=3003"
+
+  products-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: products-api-dapr
+    command: [
+      "./daprd",
+      "-app-id", "products-api",
+      "-app-port", "3003",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - products-api
+      - placement
+      - redis
+      - nats
+    network_mode: "service:products-api"
+
+  # Products NATS API (NestJS)
+  products-nats-api:
+    build:
+      context: ./apps/products-nats-api
+      dockerfile: Dockerfile
+    container_name: products-nats-api
+    environment:
+      - APP_PORT=3010
+      - NATS_URL=nats://nats:4222
+      - NODE_ENV=production
+    ports:
+      - "3010:3010"
+    depends_on:
+      nats:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=products-nats-api"
+      - "dapr.io/app-port=3010"
+
+  products-nats-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: products-nats-api-dapr
+    command: [
+      "./daprd",
+      "-app-id", "products-nats-api",
+      "-app-port", "3010",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - products-nats-api
+      - placement
+      - nats
+    network_mode: "service:products-nats-api"
+
+  # Storefront (Astro SSR)
+  storefront:
+    build:
+      context: ./apps/storefront
+      dockerfile: Dockerfile
+    container_name: storefront
+    environment:
+      - PUBLIC_API_URL=http://products-api:3003
+      - HOST=0.0.0.0
+      - PORT=4321
+    ports:
+      - "4321:4321"
+    depends_on:
+      - products-api
+    networks:
+      - dapr-network
+
+  # Zerg Web (Node.js Frontend)
+  zerg-web:
+    build:
+      context: ./apps/zerg/web
+      dockerfile: Dockerfile
+    container_name: zerg-web
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://zerg-api:3000
+    ports:
+      - "8080:80"
+    depends_on:
+      - zerg-api
+    networks:
+      - dapr-network
+
+  # ===========================================================================
+  # Inventory API Service (gRPC with Dapr State Store)
+  # ===========================================================================
+
+  inventory-api:
+    build:
+      context: .
+      dockerfile: apps/inventory-api/Dockerfile
+    container_name: inventory-api
+    environment:
+      - GRPC_PORT=50052
+      - HTTP_PORT=8082
+      - DAPR_HTTP_PORT=3500
+      - DAPR_GRPC_PORT=50001
+      - DAPR_STATE_STORE=inventory-store
+      - DAPR_PUBSUB=inventory-pubsub
+      - STOCK_EVENTS_TOPIC=stock-events
+      - RUST_LOG=info
+    ports:
+      - "50052:50052"   # gRPC
+      - "8082:8082"     # HTTP health
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - dapr-network
+    labels:
+      - "dapr.io/enabled=true"
+      - "dapr.io/app-id=inventory-api"
+      - "dapr.io/app-port=50052"
+      - "dapr.io/app-protocol=grpc"
+
+  inventory-api-dapr:
+    image: "daprio/daprd:1.14.4"
+    container_name: inventory-api-dapr
+    command: [
+      "./daprd",
+      "-app-id", "inventory-api",
+      "-app-port", "50052",
+      "-app-protocol", "grpc",
+      "-dapr-http-port", "3500",
+      "-dapr-grpc-port", "50001",
+      "-placement-host-address", "placement:50006",
+      "-resources-path", "/components",
+      "-config", "/config/config.yaml",
+      "-log-level", "info"
+    ]
+    volumes:
+      - ./.dapr/components:/components:ro
+      - ./.dapr:/config:ro
+    depends_on:
+      - inventory-api
+      - placement
+      - redis
+    network_mode: "service:inventory-api"
+
+volumes:
+  redis-data:
+  postgres-data:
+  mongodb-data:
+  influxdb-data:
+  influxdb-config:
+
+networks:
+  dapr-network:
+    driver: bridge

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: arangodb
+  name: arangodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: arangodb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: arangodb
+    spec:
+      containers:
+        - env:
+            - name: ARANGO_NO_AUTH
+              value: "0"
+            - name: ARANGO_ROOT_PASSWORD
+              value: rootpassword
+          image: arangodb:3.11
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:8529/_api/version
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 10
+          name: arangodb
+          ports:
+            - containerPort: 8529
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/arangodb3
+              name: arangodb-data
+            - mountPath: /var/lib/arangodb3-apps
+              name: arangodb-apps
+      restartPolicy: Always
+      volumes:
+        - name: arangodb-data
+          persistentVolumeClaim:
+            claimName: arangodb-data
+        - name: arangodb-apps
+          persistentVolumeClaim:
+            claimName: arangodb-apps

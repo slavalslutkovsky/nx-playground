@@ -1,6 +1,6 @@
 /// Unified database error type for all database operations
 ///
-/// This provides a consistent error interface across PostgreSQL, Redis, and other databases.
+/// This provides a consistent error interface across PostgreSQL, Redis, MongoDB, and other databases.
 #[derive(Debug, thiserror::Error)]
 pub enum DatabaseError {
     /// PostgreSQL-specific errors (SeaORM)
@@ -12,6 +12,11 @@ pub enum DatabaseError {
     #[cfg(feature = "redis")]
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
+
+    /// MongoDB-specific errors
+    #[cfg(feature = "mongodb")]
+    #[error("MongoDB error: {0}")]
+    MongoDB(#[from] mongodb::error::Error),
 
     /// Connection failed after retries
     #[error("Connection failed: {0}")]

@@ -1,0 +1,45 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: influxdb
+  namespace: default
+spec:
+  type: bindings.influxdb
+  version: v1
+  metadata:
+    - name: url
+      value: "http://localhost:8086"
+    - name: token
+      secretKeyRef:
+        name: influxdb-secret
+        key: token
+    - name: org
+      value: "nx-playground"
+    - name: bucket
+      value: "events"
+scopes:
+  - zerg-mongo-api
+  - zerg-api
+---
+# Alternative: InfluxDB as state store for time-series queries
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore-influxdb
+  namespace: default
+spec:
+  type: state.influxdb
+  version: v1
+  metadata:
+    - name: url
+      value: "http://localhost:8086"
+    - name: token
+      secretKeyRef:
+        name: influxdb-secret
+        key: token
+    - name: org
+      value: "nx-playground"
+    - name: bucket
+      value: "events-state"
+scopes:
+  - zerg-mongo-api

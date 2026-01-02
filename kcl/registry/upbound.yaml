@@ -1,0 +1,112 @@
+apiVersion: meta.dev.upbound.io/v2alpha1
+kind: Project
+metadata:
+  name: registry
+spec:
+  dependsOn:
+  # AWS ECR Provider for Container Repositories
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-ecr
+    version: '>=v2.0.0'
+  # GCP Artifact Registry Provider
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-artifact
+    version: '>=v2.0.0'
+  # Azure Container Registry Provider
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-azure-containerregistry
+    version: '>=v2.0.0'
+  # KCL Function for composition logic
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    package: xpkg.upbound.io/crossplane-contrib/function-kcl
+    version: '>=v0.12.0'
+  description: |
+    Multi-cloud container registry composition supporting AWS ECR, GCP Artifact
+    Registry, and Azure Container Registry. Includes security scanning, lifecycle
+    policies, replication, and access control features.
+
+    Features:
+    - Container registry creation with custom configuration
+    - Vulnerability scanning on image push
+    - Image lifecycle policies for automatic cleanup
+    - Cross-region/geo replication
+    - IAM and access control policies
+    - Encryption at rest (KMS support)
+    - Pull-through cache for upstream registries (AWS)
+    - Network access rules (Azure)
+    - Content trust/image signing (Azure)
+
+    Provider Selection:
+    Use labels to select target cloud providers:
+    - cloud.provider/aws: "true"    -> Creates AWS ECR repository
+    - cloud.provider/gcp: "true"    -> Creates GCP Artifact Registry repository
+    - cloud.provider/azure: "true"  -> Creates Azure Container Registry
+
+    Multiple providers can be selected simultaneously for multi-cloud deployments.
+  license: Apache-2.0
+  maintainer: Platform Team <platform@yurikrupnik.com>
+  readme: |
+    # Multi-Cloud Container Registry
+
+    This package provides a unified Crossplane composition for managing container
+    registries across AWS ECR, GCP Artifact Registry, and Azure Container Registry
+    using KCL.
+
+    ## Features
+
+    ### Core Registry
+    - Container repository creation
+    - Image tag mutability control
+    - Repository-level configuration
+
+    ### Security
+    - Vulnerability scanning on push
+    - KMS encryption support
+    - Private/public access control
+    - Content trust (Azure)
+
+    ### Lifecycle Management
+    - Automatic image cleanup
+    - Tag pattern retention
+    - Age-based expiration
+
+    ### Replication
+    - Cross-region replication (AWS, Azure Premium)
+    - Multi-region availability
+
+    ### Access Control
+    - IAM policies (AWS)
+    - IAM member bindings (GCP)
+    - Scope maps and tokens (Azure)
+
+    ## Quick Start
+
+    ```bash
+    # Install the composition
+    just install
+
+    # Deploy to AWS ECR
+    just apply-aws
+
+    # Deploy to all clouds
+    just apply-multi
+    ```
+
+    ## Testing
+
+    ```bash
+    # Run unit tests
+    just test-unit
+
+    # Run stress tests
+    just stress count=100
+
+    # Run all tests
+    just test
+    ```
+  repository: xpkg.upbound.io/krupnik/registry
+  source: github.com/yurikrupnik/nx-playground

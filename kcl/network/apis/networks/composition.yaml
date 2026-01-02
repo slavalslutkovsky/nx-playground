@@ -1,0 +1,32 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: networks.platform.yurikrupnik.com
+  labels:
+    crossplane.io/xrd: networks.platform.yurikrupnik.com
+  annotations:
+    description: |
+      Multi-cloud network composition using KCL functions.
+      Supports AWS VPC, GCP VPC, and Azure VNet with security,
+      observability, and best practices built-in.
+spec:
+  compositeTypeRef:
+    apiVersion: platform.yurikrupnik.com/v1alpha1
+    kind: Network
+  mode: Pipeline
+  pipeline:
+  - step: validate-and-transform
+    functionRef:
+      name: function-kcl
+    input:
+      apiVersion: krm.kcl.dev/v1alpha1
+      kind: KCLInput
+      metadata:
+        name: network-function
+      spec:
+        source: |
+          # Import the unified network function
+          import functions.network.composition as comp
+
+          # Output the rendered items
+          items = comp.items

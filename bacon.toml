@@ -16,6 +16,7 @@ watch = ["apps/zerg/api", "libs"]
 allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
+needs = ["zerg-email"]
 
 [jobs.zerg-email]
 command = ["cargo", "run", "-p", "zerg_tasks", "--color", "always"]

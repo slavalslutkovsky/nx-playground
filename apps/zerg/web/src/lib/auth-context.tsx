@@ -6,6 +6,7 @@ import {
 import { createContext, type ParentComponent, useContext } from 'solid-js';
 import type { LoginRequest, RegisterRequest, UserResponse } from './auth-api';
 import * as authApi from './auth-api';
+import { setUser as setSentryUser } from './sentry';
 
 interface AuthContextValue {
   user: () => UserResponse | null | undefined;
@@ -38,6 +39,12 @@ export const AuthProvider: ParentComponent = (props) => {
     onSuccess: (data) => {
       // Update user in cache
       queryClient.setQueryData(['currentUser'], data.user);
+      // Set Sentry user context
+      setSentryUser({
+        id: data.user.id,
+        email: data.user.email,
+        username: data.user.name,
+      });
     },
   }));
 
@@ -47,6 +54,12 @@ export const AuthProvider: ParentComponent = (props) => {
     onSuccess: (data) => {
       // Update user in cache
       queryClient.setQueryData(['currentUser'], data.user);
+      // Set Sentry user context
+      setSentryUser({
+        id: data.user.id,
+        email: data.user.email,
+        username: data.user.name,
+      });
     },
   }));
 
@@ -56,6 +69,8 @@ export const AuthProvider: ParentComponent = (props) => {
     onSuccess: () => {
       // Clear user from cache
       queryClient.setQueryData(['currentUser'], null);
+      // Clear Sentry user context
+      setSentryUser(null);
       // Redirect to login
       window.location.href = '/login';
     },

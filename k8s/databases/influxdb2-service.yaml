@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: influxdb2
+  name: influxdb2
+spec:
+  ports:
+    - name: "8086"
+      port: 8086
+      targetPort: 8086
+  selector:
+    io.kompose.service: influxdb2

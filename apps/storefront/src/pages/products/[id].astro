@@ -1,0 +1,159 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { fetchProduct, formatPrice } from '../../lib/api-client';
+
+const { id } = Astro.params;
+
+let product = null;
+let error = null;
+
+try {
+  product = await fetchProduct(id!);
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Failed to load product';
+}
+
+const primaryImage = product?.images?.find((img) => img.is_primary) || product?.images?.[0];
+const isOutOfStock = product && product.stock <= product.reserved_stock;
+---
+
+<BaseLayout title={product?.name || 'Product'}>
+  {error ? (
+    <div class="bg-red-50 text-red-600 p-4 rounded-lg">
+      <p>Error loading product: {error}</p>
+      <a href="/products" class="text-primary-600 hover:underline mt-2 inline-block">
+        ← Back to products
+      </a>
+    </div>
+  ) : product ? (
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="space-y-4">
+        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          {primaryImage ? (
+            <img
+              src={primaryImage.url}
+              alt={primaryImage.alt || product.name}
+              class="w-full h-full object-cover"
+            />
+          ) : (
+            <div class="w-full h-full flex items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {product.images.length > 1 && (
+          <div class="flex gap-2 overflow-x-auto">
+            {product.images.map((img, index) => (
+              <button
+                class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-primary-500 transition-colors flex-shrink-0"
+              >
+                <img src={img.url} alt={img.alt || `Image ${index + 1}`} class="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <a href="/products" class="text-primary-600 hover:underline text-sm">
+            ← Back to products
+          </a>
+        </div>
+
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">{product.name}</h1>
+          {product.brand && (
+            <p class="text-gray-500 mt-1">by {product.brand}</p>
+          )}
+        </div>
+
+        <div class="flex items-center gap-4">
+          <span class="text-3xl font-bold text-primary-600">
+            {formatPrice(product.price)}
+          </span>
+          {isOutOfStock ? (
+            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+              Out of Stock
+            </span>
+          ) : (
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+              In Stock ({product.stock - product.reserved_stock} available)
+            </span>
+          )}
+        </div>
+
+        <div class="prose prose-gray max-w-none">
+          <p>{product.description}</p>
+        </div>
+
+        {product.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2">
+            {product.tags.map((tag) => (
+              <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div class="flex gap-4">
+          <button
+            id="add-to-cart-btn"
+            class="flex-1 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            data-product={JSON.stringify(product)}
+            disabled={isOutOfStock}
+          >
+            Add to Cart
+          </button>
+        </div>
+
+        <div class="border-t pt-6 space-y-4">
+          <h3 class="font-semibold text-gray-900">Product Details</h3>
+          <dl class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-gray-500">Category</dt>
+              <dd class="text-gray-900 capitalize">{product.category.replace('_', ' ')}</dd>
+            </div>
+            {product.sku && (
+              <div>
+                <dt class="text-gray-500">SKU</dt>
+                <dd class="text-gray-900">{product.sku}</dd>
+              </div>
+            )}
+            {product.barcode && (
+              <div>
+                <dt class="text-gray-500">Barcode</dt>
+                <dd class="text-gray-900">{product.barcode}</dd>
+              </div>
+            )}
+            {product.weight && (
+              <div>
+                <dt class="text-gray-500">Weight</dt>
+                <dd class="text-gray-900">{product.weight}g</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      </div>
+    </div>
+  ) : null}
+</BaseLayout>
+
+<script>
+  import { addToCart, openCart } from '../../lib/cart-store';
+
+  const button = document.getElementById('add-to-cart-btn');
+  button?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const productData = (button as HTMLElement).dataset.product;
+    if (productData) {
+      const product = JSON.parse(productData);
+      addToCart(product);
+      openCart();
+    }
+  });
+</script>

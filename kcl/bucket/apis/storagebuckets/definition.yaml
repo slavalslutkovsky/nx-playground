@@ -1,0 +1,135 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: storagebuckets.platform.yurikrupnik.com
+spec:
+  group: platform.yurikrupnik.com
+  names:
+    categories:
+    - crossplane
+    - storage
+    kind: StorageBucket
+    plural: storagebuckets
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        description: StorageBucket is a multi-cloud storage abstraction supporting AWS S3, GCP Cloud Storage, and Azure Blob Storage.
+        properties:
+          spec:
+            description: StorageBucketSpec defines the desired state of StorageBucket.
+            properties:
+              parameters:
+                description: Parameters for the storage bucket across all providers.
+                properties:
+                  # Common parameters
+                  location:
+                    description: Location/region for the bucket (provider-specific interpretation)
+                    type: string
+                  acl:
+                    description: Access control level (private, public-read, etc.)
+                    type: string
+                    default: private
+                    enum:
+                    - private
+                    - public-read
+                    - public-read-write
+                    - authenticated-read
+                  version:
+                    description: Enable versioning for the bucket
+                    type: boolean
+                    default: false
+                  tags:
+                    description: Tags/labels to apply to the bucket
+                    type: object
+                    additionalProperties:
+                      type: string
+                  # AWS-specific parameters
+                  aws:
+                    description: AWS S3 specific configuration
+                    type: object
+                    properties:
+                      region:
+                        description: AWS region (overrides location)
+                        type: string
+                      objectLockEnabled:
+                        description: Enable S3 Object Lock
+                        type: boolean
+                        default: false
+                  # GCP-specific parameters
+                  gcp:
+                    description: GCP Cloud Storage specific configuration
+                    type: object
+                    properties:
+                      project:
+                        description: GCP project ID
+                        type: string
+                      storageClass:
+                        description: Storage class for the bucket
+                        type: string
+                        default: STANDARD
+                        enum:
+                        - STANDARD
+                        - NEARLINE
+                        - COLDLINE
+                        - ARCHIVE
+                      uniformBucketLevelAccess:
+                        description: Enable uniform bucket-level access
+                        type: boolean
+                        default: true
+                  # Azure-specific parameters
+                  azure:
+                    description: Azure Blob Storage specific configuration
+                    type: object
+                    properties:
+                      resourceGroup:
+                        description: Azure resource group name
+                        type: string
+                      accountTier:
+                        description: Storage account tier
+                        type: string
+                        default: Standard
+                        enum:
+                        - Standard
+                        - Premium
+                      accountReplicationType:
+                        description: Storage account replication type
+                        type: string
+                        default: LRS
+                        enum:
+                        - LRS
+                        - GRS
+                        - RAGRS
+                        - ZRS
+                      containerAccessType:
+                        description: Container access type
+                        type: string
+                        default: private
+                        enum:
+                        - private
+                        - blob
+                        - container
+                type: object
+                required:
+                - location
+            type: object
+          status:
+            description: StorageBucketStatus defines the observed state of StorageBucket.
+            properties:
+              providers:
+                description: List of active providers for this bucket
+                type: array
+                items:
+                  type: string
+              bucketUrls:
+                description: URLs/endpoints for each provider bucket
+                type: object
+                additionalProperties:
+                  type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true

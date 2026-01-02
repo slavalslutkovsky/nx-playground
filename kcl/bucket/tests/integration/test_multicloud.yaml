@@ -1,0 +1,30 @@
+# Integration test: Multi-cloud bucket creation
+# This test validates creating buckets across all three providers
+
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: integration-test-multicloud
+  namespace: crossplane-test
+  labels:
+    cloud.provider/aws: "true"
+    cloud.provider/gcp: "true"
+    cloud.provider/azure: "true"
+    test.crossplane.io/type: integration
+spec:
+  parameters:
+    location: us-east-1
+    acl: private
+    version: true
+    tags:
+      test: integration
+      multicloud: "true"
+    aws:
+      region: us-east-1
+    gcp:
+      project: test-project
+      storageClass: STANDARD
+    azure:
+      resourceGroup: test-rg
+      accountTier: Standard
+      accountReplicationType: GRS

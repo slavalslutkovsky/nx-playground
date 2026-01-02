@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: influxdb2
+  name: influxdb2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: influxdb2
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: influxdb2
+    spec:
+      containers:
+        - env:
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              value: admintoken123
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: home
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: setup
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: docs
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              value: strongpassword
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              value: admin
+          image: influxdb:2
+          name: influxdb2
+          ports:
+            - containerPort: 8086
+              protocol: TCP
+      restartPolicy: Always

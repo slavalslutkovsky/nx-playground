@@ -1,0 +1,103 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bucket-composition
+  title: Storage Bucket Composition
+  description: |
+    Multi-cloud storage bucket Crossplane composition using KCL.
+    Supports AWS S3, GCP Cloud Storage, and Azure Blob Storage.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    crossplane.io/kind: CompositeResourceDefinition
+    crossplane.io/api-version: platform.yurikrupnik.com/v1alpha1
+    github.com/project-slug: yurikrupnik/nx-playground
+  tags:
+    - kcl
+    - crossplane
+    - storage
+    - aws
+    - gcp
+    - azure
+    - multi-cloud
+  links:
+    - url: https://xpkg.upbound.io/krupnik/bucket
+      title: Upbound Package
+spec:
+  type: crossplane-composition
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  providesApis:
+    - storage-bucket-api
+  dependsOn:
+    - resource:provider-gcp-storage
+    - resource:provider-azure-storage
+    - resource:provider-aws-s3
+    - resource:function-kcl
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: storage-bucket-api
+  title: StorageBucket API
+  description: Crossplane Claim API for multi-cloud storage buckets
+  tags:
+    - crossplane
+    - claim
+spec:
+  type: crossplane-xrd
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  definition: |
+    apiVersion: platform.yurikrupnik.com/v1alpha1
+    kind: StorageBucket
+    spec:
+      parameters:
+        location: string       # Cloud region/location
+        acl: private|public    # Access control
+        version: boolean       # Enable versioning
+        tags: object           # Resource tags
+        aws: object            # AWS-specific config
+        gcp: object            # GCP-specific config
+        azure: object          # Azure-specific config
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-gcp-storage
+  description: Upbound GCP Storage Provider
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-azure-storage
+  description: Upbound Azure Storage Provider
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-aws-s3
+  description: Upbound AWS S3 Provider
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: function-kcl
+  description: Crossplane KCL Function for composition
+spec:
+  type: crossplane-function
+  owner: platform-team
+  system: kcl-crossplane-packages

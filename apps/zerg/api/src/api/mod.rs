@@ -3,10 +3,17 @@ use axum::Router;
 pub mod auth;
 pub mod cloud_resources;
 pub mod health;
+pub mod help;
 pub mod projects;
 pub mod tasks;
 pub mod tasks_direct;
 pub mod users;
+
+// Vector & Graph database integrations
+pub mod arangodb;
+pub mod milvus;
+pub mod neo4j;
+pub mod qdrant;
 
 /// Creates the API routes without the `/api` prefix.
 /// The `/api` prefix will be added by the `create_router` helper.
@@ -20,7 +27,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
     // Import ApiResource trait to access URL constants
     use domain_projects::ApiResource;
 
-    Router::new()
+    let mut router = Router::new()
         .nest("/auth", auth::router(state)) // Auth routes at /api/auth
         .nest("/tasks", tasks::router(state.clone()))
         .nest("/tasks-direct", tasks_direct::router(state))
@@ -30,6 +37,23 @@ pub fn routes(state: &crate::state::AppState) -> Router {
             cloud_resources::router(state),
         )
         .nest("/users", users::router(state)) // TODO: Add SeaOrmResource to domain_users
+        .nest("/help", help::router()); // API documentation and discovery
+
+    // Add vector/graph database routes if clients are configured
+    if let Some(ref qdrant_state) = state.qdrant {
+        router = router.nest("/qdrant", qdrant::router(qdrant_state.clone()));
+    }
+    if let Some(ref neo4j_state) = state.neo4j {
+        router = router.nest("/neo4j", neo4j::router(neo4j_state.clone()));
+    }
+    if let Some(ref arango_state) = state.arangodb {
+        router = router.nest("/arangodb", arangodb::router(arango_state.clone()));
+    }
+    if let Some(ref milvus_state) = state.milvus {
+        router = router.nest("/milvus", milvus::router(milvus_state.clone()));
+    }
+
+    router
 }
 
 /// Creates a router with the /ready endpoint that performs actual health checks.

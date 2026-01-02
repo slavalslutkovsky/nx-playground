@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: nx-playground-databases
+
+namespace: default
+
+resources:
+  # Core databases
+  - postgres-deployment.yaml
+  - postgres-service.yaml
+  - redis-deployment.yaml
+  - redis-service.yaml
+  - mongo-deployment.yaml
+  - mongo-service.yaml
+
+  # Vector databases
+  - qdrant-deployment.yaml
+  - qdrant-service.yaml
+  - qdrant-claim0-persistentvolumeclaim.yaml
+  - milvus-deployment.yaml
+  - milvus-service.yaml
+  - milvus-data-persistentvolumeclaim.yaml
+  - milvus-etcd-deployment.yaml
+  - milvus-etcd-persistentvolumeclaim.yaml
+  - milvus-minio-deployment.yaml
+  - milvus-minio-service.yaml
+  - milvus-minio-persistentvolumeclaim.yaml
+
+  # Graph databases
+  - neo4j-deployment.yaml
+  - neo4j-service.yaml
+  - neo4j-data-persistentvolumeclaim.yaml
+  - neo4j-logs-persistentvolumeclaim.yaml
+  - arangodb-deployment.yaml
+  - arangodb-service.yaml
+  - arangodb-data-persistentvolumeclaim.yaml
+  - arangodb-apps-persistentvolumeclaim.yaml
+
+  # Time-series
+  - influxdb2-deployment.yaml
+  - influxdb2-service.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: nx-playground
+
+# Patches for production (example)
+# patchesStrategicMerge:
+#   - patches/production-resources.yaml

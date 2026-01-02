@@ -1,0 +1,10 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: example
+  namespace: default
+spec:
+  parameters:
+    location: US
+    version: true
+    acl: private

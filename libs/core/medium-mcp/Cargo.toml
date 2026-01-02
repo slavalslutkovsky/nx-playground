@@ -1,0 +1,24 @@
+[package]
+name = "medium-mcp"
+version = "0.1.0"
+edition = "2024"
+description = "MCP server for fetching and parsing Medium articles"
+
+[dependencies]
+# Workspace dependencies
+async-trait.workspace = true
+reqwest.workspace = true
+
+# HTML parsing
+scraper = "0.23"
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+# URL encoding for search
+urlencoding = "2.1"
+
+[dev-dependencies]
+tokio-test = "0.4"

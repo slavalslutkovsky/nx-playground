@@ -1,0 +1,366 @@
+#!/usr/bin/env just --justfile
+
+# KCL Multi-Cloud Network Infrastructure Management
+# Manages AWS VPC, GCP VPC, and Azure VNet via Crossplane
+
+default:
+    @just -l
+
+# ============================================================================
+# Variables
+# ============================================================================
+
+kcl_dir := justfile_directory()
+functions_dir := kcl_dir / "functions/network"
+tests_dir := kcl_dir / "tests"
+examples_dir := kcl_dir / "examples"
+apis_dir := kcl_dir / "apis"
+
+# Provider labels
+label_aws := "cloud.provider/aws=true"
+label_gcp := "cloud.provider/gcp=true"
+label_azure := "cloud.provider/azure=true"
+
+# ============================================================================
+# Development - Lint, Format, Validate
+# ============================================================================
+
+# Lint all KCL files
+lint:
+    @echo "=== Linting KCL files ==="
+    kcl lint {{functions_dir}}/...
+    kcl lint {{tests_dir}}/unit/...
+
+# Format all KCL files
+fmt:
+    @echo "=== Formatting KCL files ==="
+    kcl fmt {{functions_dir}}/...
+    kcl fmt {{tests_dir}}/unit/...
+    kcl fmt {{tests_dir}}/stress/...
+
+# Check KCL syntax without executing
+check:
+    @echo "=== Checking KCL syntax ==="
+    kcl {{functions_dir}}/main.k -n
+    kcl {{functions_dir}}/composition.k -n
+
+# Validate all files (lint + check)
+validate: lint check
+    @echo "=== All validations passed ==="
+
+# ============================================================================
+# Testing
+# ============================================================================
+
+# Run all unit tests
+test-unit:
+    @echo "=== Running Unit Tests ==="
+    kcl {{tests_dir}}/unit/test_network.k
+    @echo "Unit tests completed!"
+
+# Run stress tests
+test-stress:
+    @echo "=== Running Stress Tests ==="
+    time kcl {{tests_dir}}/stress/stress_test.k
+    @echo "Stress tests completed!"
+
+# Run integration tests (requires cluster)
+test-integration: _check-kubectl
+    @echo "=== Running Integration Tests ==="
+    kubectl apply -f {{tests_dir}}/integration/test_aws.yaml --dry-run=server
+    kubectl apply -f {{tests_dir}}/integration/test_gcp.yaml --dry-run=server
+    kubectl apply -f {{tests_dir}}/integration/test_azure.yaml --dry-run=server
+    kubectl apply -f {{tests_dir}}/integration/test_multicloud.yaml --dry-run=server
+    @echo "Integration tests completed!"
+
+# Run all tests
+test: test-unit test-stress
+    @echo "=== All tests passed ==="
+
+# ============================================================================
+# Running / Rendering
+# ============================================================================
+
+# Render KCL function output (dry-run)
+render:
+    @echo "=== Rendering Network Function ==="
+    kcl {{functions_dir}}/main.k
+
+# Render AWS example
+render-aws:
+    @echo "=== Rendering AWS VPC Example ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "test-aws-vpc", "labels": {"cloud.provider/aws": "true"}}, "spec": {"parameters": {"region": "us-east-1", "cidrBlock": "10.0.0.0/16"}}}}'
+
+# Render GCP example
+render-gcp:
+    @echo "=== Rendering GCP VPC Example ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "test-gcp-vpc", "labels": {"cloud.provider/gcp": "true"}}, "spec": {"parameters": {"region": "us-central1", "cidrBlock": "10.0.0.0/16", "gcp": {"project": "my-project"}}}}}'
+
+# Render Azure example
+render-azure:
+    @echo "=== Rendering Azure VNet Example ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "test-azure-vnet", "labels": {"cloud.provider/azure": "true"}}, "spec": {"parameters": {"region": "eastus", "cidrBlock": "10.0.0.0/16", "azure": {"resourceGroup": "test-rg"}}}}}'
+
+# Render multi-cloud example
+render-multi:
+    @echo "=== Rendering Multi-Cloud Example ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "test-multi-vpc", "labels": {"cloud.provider/aws": "true", "cloud.provider/gcp": "true", "cloud.provider/azure": "true"}}, "spec": {"parameters": {"region": "us-east-1", "cidrBlock": "10.0.0.0/16", "gcp": {"project": "my-project"}, "azure": {"resourceGroup": "test-rg"}}}}}'
+
+# Render all providers
+render-all: render-aws render-gcp render-azure render-multi
+
+# Render with security features
+render-security:
+    @echo "=== Rendering with Security Features ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "secure-vpc", "labels": {"cloud.provider/aws": "true"}}, "spec": {"parameters": {"region": "us-east-1", "cidrBlock": "10.0.0.0/16", "security": {"defaultSecurityGroup": {"enabled": true, "allowInternalTraffic": true}, "networkAcls": {"enabled": true}}, "observability": {"flowLogs": {"enabled": true, "trafficType": "ALL"}}}}}}'
+
+# Render with high availability
+render-ha:
+    @echo "=== Rendering with High Availability ==="
+    kcl {{functions_dir}}/composition.k -D 'params={"oxr": {"metadata": {"name": "ha-vpc", "labels": {"cloud.provider/aws": "true"}}, "spec": {"parameters": {"region": "us-east-1", "cidrBlock": "10.0.0.0/16", "connectivity": {"natGateway": {"enabled": true, "highAvailability": true}}}}}}'
+
+# ============================================================================
+# Provider-Specific Operations
+# ============================================================================
+
+# Apply AWS claim to cluster
+apply-aws: _check-kubectl
+    @echo "=== Applying AWS Network Claim ==="
+    kubectl apply -f {{examples_dir}}/aws/claim.yaml
+
+# Apply GCP claim to cluster
+apply-gcp: _check-kubectl
+    @echo "=== Applying GCP Network Claim ==="
+    kubectl apply -f {{examples_dir}}/gcp/claim.yaml
+
+# Apply Azure claim to cluster
+apply-azure: _check-kubectl
+    @echo "=== Applying Azure Network Claim ==="
+    kubectl apply -f {{examples_dir}}/azure/claim.yaml
+
+# Apply multi-cloud claim to cluster
+apply-multi: _check-kubectl
+    @echo "=== Applying Multi-Cloud Network Claim ==="
+    kubectl apply -f {{examples_dir}}/multi-cloud/claim.yaml
+
+# Apply all examples
+apply-all: apply-aws apply-gcp apply-azure apply-multi
+
+# Delete AWS claim
+delete-aws: _check-kubectl
+    kubectl delete -f {{examples_dir}}/aws/claim.yaml --ignore-not-found
+
+# Delete GCP claim
+delete-gcp: _check-kubectl
+    kubectl delete -f {{examples_dir}}/gcp/claim.yaml --ignore-not-found
+
+# Delete Azure claim
+delete-azure: _check-kubectl
+    kubectl delete -f {{examples_dir}}/azure/claim.yaml --ignore-not-found
+
+# Delete multi-cloud claim
+delete-multi: _check-kubectl
+    kubectl delete -f {{examples_dir}}/multi-cloud/claim.yaml --ignore-not-found
+
+# Delete all examples
+delete-all: delete-aws delete-gcp delete-azure delete-multi
+
+# ============================================================================
+# Crossplane Operations
+# ============================================================================
+
+# Install XRD and Composition
+install: _check-kubectl
+    @echo "=== Installing Crossplane Resources ==="
+    kubectl apply -f {{apis_dir}}/networks/definition.yaml
+    kubectl apply -f {{apis_dir}}/networks/composition.yaml
+    @echo "Installation complete!"
+
+# Uninstall XRD and Composition
+uninstall: _check-kubectl
+    @echo "=== Uninstalling Crossplane Resources ==="
+    kubectl delete -f {{apis_dir}}/networks/composition.yaml --ignore-not-found
+    kubectl delete -f {{apis_dir}}/networks/definition.yaml --ignore-not-found
+    @echo "Uninstallation complete!"
+
+# Get all networks
+get-networks: _check-kubectl
+    kubectl get networks.platform.yurikrupnik.com -A
+
+# Describe network
+describe-network name: _check-kubectl
+    kubectl describe network {{name}}
+
+# Get networks by provider label
+get-aws-networks: _check-kubectl
+    kubectl get networks.platform.yurikrupnik.com -A -l {{label_aws}}
+
+get-gcp-networks: _check-kubectl
+    kubectl get networks.platform.yurikrupnik.com -A -l {{label_gcp}}
+
+get-azure-networks: _check-kubectl
+    kubectl get networks.platform.yurikrupnik.com -A -l {{label_azure}}
+
+# Get composed resources for a network
+get-composed name: _check-kubectl
+    @echo "=== Composed Resources for {{name}} ==="
+    kubectl get managed -l crossplane.io/claim-name={{name}}
+
+# Get VPCs/VNets across providers
+get-vpcs: _check-kubectl
+    @echo "=== AWS VPCs ==="
+    kubectl get vpc.ec2.aws.upbound.io -A 2>/dev/null || echo "No AWS VPCs found"
+    @echo ""
+    @echo "=== GCP Networks ==="
+    kubectl get network.compute.gcp.upbound.io -A 2>/dev/null || echo "No GCP Networks found"
+    @echo ""
+    @echo "=== Azure VNets ==="
+    kubectl get virtualnetwork.network.azure.upbound.io -A 2>/dev/null || echo "No Azure VNets found"
+
+# Get subnets across providers
+get-subnets: _check-kubectl
+    @echo "=== AWS Subnets ==="
+    kubectl get subnet.ec2.aws.upbound.io -A 2>/dev/null || echo "No AWS Subnets found"
+    @echo ""
+    @echo "=== GCP Subnetworks ==="
+    kubectl get subnetwork.compute.gcp.upbound.io -A 2>/dev/null || echo "No GCP Subnetworks found"
+    @echo ""
+    @echo "=== Azure Subnets ==="
+    kubectl get subnet.network.azure.upbound.io -A 2>/dev/null || echo "No Azure Subnets found"
+
+# Get security groups/firewalls
+get-security: _check-kubectl
+    @echo "=== AWS Security Groups ==="
+    kubectl get securitygroup.ec2.aws.upbound.io -A 2>/dev/null || echo "No AWS Security Groups found"
+    @echo ""
+    @echo "=== GCP Firewalls ==="
+    kubectl get firewall.compute.gcp.upbound.io -A 2>/dev/null || echo "No GCP Firewalls found"
+    @echo ""
+    @echo "=== Azure NSGs ==="
+    kubectl get securitygroup.network.azure.upbound.io -A 2>/dev/null || echo "No Azure NSGs found"
+
+# ============================================================================
+# Stress Testing
+# ============================================================================
+
+# Run stress test with custom network count
+stress count="50":
+    @echo "=== Running Stress Test with {{count}} networks per provider ==="
+    kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT={{count}}"
+
+# Benchmark KCL rendering performance
+bench:
+    @echo "=== Benchmarking KCL Rendering ==="
+    @echo "--- Small (10 networks) ---"
+    time kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT=10" > /dev/null
+    @echo ""
+    @echo "--- Medium (25 networks) ---"
+    time kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT=25" > /dev/null
+    @echo ""
+    @echo "--- Large (50 networks) ---"
+    time kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT=50" > /dev/null
+    @echo ""
+    @echo "--- XLarge (100 networks) ---"
+    time kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT=100" > /dev/null
+
+# Memory profile stress test
+stress-profile count="50":
+    @echo "=== Memory Profile: {{count}} networks per provider ==="
+    /usr/bin/time -l kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT={{count}}" > /dev/null 2>&1 || \
+    /usr/bin/time -v kcl {{tests_dir}}/stress/stress_test.k -D "NETWORK_COUNT={{count}}" > /dev/null 2>&1
+
+# ============================================================================
+# Upbound/Build Operations
+# ============================================================================
+
+# Build the Upbound project
+build:
+    @echo "=== Building Upbound Project ==="
+    cd {{kcl_dir}} && up project build
+
+# Push to Upbound registry
+push:
+    @echo "=== Pushing to Upbound Registry ==="
+    cd {{kcl_dir}} && up project push
+
+# Generate KCL models from providers
+generate-models:
+    @echo "=== Generating KCL Models ==="
+    cd {{kcl_dir}} && up project generate
+
+# ============================================================================
+# Security Analysis
+# ============================================================================
+
+# Analyze security configuration
+security-audit:
+    @echo "=== Security Configuration Audit ==="
+    @echo ""
+    @echo "Checking for insecure configurations..."
+    @echo ""
+    @echo "1. NAT Gateway Configuration:"
+    @grep -r "natGateway" {{examples_dir}} || echo "   No NAT Gateway configs found"
+    @echo ""
+    @echo "2. Security Group Rules:"
+    @grep -r "allowOutboundAll\|allowInternalTraffic" {{examples_dir}} || echo "   No security rules found"
+    @echo ""
+    @echo "3. Flow Logs Configuration:"
+    @grep -r "flowLogs" {{examples_dir}} || echo "   No flow logs configs found"
+    @echo ""
+    @echo "4. Private Endpoint Configuration:"
+    @grep -r "privateClusterEndpoint\|privateLink\|vpcEndpoints" {{examples_dir}} || echo "   No private endpoint configs found"
+
+# ============================================================================
+# Utility Commands
+# ============================================================================
+
+# Show project structure
+tree:
+    @echo "=== Project Structure ==="
+    tree {{kcl_dir}} -I '.up|.git|__pycache__' --dirsfirst
+
+# Watch for changes and re-run tests
+watch:
+    @echo "=== Watching for changes ==="
+    watchexec -e k,yaml -- just test-unit
+
+# Clean generated files
+clean:
+    @echo "=== Cleaning generated files ==="
+    rm -rf {{kcl_dir}}/.up/build
+    @echo "Clean complete!"
+
+# Show help
+help:
+    @echo "KCL Multi-Cloud Network Infrastructure Management"
+    @echo ""
+    @echo "Provider Labels:"
+    @echo "  cloud.provider/aws=true    - Target AWS VPC"
+    @echo "  cloud.provider/gcp=true    - Target GCP VPC"
+    @echo "  cloud.provider/azure=true  - Target Azure VNet"
+    @echo ""
+    @echo "Features:"
+    @echo "  - VPC/VNet with custom CIDR blocks"
+    @echo "  - Public, private, and database subnets"
+    @echo "  - NAT Gateways with optional HA"
+    @echo "  - Security groups, firewalls, NSGs"
+    @echo "  - VPC Flow Logs for observability"
+    @echo "  - Private endpoints for secure access"
+    @echo "  - Kubernetes cluster security"
+    @echo ""
+    @echo "Quick Start:"
+    @echo "  just validate      - Lint and check all KCL files"
+    @echo "  just test          - Run unit and stress tests"
+    @echo "  just render-all    - Render all provider examples"
+    @echo "  just install       - Install XRD and Composition"
+    @echo "  just apply-aws     - Deploy AWS example"
+    @echo ""
+    @echo "Use 'just -l' for full command list"
+
+# ============================================================================
+# Internal Helpers
+# ============================================================================
+
+# Check if kubectl is available
+_check-kubectl:
+    @which kubectl > /dev/null || (echo "Error: kubectl not found" && exit 1)

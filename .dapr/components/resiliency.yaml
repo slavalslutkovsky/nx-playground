@@ -1,0 +1,48 @@
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: default-resiliency
+  namespace: default
+spec:
+  policies:
+    timeouts:
+      general: 5s
+      important: 30s
+    retries:
+      retryForever:
+        policy: constant
+        duration: 5s
+        maxRetries: -1
+      important:
+        policy: exponential
+        maxInterval: 15s
+        maxRetries: 10
+      pubsubRetry:
+        policy: constant
+        duration: 5s
+        maxRetries: 5
+    circuitBreakers:
+      simpleCB:
+        maxRequests: 1
+        timeout: 30s
+        trip: consecutiveFailures >= 5
+  targets:
+    apps:
+      zerg-api:
+        timeout: important
+        retry: important
+        circuitBreaker: simpleCB
+      zerg-mongo-api:
+        timeout: important
+        retry: important
+      zerg-tasks:
+        timeout: general
+        retry: pubsubRetry
+    components:
+      statestore:
+        outbound:
+          retry: important
+          circuitBreaker: simpleCB
+      pubsub:
+        outbound:
+          retry: pubsubRetry

@@ -1,0 +1,56 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: production-acr
+  namespace: default
+  labels:
+    cloud.provider/azure: "true"
+    environment: production
+spec:
+  parameters:
+    region: eastus
+    repositoryName: productionapp
+    imageTagMutability: MUTABLE
+    tags:
+      Environment: production
+      Team: platform
+      CostCenter: infrastructure
+      ManagedBy: crossplane
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 90
+      maxImageCount: 1000
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+        - "release-*"
+
+    replication:
+      enabled: true
+      destinationRegions:
+        - westus2
+        - northeurope
+        - southeastasia
+
+    azure:
+      resourceGroup: production-acr-rg
+      sku: Premium
+      adminUserEnabled: false
+      zoneRedundancy: true
+      networkRules:
+        defaultAction: Deny
+        ipRules:
+          - "10.0.0.0/8"
+          - "172.16.0.0/12"
+        virtualNetworkRules: []
+      retentionPolicy:
+        enabled: true
+        days: 30
+      trustPolicy:
+        enabled: true

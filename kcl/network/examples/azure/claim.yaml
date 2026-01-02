@@ -1,0 +1,71 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: Network
+metadata:
+  name: production-vnet
+  namespace: default
+  labels:
+    cloud.provider/azure: "true"
+    environment: production
+spec:
+  parameters:
+    region: eastus
+    cidrBlock: "10.0.0.0/16"
+    enableDnsSupport: true
+    enableDnsHostnames: true
+    tags:
+      Environment: production
+      Team: platform
+      CostCenter: infrastructure
+      ManagedBy: crossplane
+
+    subnets:
+      public:
+        count: 3
+        cidrMask: 24
+      private:
+        count: 3
+        cidrMask: 24
+      database:
+        enabled: true
+        count: 3
+        cidrMask: 24
+
+    connectivity:
+      natGateway:
+        enabled: true
+        highAvailability: true
+      internetGateway:
+        enabled: true
+
+    security:
+      defaultSecurityGroup:
+        enabled: true
+        allowInternalTraffic: true
+        allowOutboundAll: true
+
+    observability:
+      networkWatcher:
+        enabled: true
+
+    clusterSecurity:
+      privateClusterEndpoint: true
+      podCidrBlock: "10.244.0.0/16"
+      serviceCidrBlock: "10.96.0.0/12"
+      networkPolicy: true
+
+    azure:
+      resourceGroup: production-network-rg
+      addressSpaces:
+        - "10.1.0.0/16"
+      ddosProtection:
+        enabled: false
+      bastionHost:
+        enabled: true
+        sku: Standard
+      privateLink:
+        enabled: true
+        services:
+          - Microsoft.Storage
+          - Microsoft.Sql
+          - Microsoft.KeyVault
+          - Microsoft.ContainerRegistry

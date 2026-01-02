@@ -48,6 +48,9 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Dapr secrets (local development only)
+.dapr/secrets.json
+
 # Allow example environment files (templates)
 !.env.example
 

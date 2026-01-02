@@ -1,0 +1,52 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: test-aws-registry
+  namespace: default
+  labels:
+    cloud.provider/aws: "true"
+spec:
+  parameters:
+    region: us-east-1
+    repositoryName: my-application
+    imageTagMutability: IMMUTABLE
+    tags:
+      Environment: integration-test
+      Team: platform
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 30
+      maxImageCount: 500
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+        - "release-*"
+
+    replication:
+      enabled: true
+      destinationRegions:
+        - us-west-2
+        - eu-west-1
+
+    accessControl:
+      pullPrincipals:
+        - "arn:aws:iam::123456789012:role/EKSNodeRole"
+      pushPrincipals:
+        - "arn:aws:iam::123456789012:role/CICDRole"
+
+    aws:
+      forceDelete: false
+      scanType: ENHANCED
+      pullThroughCache:
+        enabled: true
+        upstreamRegistries:
+          - prefix: "ecr-public"
+            upstream: "public.ecr.aws"
+          - prefix: "docker-hub"
+            upstream: "docker.io"

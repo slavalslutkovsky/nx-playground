@@ -5,6 +5,7 @@ use tracing::info;
 
 mod api;
 mod config;
+mod events;
 mod grpc_pool;
 mod openapi;
 mod state;
@@ -49,6 +50,93 @@ async fn main() -> eyre::Result<()> {
     let jwt_auth = axum_helpers::JwtRedisAuth::new(redis.clone(), &config.jwt)
         .map_err(|e| eyre::eyre!("Failed to initialize JWT auth: {}", e))?;
 
+    // Initialize optional vector/graph database clients
+    let qdrant = match std::env::var("QDRANT_URL") {
+        Ok(url) => {
+            info!("Connecting to Qdrant at {}", url);
+            match state::QdrantState::new(&url).await {
+                Ok(client) => {
+                    info!("Qdrant connected successfully");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to connect to Qdrant: {}", e);
+                    None
+                }
+            }
+        }
+        Err(_) => None,
+    };
+
+    let neo4j = match (
+        std::env::var("NEO4J_URI"),
+        std::env::var("NEO4J_USER"),
+        std::env::var("NEO4J_PASSWORD"),
+    ) {
+        (Ok(uri), Ok(user), Ok(password)) => {
+            info!("Connecting to Neo4j at {}", uri);
+            match state::Neo4jState::new(&uri, &user, &password).await {
+                Ok(client) => {
+                    info!("Neo4j connected successfully");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to connect to Neo4j: {}", e);
+                    None
+                }
+            }
+        }
+        _ => None,
+    };
+
+    let arangodb = match (
+        std::env::var("ARANGO_URL"),
+        std::env::var("ARANGO_USER"),
+        std::env::var("ARANGO_PASSWORD"),
+        std::env::var("ARANGO_DATABASE"),
+    ) {
+        (Ok(url), Ok(user), Ok(password), Ok(database)) => {
+            info!("Connecting to ArangoDB at {}", url);
+            match state::ArangoState::new(&url, &user, &password, &database).await {
+                Ok(client) => {
+                    info!("ArangoDB connected successfully");
+                    Some(client)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to connect to ArangoDB: {}", e);
+                    None
+                }
+            }
+        }
+        _ => None,
+    };
+
+    let milvus = match std::env::var("MILVUS_URL") {
+        Ok(url) => {
+            info!("Configuring Milvus client for {}", url);
+            Some(state::MilvusState::new(&url))
+        }
+        Err(_) => None,
+    };
+
+    // Initialize NATS event publisher (optional)
+    let events = match std::env::var("NATS_URL") {
+        Ok(url) => {
+            info!("Connecting to NATS at {}", url);
+            match async_nats::connect(&url).await {
+                Ok(client) => {
+                    info!("NATS connected successfully");
+                    Some(events::EventPublisher::new(client))
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to connect to NATS: {}", e);
+                    None
+                }
+            }
+        }
+        Err(_) => None,
+    };
+
     // Initialize the application state with database connections
     let state = AppState {
         config,
@@ -56,6 +144,11 @@ async fn main() -> eyre::Result<()> {
         db,
         redis,
         jwt_auth,
+        qdrant,
+        neo4j,
+        arangodb,
+        milvus,
+        events,
     };
 
     // Build router with API routes (pass reference, not ownership!)

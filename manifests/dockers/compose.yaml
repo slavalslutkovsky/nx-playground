@@ -15,44 +15,44 @@ services:
 #    cap_add:
 #      - IPC_LOCK
 #    command: vault server -config=/vault/config/vault.json
-#  vault:
-#    image: hashicorp/vault:latest
-#    container_name: vault
-#    restart: unless-stopped
-##    healthcheck:
-##      retries: 5
-#    environment:
-#      VAULT_ADDR: "https://127.0.0.1:8200"
-#      VAULT_API_ADDR: "https://127.0.0.1:8200"
-#      VAULT_LOCAL_CONFIG: |
-#        {
-#          "listener": [
-#            {
-#              "tcp": {
-#                "address": "0.0.0.0:8200",
-#                "tls_disable": 0,
-#                "tls_cert_file": "/vault/config/certs/vault-cert.pem",
-#                "tls_key_file": "/vault/config/certs/vault-key.pem"
-#              }
-#            }
-#          ],
-#          "storage": {
-#            "file": {
-#              "path": "/vault/data"
-#            }
-#          },
-#          "default_lease_ttl": "168h",
-#          "max_lease_ttl": "720h",
-#          "ui": true
-#        }
-#    ports:
-#      - "8200:8200"
-#    volumes:
-#      - "<CUSTOM_USER_DIRECTORY>/data:/vault/data"
-#      - "<CUSTOM_USER_DIRECTORY>/certs:/vault/config/certs"
-#    cap_add:
-#      - IPC_LOCK
-#    command: "vault server -config vault/config/local.json"
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: unless-stopped
+#    healthcheck:
+#      retries: 5
+    environment:
+      VAULT_ADDR: "https://127.0.0.1:8200"
+      VAULT_API_ADDR: "https://127.0.0.1:8200"
+      VAULT_LOCAL_CONFIG: |
+        {
+          "listener": [
+            {
+              "tcp": {
+                "address": "0.0.0.0:8200",
+                "tls_disable": 0,
+                "tls_cert_file": "/vault/config/certs/vault-cert.pem",
+                "tls_key_file": "/vault/config/certs/vault-key.pem"
+              }
+            }
+          ],
+          "storage": {
+            "file": {
+              "path": "/vault/data"
+            }
+          },
+          "default_lease_ttl": "168h",
+          "max_lease_ttl": "720h",
+          "ui": true
+        }
+    ports:
+      - "8200:8200"
+    volumes:
+      - "<CUSTOM_USER_DIRECTORY>/data:/vault/data"
+      - "<CUSTOM_USER_DIRECTORY>/certs:/vault/config/certs"
+    cap_add:
+      - IPC_LOCK
+    command: "vault server -config vault/config/local.json"
   mongo:
     image: "mongo"
     ports:
@@ -61,6 +61,21 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats
+    restart: always
+    ports:
+      - "4222:4222"    # Client connections
+      - "8222:8222"    # HTTP monitoring
+      - "6222:6222"    # Cluster routing (optional)
+    command: ["--jetstream", "-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   postgres:
     image: "postgres"
     environment:
@@ -104,11 +119,11 @@ services:
       - "min_wal_size=1GB"
       - "-c"
       - "max_wal_size=4GB"
-#  mailhog:
-#    image: mailhog/mailhog
-#    ports:
-#      - "1025:1025"
-#      - "8025:8025"
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
   influxdb2:
     image: influxdb:2
@@ -144,6 +159,106 @@ services:
       retries: 3
     networks:
       - qdrant-network
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: neo4j
+    restart: always
+    ports:
+      - "7474:7474"    # HTTP (Browser)
+      - "7687:7687"    # Bolt protocol
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  arangodb:
+    image: arangodb:3.11
+    container_name: arangodb
+    restart: always
+    ports:
+      - "8529:8529"    # Web UI and REST API
+    environment:
+      - ARANGO_ROOT_PASSWORD=rootpassword
+      - ARANGO_NO_AUTH=0
+    volumes:
+      - arangodb_data:/var/lib/arangodb3
+      - arangodb_apps:/var/lib/arangodb3-apps
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: milvus-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - milvus_etcd:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+#  milvus-minio:
+#    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+#    container_name: milvus-minio
+#    environment:
+#      MINIO_ACCESS_KEY: minioadmin
+#      MINIO_SECRET_KEY: minioadmin
+#    ports:
+#      - "9001:9001"    # MinIO Console
+#      - "9000:9000"    # MinIO API
+#    volumes:
+#      - milvus_minio:/minio_data
+#    command: minio server /minio_data --console-address ":9001"
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+#      interval: 30s
+#      timeout: 20s
+#      retries: 3
+#
+#  milvus:
+#    image: milvusdb/milvus:v2.3.3
+#    container_name: milvus
+#    restart: always
+#    command: ["milvus", "run", "standalone"]
+#    security_opt:
+#      - seccomp:unconfined
+#    environment:
+#      ETCD_ENDPOINTS: milvus-etcd:2379
+#      MINIO_ADDRESS: milvus-minio:9000
+#    volumes:
+#      - milvus_data:/var/lib/milvus
+#    ports:
+#      - "19530:19530"  # gRPC
+#      - "9091:9091"    # Metrics
+#      - "19121:19121"  # REST API (Attu compatible)
+#    depends_on:
+#      - milvus-etcd
+#      - milvus-minio
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+#      interval: 30s
+#      timeout: 20s
+#      retries: 3
 
 #  rabbitmq:
 #    image: rabbitmq:3-management
@@ -198,6 +313,13 @@ volumes:
   influxdb2-config:
   qdrant_data:
   rabbitmq_data:
+  neo4j_data:
+  neo4j_logs:
+  arangodb_data:
+  arangodb_apps:
+  milvus_etcd:
+  milvus_minio:
+  milvus_data:
 networks:
   qdrant-network:
     driver: bridge

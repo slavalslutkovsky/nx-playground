@@ -1,0 +1,20 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: my-gcp-bucket
+  namespace: default
+  labels:
+    # Provider selection label - GCP only
+    cloud.provider/gcp: "true"
+spec:
+  parameters:
+    location: US
+    acl: private
+    version: true
+    tags:
+      environment: dev
+      team: platform
+    gcp:
+      project: my-gcp-project
+      storageClass: STANDARD
+      uniformBucketLevelAccess: true

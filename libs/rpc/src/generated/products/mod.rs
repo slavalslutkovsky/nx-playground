@@ -1,0 +1,2 @@
+// @generated
+include!("products.rs");

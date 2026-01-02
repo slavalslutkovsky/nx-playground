@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductGrid from '../../components/ProductGrid.astro';
+import { fetchProducts } from '../../lib/api-client';
+
+const url = new URL(Astro.request.url);
+const category = url.searchParams.get('category');
+const search = url.searchParams.get('search');
+const page = parseInt(url.searchParams.get('page') || '1');
+const limit = 12;
+const offset = (page - 1) * limit;
+
+let products = [];
+let error = null;
+
+try {
+  products = await fetchProducts({
+    category: category || undefined,
+    search: search || undefined,
+    status: 'active',
+    limit,
+    offset,
+  });
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Failed to load products';
+}
+
+const categories = [
+  { value: '', label: 'All Categories' },
+  { value: 'electronics', label: 'Electronics' },
+  { value: 'clothing', label: 'Clothing' },
+  { value: 'books', label: 'Books' },
+  { value: 'food', label: 'Food' },
+  { value: 'home_garden', label: 'Home & Garden' },
+  { value: 'sports', label: 'Sports' },
+  { value: 'toys', label: 'Toys' },
+  { value: 'health', label: 'Health' },
+  { value: 'automotive', label: 'Automotive' },
+];
+---
+
+<BaseLayout title="Products">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Products</h1>
+    <p class="text-gray-600">Browse our complete collection of products.</p>
+  </div>
+
+  <div class="flex flex-col md:flex-row gap-4 mb-8">
+    <form method="GET" class="flex flex-1 gap-4">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search products..."
+        value={search || ''}
+        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      />
+      <select
+        name="category"
+        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      >
+        {categories.map((cat) => (
+          <option value={cat.value} selected={cat.value === category}>
+            {cat.label}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      >
+        Search
+      </button>
+    </form>
+  </div>
+
+  {error ? (
+    <div class="bg-red-50 text-red-600 p-4 rounded-lg">
+      <p>Error loading products: {error}</p>
+      <p class="text-sm mt-2">Make sure the Products API is running on port 3003.</p>
+    </div>
+  ) : (
+    <>
+      <ProductGrid products={products} />
+
+      {products.length === limit && (
+        <div class="mt-8 flex justify-center gap-4">
+          {page > 1 && (
+            <a
+              href={`/products?page=${page - 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
+              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Previous
+            </a>
+          )}
+          <a
+            href={`/products?page=${page + 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Next
+          </a>
+        </div>
+      )}
+    </>
+  )}
+</BaseLayout>

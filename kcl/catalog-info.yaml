@@ -1,0 +1,36 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: kcl-crossplane-packages
+  description: KCL-based Crossplane compositions for multi-cloud infrastructure
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - kcl
+    - crossplane
+    - upbound
+    - infrastructure
+    - multi-cloud
+  links:
+    - url: https://www.kcl-lang.io/
+      title: KCL Documentation
+    - url: https://docs.upbound.io/
+      title: Upbound Documentation
+    - url: https://docs.crossplane.io/
+      title: Crossplane Documentation
+spec:
+  owner: platform-team
+  domain: infrastructure
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: kcl-packages-location
+  description: Location for all KCL Crossplane packages
+spec:
+  type: url
+  targets:
+    - ./bucket/catalog-info.yaml
+    - ./cluster/catalog-info.yaml
+    - ./network/catalog-info.yaml
+    - ./registry/catalog-info.yaml

@@ -1,0 +1,459 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: networks.platform.yurikrupnik.com
+spec:
+  group: platform.yurikrupnik.com
+  names:
+    categories:
+    - crossplane
+    - networking
+    - infrastructure
+    kind: Network
+    plural: networks
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        description: |
+          Network is a multi-cloud network abstraction supporting AWS VPC, GCP VPC,
+          and Azure VNet. Includes security groups, firewalls, NAT gateways, flow logs,
+          and observability features following cloud-native best practices.
+        properties:
+          spec:
+            description: NetworkSpec defines the desired state of Network.
+            properties:
+              parameters:
+                description: Parameters for the network across all providers.
+                properties:
+                  # Core Network Configuration
+                  region:
+                    description: Primary region/location for the network
+                    type: string
+                  cidrBlock:
+                    description: Primary CIDR block for the network (e.g., 10.0.0.0/16)
+                    type: string
+                    default: "10.0.0.0/16"
+                  enableDnsSupport:
+                    description: Enable DNS resolution in the network
+                    type: boolean
+                    default: true
+                  enableDnsHostnames:
+                    description: Enable DNS hostnames in the network
+                    type: boolean
+                    default: true
+                  tags:
+                    description: Tags/labels to apply to all resources
+                    type: object
+                    additionalProperties:
+                      type: string
+
+                  # Subnet Configuration
+                  subnets:
+                    description: Subnet definitions for the network
+                    type: object
+                    properties:
+                      public:
+                        description: Public subnets configuration
+                        type: object
+                        properties:
+                          count:
+                            description: Number of public subnets (spread across AZs)
+                            type: integer
+                            default: 3
+                            minimum: 1
+                            maximum: 6
+                          cidrMask:
+                            description: CIDR mask for public subnets (e.g., 24 for /24)
+                            type: integer
+                            default: 24
+                            minimum: 16
+                            maximum: 28
+                      private:
+                        description: Private subnets configuration
+                        type: object
+                        properties:
+                          count:
+                            description: Number of private subnets (spread across AZs)
+                            type: integer
+                            default: 3
+                            minimum: 1
+                            maximum: 6
+                          cidrMask:
+                            description: CIDR mask for private subnets (e.g., 24 for /24)
+                            type: integer
+                            default: 24
+                            minimum: 16
+                            maximum: 28
+                      database:
+                        description: Isolated database subnets configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable dedicated database subnets
+                            type: boolean
+                            default: false
+                          count:
+                            description: Number of database subnets
+                            type: integer
+                            default: 3
+                            minimum: 1
+                            maximum: 6
+                          cidrMask:
+                            description: CIDR mask for database subnets
+                            type: integer
+                            default: 24
+                            minimum: 16
+                            maximum: 28
+
+                  # Connectivity Configuration
+                  connectivity:
+                    description: Network connectivity options
+                    type: object
+                    properties:
+                      natGateway:
+                        description: NAT Gateway configuration for private subnet internet access
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable NAT Gateway(s)
+                            type: boolean
+                            default: true
+                          highAvailability:
+                            description: Deploy NAT Gateway per AZ for HA (more expensive)
+                            type: boolean
+                            default: false
+                      internetGateway:
+                        description: Internet Gateway configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable Internet Gateway
+                            type: boolean
+                            default: true
+                      vpcEndpoints:
+                        description: VPC/Private Endpoint configuration for secure AWS service access
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable VPC endpoints
+                            type: boolean
+                            default: false
+                          services:
+                            description: List of services to create endpoints for
+                            type: array
+                            items:
+                              type: string
+                            default: []
+
+                  # Security Configuration
+                  security:
+                    description: Network security configuration
+                    type: object
+                    properties:
+                      defaultSecurityGroup:
+                        description: Default security group configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Create a default security group
+                            type: boolean
+                            default: true
+                          allowInternalTraffic:
+                            description: Allow all traffic within the VPC CIDR
+                            type: boolean
+                            default: true
+                          allowOutboundAll:
+                            description: Allow all outbound traffic
+                            type: boolean
+                            default: true
+                      networkAcls:
+                        description: Network ACL configuration for subnet-level security
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable custom Network ACLs
+                            type: boolean
+                            default: false
+                          denyRules:
+                            description: List of CIDR blocks to explicitly deny
+                            type: array
+                            items:
+                              type: string
+                            default: []
+                      firewallRules:
+                        description: Custom firewall rules (for GCP/Azure)
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              description: Rule name
+                              type: string
+                            priority:
+                              description: Rule priority (lower = higher priority)
+                              type: integer
+                            direction:
+                              description: Traffic direction
+                              type: string
+                              enum: ["ingress", "egress"]
+                            action:
+                              description: Rule action
+                              type: string
+                              enum: ["allow", "deny"]
+                            protocol:
+                              description: Protocol (tcp, udp, icmp, all)
+                              type: string
+                            ports:
+                              description: Port ranges (e.g., "80", "443", "8080-8090")
+                              type: array
+                              items:
+                                type: string
+                            sourceCidrs:
+                              description: Source CIDR blocks (for ingress)
+                              type: array
+                              items:
+                                type: string
+                            destinationCidrs:
+                              description: Destination CIDR blocks (for egress)
+                              type: array
+                              items:
+                                type: string
+                        default: []
+
+                  # Observability Configuration
+                  observability:
+                    description: Network observability and monitoring configuration
+                    type: object
+                    properties:
+                      flowLogs:
+                        description: VPC Flow Logs configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable flow logs for traffic analysis
+                            type: boolean
+                            default: false
+                          trafficType:
+                            description: Type of traffic to log
+                            type: string
+                            enum: ["ALL", "ACCEPT", "REJECT"]
+                            default: "ALL"
+                          retentionDays:
+                            description: Log retention period in days
+                            type: integer
+                            default: 14
+                            minimum: 1
+                            maximum: 365
+                          destination:
+                            description: Flow logs destination
+                            type: string
+                            enum: ["cloud-watch", "s3", "stackdriver", "storage-account"]
+                            default: "cloud-watch"
+                      networkWatcher:
+                        description: Network monitoring service (Azure Network Watcher, GCP Network Intelligence)
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable network monitoring service
+                            type: boolean
+                            default: false
+
+                  # Cluster Security Configuration
+                  clusterSecurity:
+                    description: Kubernetes cluster network security settings
+                    type: object
+                    properties:
+                      privateClusterEndpoint:
+                        description: Configure for private Kubernetes API endpoint
+                        type: boolean
+                        default: false
+                      podCidrBlock:
+                        description: CIDR block for Kubernetes pods
+                        type: string
+                        default: "10.244.0.0/16"
+                      serviceCidrBlock:
+                        description: CIDR block for Kubernetes services
+                        type: string
+                        default: "10.96.0.0/12"
+                      networkPolicy:
+                        description: Enable network policy support
+                        type: boolean
+                        default: true
+
+                  # AWS-specific parameters
+                  aws:
+                    description: AWS VPC specific configuration
+                    type: object
+                    properties:
+                      availabilityZones:
+                        description: Specific AZs to use (auto-selected if empty)
+                        type: array
+                        items:
+                          type: string
+                      enableVpcPeering:
+                        description: Enable VPC peering capabilities
+                        type: boolean
+                        default: false
+                      transitGateway:
+                        description: Transit Gateway attachment configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable Transit Gateway attachment
+                            type: boolean
+                            default: false
+                          transitGatewayId:
+                            description: Existing Transit Gateway ID to attach
+                            type: string
+
+                  # GCP-specific parameters
+                  gcp:
+                    description: GCP VPC specific configuration
+                    type: object
+                    properties:
+                      project:
+                        description: GCP project ID
+                        type: string
+                      routingMode:
+                        description: VPC routing mode
+                        type: string
+                        default: REGIONAL
+                        enum: ["REGIONAL", "GLOBAL"]
+                      privateGoogleAccess:
+                        description: Enable Private Google Access for private subnets
+                        type: boolean
+                        default: true
+                      sharedVpc:
+                        description: Shared VPC configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable Shared VPC (requires org-level permissions)
+                            type: boolean
+                            default: false
+                          hostProject:
+                            description: Host project for Shared VPC
+                            type: string
+
+                  # Azure-specific parameters
+                  azure:
+                    description: Azure VNet specific configuration
+                    type: object
+                    properties:
+                      resourceGroup:
+                        description: Azure resource group name
+                        type: string
+                      addressSpaces:
+                        description: Additional address spaces for the VNet
+                        type: array
+                        items:
+                          type: string
+                      ddosProtection:
+                        description: DDoS Protection plan configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable Azure DDoS Protection
+                            type: boolean
+                            default: false
+                          planId:
+                            description: Existing DDoS Protection plan ID
+                            type: string
+                      bastionHost:
+                        description: Azure Bastion configuration for secure VM access
+                        type: object
+                        properties:
+                          enabled:
+                            description: Deploy Azure Bastion
+                            type: boolean
+                            default: false
+                          sku:
+                            description: Bastion SKU
+                            type: string
+                            enum: ["Basic", "Standard"]
+                            default: "Basic"
+                      privateLink:
+                        description: Private Link configuration
+                        type: object
+                        properties:
+                          enabled:
+                            description: Enable Private Link for Azure services
+                            type: boolean
+                            default: false
+                          services:
+                            description: Azure services to connect via Private Link
+                            type: array
+                            items:
+                              type: string
+                            default: []
+                type: object
+                required:
+                - region
+            type: object
+          status:
+            description: NetworkStatus defines the observed state of Network.
+            properties:
+              providers:
+                description: List of active providers for this network
+                type: array
+                items:
+                  type: string
+              vpcIds:
+                description: VPC/VNet IDs per provider
+                type: object
+                additionalProperties:
+                  type: string
+              subnetIds:
+                description: Subnet IDs organized by type and provider
+                type: object
+                additionalProperties:
+                  type: object
+                  additionalProperties:
+                    type: array
+                    items:
+                      type: string
+              securityGroupIds:
+                description: Security group IDs per provider
+                type: object
+                additionalProperties:
+                  type: string
+              natGatewayIds:
+                description: NAT Gateway IDs per provider
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+              flowLogIds:
+                description: Flow Log resource IDs per provider
+                type: object
+                additionalProperties:
+                  type: string
+              ready:
+                description: Overall readiness status
+                type: boolean
+                default: false
+              conditions:
+                description: Detailed condition status
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    reason:
+                      type: string
+                    message:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true

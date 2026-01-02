@@ -1,0 +1,56 @@
+---
+---
+
+<header class="bg-white shadow-sm border-b">
+  <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="/" class="text-2xl font-bold text-primary-600">
+      Storefront
+    </a>
+
+    <nav class="hidden md:flex items-center gap-6">
+      <a href="/" class="text-gray-600 hover:text-primary-600 transition-colors">
+        Home
+      </a>
+      <a href="/products" class="text-gray-600 hover:text-primary-600 transition-colors">
+        Products
+      </a>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <button
+        id="cart-button"
+        class="relative p-2 text-gray-600 hover:text-primary-600 transition-colors"
+        aria-label="Open cart"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.4 7M7 13l-1.4 7m0 0h11.2M17 17a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span
+          id="cart-count"
+          class="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+        >
+          0
+        </span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { cartCount, toggleCart } from '../lib/cart-store';
+
+  const cartButton = document.getElementById('cart-button');
+  const cartCountEl = document.getElementById('cart-count');
+
+  cartButton?.addEventListener('click', () => {
+    toggleCart();
+  });
+
+  // Update cart count display
+  cartCount.subscribe((count) => {
+    if (cartCountEl) {
+      cartCountEl.textContent = count.toString();
+      cartCountEl.classList.toggle('hidden', count === 0);
+    }
+  });
+</script>

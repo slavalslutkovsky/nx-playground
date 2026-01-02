@@ -1,0 +1,115 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: Network
+metadata:
+  name: global-network
+  namespace: default
+  labels:
+    cloud.provider/aws: "true"
+    cloud.provider/gcp: "true"
+    cloud.provider/azure: "true"
+    environment: production
+    multi-cloud: "true"
+spec:
+  parameters:
+    region: us-east-1
+    cidrBlock: "10.0.0.0/16"
+    enableDnsSupport: true
+    enableDnsHostnames: true
+    tags:
+      Environment: production
+      Team: platform
+      CostCenter: infrastructure
+      ManagedBy: crossplane
+      MultiCloud: "true"
+
+    subnets:
+      public:
+        count: 3
+        cidrMask: 24
+      private:
+        count: 3
+        cidrMask: 24
+      database:
+        enabled: true
+        count: 3
+        cidrMask: 24
+
+    connectivity:
+      natGateway:
+        enabled: true
+        highAvailability: true
+      internetGateway:
+        enabled: true
+      vpcEndpoints:
+        enabled: true
+        services:
+          - s3
+          - ecr.api
+
+    security:
+      defaultSecurityGroup:
+        enabled: true
+        allowInternalTraffic: true
+        allowOutboundAll: true
+      firewallRules:
+        - name: allow-https
+          priority: 100
+          direction: ingress
+          action: allow
+          protocol: tcp
+          ports: ["443"]
+          sourceCidrs: ["0.0.0.0/0"]
+        - name: allow-internal-api
+          priority: 200
+          direction: ingress
+          action: allow
+          protocol: tcp
+          ports: ["8080", "8443", "9090"]
+          sourceCidrs: ["10.0.0.0/8"]
+
+    observability:
+      flowLogs:
+        enabled: true
+        trafficType: ALL
+        retentionDays: 90
+      networkWatcher:
+        enabled: true
+
+    clusterSecurity:
+      privateClusterEndpoint: true
+      podCidrBlock: "10.244.0.0/16"
+      serviceCidrBlock: "10.96.0.0/12"
+      networkPolicy: true
+
+    aws:
+      availabilityZones:
+        - us-east-1a
+        - us-east-1b
+        - us-east-1c
+      enableVpcPeering: true
+      transitGateway:
+        enabled: false
+
+    gcp:
+      project: global-production-project
+      routingMode: GLOBAL
+      privateGoogleAccess: true
+      sharedVpc:
+        enabled: false
+
+    azure:
+      resourceGroup: global-network-rg
+      addressSpaces:
+        - "10.1.0.0/16"
+        - "10.2.0.0/16"
+      ddosProtection:
+        enabled: true
+      bastionHost:
+        enabled: true
+        sku: Standard
+      privateLink:
+        enabled: true
+        services:
+          - Microsoft.Storage
+          - Microsoft.Sql
+          - Microsoft.KeyVault

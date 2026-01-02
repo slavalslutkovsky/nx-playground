@@ -1,0 +1,32 @@
+[package]
+name = "products_api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = { workspace = true }
+axum = { workspace = true }
+axum-helpers = { workspace = true }
+chrono = { workspace = true }
+color-eyre = { workspace = true }
+core_config = { workspace = true }
+database = { workspace = true, features = ["mongodb", "redis", "config"] }
+domain_products = { workspace = true }
+eyre = { workspace = true }
+grpc-client = { workspace = true }
+mongodb = { workspace = true }
+prost = { workspace = true }
+redis = { workspace = true }
+reqwest = { workspace = true }
+rpc = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tonic = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+utoipa = { workspace = true }
+uuid = { workspace = true }

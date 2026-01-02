@@ -1,7 +1,54 @@
 #!/usr/bin/env just --justfile
 
+mod dotconfig "~/dotconfig/justfile"
+
 default:
   just -l
+
+host := `uname -a`
+
+shits:
+    cc *.c -o main
+system-info:
+  @echo "This is an {{arch()}} machine".
+
+# ============================================================================
+# Dagger CI Commands
+# ============================================================================
+
+# Run full CI locally via Dagger
+dagger-ci:
+    cargo run -p nx-playground-ci -- all
+
+# Run lint checks via Dagger
+dagger-lint:
+    cargo run -p nx-playground-ci -- lint
+
+# Run tests via Dagger
+dagger-test:
+    cargo run -p nx-playground-ci -- test
+
+# Run build via Dagger
+dagger-build:
+    cargo run -p nx-playground-ci -- build
+
+# Run release build via Dagger
+dagger-build-release:
+    cargo run -r -p nx-playground-ci -- build --release
+
+# Build all containers locally (no push)
+dagger-container:
+    cargo run -p nx-playground-ci -- container --apps all
+
+# Build specific app container
+dagger-container-app app:
+    cargo run -p nx-playground-ci -- container --apps {{app}}
+
+# Run CI with affected detection (simulating CI mode)
+dagger-affected:
+    cargo run -p nx-playground-ci -- all --ci --base origin/main --head HEAD
+
+# ============================================================================
 
 # Full quality check for Rust monorepo (read-only, CI-safe)
 check: fmt-check lint test audit
@@ -286,3 +333,345 @@ dsa:
   nx add @nx/vite
   nx g @nx/vite:app web --directory=apps/zerg/web --unitTestRunner=vitest --projectNameAndRootFormat=as-provided
   cargo run -- migrate up # test is why it is up like this
+
+# ============================================================================
+# Fleet Management - Multi-Cluster Kubernetes Operations
+# ============================================================================
+
+# Fleet configuration
+fleet_repo := "https://github.com/yourorg/fleet-repo"
+hub_context := "hub-cluster"
+
+# --- Hub Cluster Setup ---
+
+# Install Rancher on hub cluster
+fleet-install-rancher:
+    @echo "Installing Rancher on hub cluster..."
+    helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+    helm repo update
+    kubectl create namespace cattle-system --dry-run=client -o yaml | kubectl apply -f -
+    helm upgrade --install rancher rancher-stable/rancher \
+        --namespace cattle-system \
+        --set hostname=rancher.local \
+        --set bootstrapPassword=admin \
+        --set replicas=1
+
+# Install ArgoCD on hub cluster
+fleet-install-argocd:
+    @echo "Installing ArgoCD..."
+    kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    @echo "Waiting for ArgoCD to be ready..."
+    kubectl wait --for=condition=available deployment/argocd-server -n argocd --timeout=300s
+    @echo "ArgoCD installed. Get password with: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
+
+# Install Tailscale operator for private mesh networking
+fleet-install-tailscale:
+    @echo "Installing Tailscale operator..."
+    helm repo add tailscale https://pkgs.tailscale.com/helmcharts
+    helm repo update
+    kubectl create namespace tailscale --dry-run=client -o yaml | kubectl apply -f -
+    @echo "Set TS_OAUTH_CLIENT_ID and TS_OAUTH_CLIENT_SECRET env vars, then run:"
+    @echo "helm install tailscale-operator tailscale/tailscale-operator -n tailscale --set oauth.clientId=\$TS_OAUTH_CLIENT_ID --set oauth.clientSecret=\$TS_OAUTH_CLIENT_SECRET"
+
+# Install Fleet (Rancher's GitOps engine)
+fleet-install-fleet:
+    @echo "Installing Fleet..."
+    helm repo add fleet https://rancher.github.io/fleet-helm-charts/
+    helm repo update
+    helm upgrade --install fleet-crd fleet/fleet-crd -n cattle-fleet-system --create-namespace
+    helm upgrade --install fleet fleet/fleet -n cattle-fleet-system
+
+# Install full hub stack (Rancher + ArgoCD + Fleet)
+fleet-install-hub: fleet-install-rancher fleet-install-argocd fleet-install-fleet
+    @echo "Hub cluster stack installed!"
+
+# --- Cluster Management ---
+
+# List all managed clusters
+fleet-list-clusters:
+    @echo "=== Fleet Clusters ==="
+    kubectl get clusters.fleet.cattle.io -A 2>/dev/null || echo "No Fleet clusters found"
+    @echo ""
+    @echo "=== ArgoCD Clusters ==="
+    argocd cluster list 2>/dev/null || echo "ArgoCD not configured or not logged in"
+
+# Get cluster status
+fleet-cluster-status cluster:
+    @echo "=== Cluster: {{cluster}} ==="
+    kubectl get cluster {{cluster}} -n fleet-default -o yaml 2>/dev/null || echo "Cluster not found in Fleet"
+
+# Register a new cluster to Fleet (generates import command)
+fleet-register-cluster name:
+    @echo "Generating import command for cluster: {{name}}"
+    @echo "Run this on the target cluster:"
+    @echo "curl -sfL https://rancher.local/v3/import/{{name}}.yaml | kubectl apply -f -"
+
+# Add cluster to ArgoCD
+fleet-add-argocd-cluster context name:
+    argocd cluster add {{context}} --name {{name}}
+
+# --- GitOps & Deployments ---
+
+# Apply Fleet GitRepo (connects fleet to git repository)
+fleet-apply-gitrepo:
+    @echo "Applying Fleet GitRepo..."
+    @echo 'apiVersion: fleet.cattle.io/v1alpha1\nkind: GitRepo\nmetadata:\n  name: fleet-infra\n  namespace: fleet-default\nspec:\n  repo: {{fleet_repo}}\n  branch: main\n  paths:\n    - bundles/\n  targets:\n    - name: all\n      clusterSelector: {}' | kubectl apply -f -
+
+# Sync all Fleet bundles
+fleet-sync-all:
+    @echo "Forcing sync on all clusters..."
+    kubectl get clusters.fleet.cattle.io -n fleet-default -o name | xargs -I {} kubectl annotate {} -n fleet-default fleet.cattle.io/force-sync=$(date +%s) --overwrite
+
+# Sync specific cluster
+fleet-sync cluster:
+    kubectl annotate cluster {{cluster}} -n fleet-default fleet.cattle.io/force-sync=$(date +%s) --overwrite
+
+# Check bundle status
+fleet-bundle-status:
+    @echo "=== Bundle Status ==="
+    kubectl get bundles -A
+    @echo ""
+    @echo "=== Bundle Deployments ==="
+    kubectl get bundledeployments -A
+
+# ArgoCD sync all apps
+fleet-argocd-sync-all:
+    argocd app list -o name | xargs -I {} argocd app sync {}
+
+# ArgoCD sync apps by label
+fleet-argocd-sync-env env:
+    argocd app sync -l env={{env}}
+
+# --- Monitoring & Observability ---
+
+# Install Thanos for multi-cluster metrics
+fleet-install-thanos:
+    @echo "Installing Thanos..."
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm repo update
+    kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+    helm upgrade --install thanos bitnami/thanos \
+        --namespace monitoring \
+        --set query.enabled=true \
+        --set queryFrontend.enabled=true \
+        --set compactor.enabled=true \
+        --set storegateway.enabled=true \
+        --set receive.enabled=true
+
+# Get fleet-wide metrics overview
+fleet-metrics:
+    @echo "=== Cluster Health ==="
+    kubectl get nodes -A --context={{hub_context}} 2>/dev/null || kubectl get nodes
+    @echo ""
+    @echo "=== Pod Status Across Clusters ==="
+    kubectl get pods -A --field-selector=status.phase!=Running 2>/dev/null | head -20
+
+# Check policy violations (OPA/Kyverno)
+fleet-policy-violations:
+    @echo "=== OPA Gatekeeper Violations ==="
+    kubectl get constraints -A 2>/dev/null || echo "No Gatekeeper installed"
+    @echo ""
+    @echo "=== Kyverno Policy Reports ==="
+    kubectl get policyreports -A 2>/dev/null || echo "No Kyverno installed"
+
+# --- Security ---
+
+# Install OPA Gatekeeper
+fleet-install-gatekeeper:
+    @echo "Installing OPA Gatekeeper..."
+    kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/master/deploy/gatekeeper.yaml
+
+# Install Kyverno
+fleet-install-kyverno:
+    @echo "Installing Kyverno..."
+    helm repo add kyverno https://kyverno.github.io/kyverno/
+    helm repo update
+    helm upgrade --install kyverno kyverno/kyverno -n kyverno --create-namespace
+
+# Audit RBAC for a user/service account
+fleet-audit-rbac user:
+    kubectl auth can-i --list --as={{user}}
+
+# Check network policies
+fleet-network-policies:
+    kubectl get networkpolicies -A
+
+# --- Patching & Updates ---
+
+# Apply emergency patch to all clusters
+fleet-apply-patch patch_name:
+    @echo "Applying patch: {{patch_name}} to all clusters..."
+    kubectl apply -f patches/{{patch_name}}/
+    just fleet-sync-all
+
+# Rolling restart across all clusters (use with caution)
+fleet-rolling-restart namespace deployment:
+    @echo "Rolling restart {{deployment}} in {{namespace}} across all clusters..."
+    @echo "This will restart pods in all managed clusters!"
+    @read -p "Are you sure? (y/N) " confirm && [ "$$confirm" = "y" ] || exit 1
+    kubectl get clusters.fleet.cattle.io -n fleet-default -o jsonpath='{.items[*].metadata.name}' | \
+        xargs -I {} kubectl rollout restart deployment/{{deployment}} -n {{namespace}} --context={}
+
+# --- DigitalOcean Specific ---
+
+# Create DOKS cluster with Pulumi
+fleet-create-doks-cluster name region="nyc3":
+    @echo "Creating DOKS cluster: {{name}} in {{region}}..."
+    cd infra/pulumi && pulumi up --stack {{name}} \
+        -c cluster:name={{name}} \
+        -c cluster:region={{region}}
+
+# Create DOKS cluster with doctl
+fleet-create-doks name region="nyc3" size="s-4vcpu-8gb" nodes="3":
+    doctl kubernetes cluster create {{name}} \
+        --region {{region}} \
+        --version latest \
+        --size {{size}} \
+        --count {{nodes}} \
+        --ha \
+        --auto-upgrade \
+        --surge-upgrade
+
+# List DOKS clusters
+fleet-list-doks:
+    doctl kubernetes cluster list
+
+# Get DOKS kubeconfig
+fleet-get-doks-config name:
+    doctl kubernetes cluster kubeconfig save {{name}}
+
+# --- Civo Specific ---
+
+# Create Civo cluster
+fleet-create-civo name region="NYC1" size="g4s.kube.medium" nodes="3":
+    civo kubernetes create {{name}} \
+        --size={{size}} \
+        --nodes={{nodes}} \
+        --region={{region}} \
+        --wait
+
+# List Civo clusters
+fleet-list-civo:
+    civo kubernetes list
+
+# Get Civo kubeconfig
+fleet-get-civo-config name:
+    civo kubernetes config {{name}} --save
+
+# ============================================================================
+# Tilt - Local Development Environment
+# ============================================================================
+
+# Start Tilt with default k8s mode
+tilt:
+    tilt up
+
+# Run in local mode (no K8s, cargo/bun directly)
+tilt-local:
+    tilt up -- --mode=local
+
+# Run full stack (apps + all databases in K8s)
+tilt-full:
+    tilt up -- --mode=full
+
+# Run with specific databases only
+tilt-dbs *args:
+    tilt up -- --mode=full --databases={{args}}
+
+# Run with specific apps only
+tilt-apps *args:
+    tilt up -- --apps={{args}}
+
+# Export all K8s manifests to ./dist/k8s/
+tilt-export:
+    tilt up -- --export
+
+# Run minimal: just zerg-api + postgres + redis
+tilt-minimal:
+    tilt up -- --apps=zerg-api,zerg-tasks --databases=postgres,redis
+
+# Tilt down - stop all resources
+tilt-down:
+    tilt down
+
+# Show Tilt resources status
+tilt-status:
+    tilt get resources
+
+# Trigger specific resource
+tilt-trigger resource:
+    tilt trigger {{resource}}
+
+# Open Tilt UI in browser
+tilt-ui:
+    @echo "Tilt UI: http://localhost:10350"
+    open http://localhost:10350
+
+# Run checks in parallel via Tilt
+tilt-check:
+    tilt trigger check-rust &
+    tilt trigger lint-all &
+    wait
+
+# Install dotconfig resources via Tilt
+tilt-setup:
+    tilt trigger install-dotconfig
+    tilt trigger install-cargo-tools
+    tilt trigger install-brew-deps
+
+# --- Utilities ---
+
+# Switch kubectl context
+fleet-use-context context:
+    kubectl config use-context {{context}}
+
+# List all contexts
+fleet-list-contexts:
+    kubectl config get-contexts
+
+# Port forward to Rancher UI
+fleet-rancher-ui:
+    @echo "Rancher UI available at https://localhost:8443"
+    kubectl port-forward -n cattle-system svc/rancher 8443:443
+
+# Port forward to ArgoCD UI
+fleet-argocd-ui:
+    @echo "ArgoCD UI available at https://localhost:8080"
+    @echo "Username: admin"
+    @echo "Password: $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)"
+    kubectl port-forward -n argocd svc/argocd-server 8080:443
+
+# Port forward to Grafana
+fleet-grafana-ui:
+    @echo "Grafana available at http://localhost:3000"
+    kubectl port-forward -n monitoring svc/grafana 3000:80
+
+# Show fleet management help
+fleet-help:
+    @echo "=== Fleet Management Commands ==="
+    @echo ""
+    @echo "Setup:"
+    @echo "  just fleet-install-hub          - Install full hub stack"
+    @echo "  just fleet-install-rancher      - Install Rancher"
+    @echo "  just fleet-install-argocd       - Install ArgoCD"
+    @echo "  just fleet-install-tailscale    - Install Tailscale"
+    @echo ""
+    @echo "Clusters:"
+    @echo "  just fleet-list-clusters        - List all managed clusters"
+    @echo "  just fleet-create-doks <name>   - Create DigitalOcean cluster"
+    @echo "  just fleet-create-civo <name>   - Create Civo cluster"
+    @echo ""
+    @echo "GitOps:"
+    @echo "  just fleet-sync-all             - Sync all clusters"
+    @echo "  just fleet-sync <cluster>       - Sync specific cluster"
+    @echo "  just fleet-bundle-status        - Check bundle status"
+    @echo ""
+    @echo "Security:"
+    @echo "  just fleet-policy-violations    - Check policy violations"
+    @echo "  just fleet-audit-rbac <user>    - Audit RBAC permissions"
+    @echo ""
+    @echo "UI Access:"
+    @echo "  just fleet-rancher-ui           - Port forward to Rancher"
+    @echo "  just fleet-argocd-ui            - Port forward to ArgoCD"
+    @echo "  just fleet-grafana-ui           - Port forward to Grafana"

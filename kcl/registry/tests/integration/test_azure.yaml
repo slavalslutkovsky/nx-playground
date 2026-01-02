@@ -1,0 +1,47 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: test-azure-registry
+  namespace: default
+  labels:
+    cloud.provider/azure: "true"
+spec:
+  parameters:
+    region: eastus
+    repositoryName: myapplication
+    imageTagMutability: MUTABLE
+    tags:
+      Environment: integration-test
+      Team: platform
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 30
+      maxImageCount: 500
+
+    replication:
+      enabled: true
+      destinationRegions:
+        - westus
+        - northeurope
+
+    azure:
+      resourceGroup: integration-test-rg
+      sku: Premium
+      adminUserEnabled: false
+      zoneRedundancy: true
+      networkRules:
+        defaultAction: Deny
+        ipRules:
+          - "10.0.0.0/8"
+          - "192.168.1.0/24"
+      retentionPolicy:
+        enabled: true
+        days: 7
+      trustPolicy:
+        enabled: true

@@ -7,8 +7,10 @@ edition = "2024"
 default = ["postgres", "redis"]
 postgres = ["dep:sea-orm", "dep:sea-orm-migration"]
 redis = ["dep:redis"]
+mongodb = ["dep:mongodb"]
+cassandra = ["dep:scylla"]
 config = ["dep:core_config"]
-all = ["postgres", "redis", "config"]
+all = ["postgres", "redis", "mongodb", "cassandra", "config"]
 
 [dependencies]
 # Core dependencies (always available)
@@ -17,12 +19,20 @@ async-trait = { workspace = true }
 # Configuration support (optional)
 core_config = { workspace = true, optional = true }
 
+# MongoDB dependencies (optional)
+mongodb = { workspace = true, optional = true }
+
 # Redis dependencies (optional)
 redis = { workspace = true, optional = true }
+
+# Cassandra/ScyllaDB dependencies (optional)
+scylla = { workspace = true, optional = true }
 
 # PostgreSQL dependencies (optional)
 sea-orm = { workspace = true, optional = true }
 sea-orm-migration = { workspace = true, optional = true }
+serde = { workspace = true }
+
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

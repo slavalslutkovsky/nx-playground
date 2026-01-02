@@ -1,0 +1,300 @@
+# Default values for mirrord-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: mirrord
+
+## Whether we should create the namespace or not
+## If you set this to false, you must create the namespace manually
+createNamespace: true
+
+## For each namespace you'd like a namespaced role to be created in, add here.
+## The chart will create a role that is required to use mirrord in the namespace
+## and it can be bound via rolebinding (That you need to create yourself).
+roleNamespaces: []
+
+role:
+  # Note there's a cluster role version of it below.
+  mirrord-operator-user:
+    # add labels to the role, for i.e aggregate RBAC
+    labels: {}
+
+clusterRole:
+  mirrord-operator-user-basic:
+    # add labels to the role, for i.e aggregate RBAC
+    labels: {}
+  mirrord-operator-user:
+    # add labels to the role, for i.e aggregate RBAC
+    labels: {}
+
+operator:
+  image: ghcr.io/metalbear-co/operator
+
+  # Override the pull policy, useful for local development.
+  # imagePullPolicy: Always
+
+  # Set this value to specify a tag to use instead of the `appVersion`.
+  # imageTag: test
+
+  podAnnotations: {}
+  podLabels: {}
+
+  ## Custom labels to be added to all Kubernetes resources created by this chart.
+  ## These labels will be applied to higher-level resources like Deployments, Services, etc.
+  ## For pod-specific labels, use operator.podLabels instead.
+  ## Example:
+  ## labels:
+  ##   team: platform
+  labels: {}
+
+  jsonLog: false
+  # Define additional environment variables for the operator.
+  extraEnv: {}
+  # Has to be set to `true` in order to use the SQS queue splitting feature.
+  sqsSplitting: false
+  # Has to be set to `true` in order to use the Kafka queue splitting feature.
+  kafkaSplitting: false
+  # Has to be set to `true` in order to use the argocd application auto-sync pause feature.
+  applicationPauseAutoSync: false
+  # Has to be set to `true` in order to use the MySQL database branching feature.
+  mysqlBranching: false
+  # Has to be set to `true` in order to use the PostgreSQL database branching feature.
+  pgBranching: false
+  # When set to `true`, the operator will use a custom strategy when restarting target workloads.
+  # This strategy can be used if standard restart procedure is not working for the target workload.
+  isolatePodsRestart: true
+  # Enable prometheus metrics endpoint
+  metrics: false
+
+  # imagePullSecrets:
+  #   - name: value
+
+  ## stop using container args for agent config, as now you can just use agent.extraConfig
+  ## also imagePullSecrets is re-used from operator.imagePullSecrets
+  # containerArgs:
+  #   - '--agent-config'
+  #   - '{"image_pull_secrets":[{"name":"docker"}]}'
+
+  ## You can use this only if using Enterprise license.
+  disableTelemetries: false
+
+  # Sets log level for the operator container.
+  #
+  # See reference: https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#directives.
+  logLevel: mirrord=info,operator=info
+
+  ## Controls how long (in seconds) a session is allowed to live for.
+  # maxSessionTimeSeconds: 3600
+
+  ## Controls how long (in milliseconds) a session can live when there are no pods ready to be targeted.
+  ## When this value is not set when installing the chart, the default value of 60000 (60 seconds) is used.
+  # noPodTargetsSessionTimeoutMillis: 60000
+
+  ## Default TTL (in milliseconds) for idle Kafka splits.
+  ## For any given topic, starting the first Kafka splitting session requires patching the target workload.
+  ## Similarly, stopping the last Kafka splitting session requires another patch, that reverts the first one.
+  ## If the target workload takes a long time to restart, it may be desirable to keep the Kafka splits alive longer,
+  ## so that the next Kafka splitting session will not have to patch the workload again.
+  ##
+  ## This value can be overridden per topic with the `spec.splitTtl` field in the `MirrordKafkaTopicsConsumer` custom resource.
+  # idleKafkaSplitTtlMillis: 30000
+
+  ##  You can adjust the format of the created kafka topic names to suit your needs. The default value is:
+  ## `mirrord-tmp-{{RANDOM}}{{FALLBACK}}{{ORIGINAL_TOPIC}}`
+  ## see docs here https://metalbear.co/mirrord/docs/using-mirrord/queue-splitting/#customizing-mirrord-created-kafka-topic-names
+  # kafkaSplittingTopicFormat: "mirrord-tmp-{{RANDOM}}{{FALLBACK}}{{ORIGINAL_TOPIC}}"
+
+  # Linger timeout for SQS splits.
+  # An active SQS split keeps the target consumer patched to read from temporary SQS queues created by the operator.
+  # Once all SQS sessions have finished, the SQS split still remains active (lingers)
+  # until the temporary queues have been emptied by that consumer.
+  # In case of misconfiguration or frequent failures, this can lead to the consumer being patched indefinitely.
+  # This setting allows for specifying a timeout on the linger time (in milliseconds).
+  sqsSplittingLingerTimeout: 60000
+
+  ## Control whether the operator waits for patched pods to become ready when starting Kafka/SQS splitting sessions.
+  ## This option defaults to true (maintaining existing behavior) but can be set to false to speed up
+  ## session start time in environments where pod readiness waiting is not necessary or causes delays due to cluster conditions.
+  queueSplittingWaitForReadyTarget: true
+
+  ## This should be enough for around 200~ concurrent sessions.
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+  ## Allow to specify tolerations for operator deployment
+  # tolerations:
+  #   - key: "key1"
+  #     operator: "Equal"
+  #     value: "value1"
+  #     effect: "NoSchedule"
+
+  # affinity:
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - topologyKey: kubernetes.io/hostname
+  #         labelSelector:
+  #           matchLabels:
+  #             k8s-app: mirrord
+
+  # nodeSelector:
+  #   kubernetes.io/os: linux
+
+  # Port for operator to listen on. If you can't listen on 443 due to privilege issues
+  # you can change this to 3000/8443 or whatever you want - just make sure that nodes
+  # can communicate on that port if it doesn't work then.
+  port: 443
+
+  copyTarget:
+    # by default, the operator will create a dummy container using the agent image
+    # as it is guaranteed to have a sleep binary. If you want the operator
+    # to use the target's image, set this value to false and make sure it has sleep binary
+    useAgentImage: true
+
+  ## The URL of the Jira webhook to enable integration with the mirrord for Jira app.
+  ## If this is set, the operator will attempt to send session duration metrics to the Jira app
+  ## every time a user session ends.
+  # jiraWebhookUrl: "https://example.atlassian-dev.net/x1/random-hash"
+
+  # mysqlBranchConfig:
+  ## example
+  ##
+  ## dbPod:
+  ##   image:
+  ##     registry: "custom-mysql-registry"
+  ##   imagePullSecrets:
+  ##     - name: "mysql-registry-secret"
+  ##   imagePullPolicy: "IfNotPresent"
+  ##   labels: { "role": "database" }
+  ##   annotations: { "db.branch/owner-team": "platform" }
+  ##   volume:
+  ##     name: "mysql-data"
+  ##     emptyDir:
+  ##       sizeLimit: "1Gi"
+  ##   resources:
+  ##     requests:
+  ##       cpu: "500m"
+  ##       memory: "512Mi"
+  ##     limits:
+  ##       cpu: "1"
+  ##       memory: "1Gi"
+
+  # pgBranchConfig:
+  ## example
+  ##
+  ## dbPod:
+  ##   image:
+  ##     registry: "custom-postgres-registry"
+  ##   imagePullSecrets:
+  ##     - name: "postgres-registry-secret"
+  ##   imagePullPolicy: "IfNotPresent"
+  ##   labels: { "role": "database" }
+  ##   annotations: { "db.branch/owner-team": "platform" }
+  ##   volume:
+  ##     name: "pg-data"
+  ##     emptyDir:
+  ##       sizeLimit: "1Gi"
+  ##   resources:
+  ##     requests:
+  ##       cpu: "500m"
+  ##       memory: "512Mi"
+  ##     limits:
+  ##       cpu: "1"
+  ##       memory: "1Gi"
+
+agent:
+  ## example
+  ##
+  ## image:
+  ##   registry: "your-internal.registry.io/metalbear-co/agent"
+  ##   tag: "latest"
+  ##
+  ## or
+  ##
+  ## image: "your-internal.registry.io/metalbear-co/agent:latest"
+  ##
+  # image:
+  # registry: "ghcr.io/metalbear-co/mirrord"
+  # tag: "latest"
+
+  # If you want the operator to secure agent connections with TLS, set this value to true.
+  # This option requires agent version at least 3.97.0.
+  tls: false
+
+  # If you want the agents to accept operator connections on some predefined port,
+  # you can set it here. If you don't set anything, each agent will be assigned with a random high port.
+  # port: 9999
+
+  ## use this if you want to add settings that aren't covered by the values.yaml
+  ## see possible settings here: https://mirrord.dev/docs/reference/configuration/#root-agent
+  extraConfig:
+  #  json_log: false
+  #  labels: { "user": "meow" }
+  #  annotations: { "cats.io/inject": "enabled" }
+  #  tolerations:
+  #    - operator: Exists
+  #  privileged: true
+  #  passthrough_mirroring: false
+
+license:
+  ## ID of a secret from the Google Secrets Manager.
+  ##
+  ## If provided, the operator will fetch the license file from this secret.
+  ##
+  ## To access the secret, the operator will use Application Default Credentials.
+  ## The easiest way to provide credentials is by allowing the operator's
+  ## Kubernetes ServiceAccount to impersonate a GCP service account.
+  ## This can be done with `.sa.gcpSa` setting.
+  # gsmRef: "projects/PROJECT_ID/secrets/SECRET_NAME/versions/SECRET_VERSION"
+  key: ""
+  file:
+    secret: mirrord-operator-license
+    # data:
+    #   license.pem:
+  keyRef: ""
+  pemRef: ""
+
+  # For air-gapped systems there is an option to use a license-server for enterprise licenses.
+  # This must be an accesible endpoint from where the operator is installed
+  # (can be in cluster or not and via any ingress or node-port as long as communication is possible via http/https)
+  #
+  # licenseServer: http://mirrord-operator-license-server.mirrord.svc
+
+  # For enterprise licenses the operator can allow usage for more than the max amount of seats.
+  #
+  # Set this value to `false` to disable this allowance to go over the max seats count.
+  allowSeatOverages: true
+
+service:
+  name: mirrord-operator
+
+sa:
+  name: mirrord-operator
+
+  ## AWS role ARN to use for IAM role assumption.
+  # roleArn: arn:aws:iam::111122223333:role/mirrord-operator-role
+  ## GCP service account to impersonate.
+  # gcpSa: <iam-sa-name>@<iam-sa-project-id>.iam.gserviceaccount.com
+
+tls:
+  secret: mirrord-operator-tls
+
+  # if you're using a verified certificate, set this value to false.
+  apiService:
+    insecureSkipTLSVerify: true
+
+  # if certmanager is disabled and no tls.key and tls.crt is set,
+  # the operator will generate a self-signed certificate.
+  certManager:
+    enabled: false
+    createIssuer: true
+
+    issuer: mirrord-operator-issuer
+    certificate: mirrord-operator-tls
+
+  data:
+    tls.key: ""
+    tls.crt: ""
+
+# if you run on OpenShift, set this value to true to get a SCC in the yaml.
+openshift: false

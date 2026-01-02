@@ -1,0 +1,148 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cart">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+
+    <div id="cart-content">
+      <div id="empty-cart" class="text-center py-12">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.4 7M7 13l-1.4 7m0 0h11.2M17 17a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <p class="text-gray-500 text-lg mb-4">Your cart is empty</p>
+        <a href="/products" class="text-primary-600 hover:underline">
+          Continue shopping →
+        </a>
+      </div>
+
+      <div id="cart-items" class="hidden space-y-4">
+        <!-- Cart items will be rendered here by JavaScript -->
+      </div>
+
+      <div id="cart-summary" class="hidden mt-8 border-t pt-8">
+        <div class="flex justify-between text-lg mb-4">
+          <span class="font-medium">Subtotal</span>
+          <span id="cart-subtotal" class="font-bold text-primary-600">$0.00</span>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">
+          Shipping and taxes calculated at checkout.
+        </p>
+        <button class="w-full py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors">
+          Proceed to Checkout
+        </button>
+        <a href="/products" class="block text-center mt-4 text-primary-600 hover:underline">
+          Continue shopping
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { cartItems, cartTotal, removeFromCart, updateQuantity, clearCart } from '../lib/cart-store';
+
+  function formatPrice(cents: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(cents / 100);
+  }
+
+  function renderCart() {
+    const items = cartItems.get();
+    const itemsContainer = document.getElementById('cart-items');
+    const emptyCart = document.getElementById('empty-cart');
+    const cartSummary = document.getElementById('cart-summary');
+    const subtotalEl = document.getElementById('cart-subtotal');
+
+    if (!itemsContainer || !emptyCart || !cartSummary || !subtotalEl) return;
+
+    const itemsArray = Object.values(items);
+
+    if (itemsArray.length === 0) {
+      emptyCart.classList.remove('hidden');
+      itemsContainer.classList.add('hidden');
+      cartSummary.classList.add('hidden');
+      return;
+    }
+
+    emptyCart.classList.add('hidden');
+    itemsContainer.classList.remove('hidden');
+    cartSummary.classList.remove('hidden');
+
+    itemsContainer.innerHTML = itemsArray.map((item) => `
+      <div class="flex gap-4 p-4 bg-white rounded-lg shadow" data-product-id="${item.product.id}">
+        <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+          ${item.product.images[0]
+            ? `<img src="${item.product.images[0].url}" alt="${item.product.name}" class="w-full h-full object-cover" />`
+            : '<div class="w-full h-full flex items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>'
+          }
+        </div>
+
+        <div class="flex-1">
+          <h3 class="font-semibold text-gray-900">${item.product.name}</h3>
+          <p class="text-primary-600 font-medium">${formatPrice(item.product.price)}</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button class="quantity-btn decrease w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100" data-action="decrease">
+            -
+          </button>
+          <span class="w-8 text-center">${item.quantity}</span>
+          <button class="quantity-btn increase w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100" data-action="increase">
+            +
+          </button>
+        </div>
+
+        <div class="flex items-center">
+          <span class="font-semibold text-gray-900 w-24 text-right">
+            ${formatPrice(item.product.price * item.quantity)}
+          </span>
+        </div>
+
+        <button class="remove-btn text-red-500 hover:text-red-700 p-2" aria-label="Remove item">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    `).join('');
+
+    subtotalEl.textContent = formatPrice(cartTotal.get());
+
+    // Add event listeners
+    itemsContainer.querySelectorAll('.quantity-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const container = target.closest('[data-product-id]');
+        const productId = container?.getAttribute('data-product-id');
+        const action = target.dataset.action;
+        const item = items[productId!];
+
+        if (productId && item) {
+          if (action === 'increase') {
+            updateQuantity(productId, item.quantity + 1);
+          } else {
+            updateQuantity(productId, item.quantity - 1);
+          }
+        }
+      });
+    });
+
+    itemsContainer.querySelectorAll('.remove-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const container = (e.currentTarget as HTMLElement).closest('[data-product-id]');
+        const productId = container?.getAttribute('data-product-id');
+        if (productId) {
+          removeFromCart(productId);
+        }
+      });
+    });
+  }
+
+  // Initial render and subscribe to changes
+  renderCart();
+  cartItems.subscribe(renderCart);
+</script>

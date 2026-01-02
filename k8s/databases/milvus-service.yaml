@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml -o /Users/yurikrupnik/github/nx-playground/k8s/databases/
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: milvus
+  name: milvus
+spec:
+  ports:
+    - name: "19530"
+      port: 19530
+      targetPort: 19530
+    - name: "9091"
+      port: 9091
+      targetPort: 9091
+    - name: "19121"
+      port: 19121
+      targetPort: 19121
+  selector:
+    io.kompose.service: milvus

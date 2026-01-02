@@ -1,0 +1,31 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: my-multicloud-bucket
+  namespace: default
+  labels:
+    # Provider selection labels - Deploy to ALL providers
+    cloud.provider/aws: "true"
+    cloud.provider/gcp: "true"
+    cloud.provider/azure: "true"
+spec:
+  parameters:
+    location: us-east-1  # AWS region; mapped appropriately for other providers
+    acl: private
+    version: true
+    tags:
+      environment: production
+      team: platform
+      multicloud: "true"
+    # AWS-specific overrides
+    aws:
+      region: us-east-1
+    # GCP-specific overrides
+    gcp:
+      project: my-gcp-project
+      storageClass: STANDARD
+    # Azure-specific overrides
+    azure:
+      resourceGroup: crossplane-rg
+      accountTier: Standard
+      accountReplicationType: GRS  # Geo-redundant for production

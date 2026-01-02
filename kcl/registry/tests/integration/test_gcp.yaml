@@ -1,0 +1,44 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: ContainerRegistry
+metadata:
+  name: test-gcp-registry
+  namespace: default
+  labels:
+    cloud.provider/gcp: "true"
+spec:
+  parameters:
+    region: us-central1
+    repositoryName: my-application
+    imageTagMutability: MUTABLE
+    tags:
+      environment: integration-test
+      team: platform
+
+    security:
+      scanOnPush: true
+      encryptionType: AES256
+      publicAccess: false
+
+    lifecycle:
+      enabled: true
+      maxImageAge: 30
+      maxImageCount: 500
+      keepTagPatterns:
+        - "latest"
+        - "v*"
+
+    accessControl:
+      pullPrincipals:
+        - "serviceAccount:gke-nodes@my-project.iam.gserviceaccount.com"
+      pushPrincipals:
+        - "serviceAccount:cicd@my-project.iam.gserviceaccount.com"
+      adminPrincipals:
+        - "user:admin@example.com"
+
+    gcp:
+      project: my-gcp-project
+      format: DOCKER
+      mode: STANDARD_REPOSITORY
+      cleanupPolicies:
+        enabled: true
+        dryRun: false

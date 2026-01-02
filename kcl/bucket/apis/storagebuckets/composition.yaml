@@ -1,0 +1,27 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: storagebuckets.platform.yurikrupnik.com
+  labels:
+    crossplane.io/xrd: storagebuckets.platform.yurikrupnik.com
+spec:
+  compositeTypeRef:
+    apiVersion: platform.yurikrupnik.com/v1alpha1
+    kind: StorageBucket
+  mode: Pipeline
+  pipeline:
+  - step: create-storage-resources
+    functionRef:
+      name: function-kcl
+    input:
+      apiVersion: krm.kcl.dev/v1alpha1
+      kind: KCLInput
+      metadata:
+        name: storage-bucket-function
+      spec:
+        source: |
+          # Import the unified storage function
+          import functions.storage.composition as comp
+
+          # Output the rendered items
+          items = comp.items

@@ -1,0 +1,28 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: cluster-composition
+  title: Kubernetes Cluster Composition
+  description: |
+    Multi-cloud Kubernetes cluster Crossplane composition using KCL.
+    Provisions managed Kubernetes clusters across cloud providers.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    crossplane.io/kind: CompositeResourceDefinition
+    github.com/project-slug: yurikrupnik/nx-playground
+  tags:
+    - kcl
+    - crossplane
+    - kubernetes
+    - eks
+    - gke
+    - aks
+    - multi-cloud
+  links:
+    - url: https://xpkg.upbound.io/krupnik/cluster
+      title: Upbound Package
+spec:
+  type: crossplane-composition
+  lifecycle: experimental
+  owner: platform-team
+  system: kcl-crossplane-packages

@@ -1,0 +1,75 @@
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: Network
+metadata:
+  name: production-vpc
+  namespace: default
+  labels:
+    cloud.provider/aws: "true"
+    environment: production
+spec:
+  parameters:
+    region: us-east-1
+    cidrBlock: "10.0.0.0/16"
+    enableDnsSupport: true
+    enableDnsHostnames: true
+    tags:
+      Environment: production
+      Team: platform
+      CostCenter: infrastructure
+      ManagedBy: crossplane
+
+    subnets:
+      public:
+        count: 3
+        cidrMask: 24
+      private:
+        count: 3
+        cidrMask: 24
+      database:
+        enabled: true
+        count: 3
+        cidrMask: 24
+
+    connectivity:
+      natGateway:
+        enabled: true
+        highAvailability: true
+      internetGateway:
+        enabled: true
+      vpcEndpoints:
+        enabled: true
+        services:
+          - s3
+          - dynamodb
+          - ecr.api
+          - ecr.dkr
+
+    security:
+      defaultSecurityGroup:
+        enabled: true
+        allowInternalTraffic: true
+        allowOutboundAll: true
+      networkAcls:
+        enabled: false
+
+    observability:
+      flowLogs:
+        enabled: true
+        trafficType: ALL
+        retentionDays: 30
+        destination: cloud-watch
+
+    clusterSecurity:
+      privateClusterEndpoint: true
+      podCidrBlock: "10.244.0.0/16"
+      serviceCidrBlock: "10.96.0.0/12"
+      networkPolicy: true
+
+    aws:
+      availabilityZones:
+        - us-east-1a
+        - us-east-1b
+        - us-east-1c
+      enableVpcPeering: false
+      transitGateway:
+        enabled: false

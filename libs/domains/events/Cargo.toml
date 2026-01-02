@@ -1,0 +1,32 @@
+[package]
+name = "domain_events"
+version = "0.1.0"
+edition = "2024"
+description = "Events domain with MongoDB storage, InfluxDB metrics, and Dapr pub/sub"
+
+[dependencies]
+async-trait = { workspace = true }
+axum = { workspace = true }
+axum-helpers = { workspace = true }
+chrono = { workspace = true }
+database = { workspace = true, features = ["mongodb"] }
+futures-util = "0.3"
+
+# InfluxDB client
+influxdb2 = "0.5"
+influxdb2-structmap = "0.2"
+mongodb = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+uuid = { workspace = true }
+validator = { workspace = true }
+
+[dev-dependencies]
+mockall = { workspace = true }

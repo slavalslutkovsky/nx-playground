@@ -1,0 +1,32 @@
+# Integration test: AWS S3 bucket creation
+# This test validates the full composition pipeline for AWS
+
+apiVersion: platform.yurikrupnik.com/v1alpha1
+kind: StorageBucket
+metadata:
+  name: integration-test-aws
+  namespace: crossplane-test
+  labels:
+    cloud.provider/aws: "true"
+    test.crossplane.io/type: integration
+spec:
+  parameters:
+    location: us-east-1
+    acl: private
+    version: true
+    tags:
+      test: integration
+      provider: aws
+    aws:
+      region: us-east-1
+---
+# Expected outputs validation
+apiVersion: s3.aws.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  name: integration-test-aws-aws
+  labels:
+    cloud.provider/aws: "true"
+spec:
+  forProvider:
+    region: us-east-1

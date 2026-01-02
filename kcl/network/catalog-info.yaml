@@ -1,0 +1,110 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: network-composition
+  title: Network Infrastructure Composition
+  description: |
+    Multi-cloud network infrastructure Crossplane composition using KCL.
+    Provisions VPCs, subnets, NAT gateways, security groups, and networking
+    resources across AWS, GCP, and Azure with built-in security and
+    observability best practices.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    crossplane.io/kind: CompositeResourceDefinition
+    crossplane.io/xrd-name: networks.platform.yurikrupnik.com
+    github.com/project-slug: yurikrupnik/nx-playground
+  tags:
+    - kcl
+    - crossplane
+    - networking
+    - vpc
+    - vnet
+    - multi-cloud
+    - security
+    - observability
+  links:
+    - url: https://xpkg.upbound.io/krupnik/network
+      title: Upbound Package
+    - url: https://docs.crossplane.io/latest/concepts/compositions/
+      title: Crossplane Compositions
+spec:
+  type: crossplane-composition
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  providesApis:
+    - network-api
+  dependsOn:
+    - resource:provider-aws-ec2
+    - resource:provider-gcp-compute
+    - resource:provider-azure-network
+    - resource:function-kcl
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: network-api
+  title: Network XRD API
+  description: |
+    Crossplane XRD API for provisioning multi-cloud network infrastructure.
+    Supports AWS VPC, GCP VPC, and Azure VNet with security and observability.
+  tags:
+    - crossplane
+    - xrd
+    - networking
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Network API
+      version: v1alpha1
+      description: Multi-cloud network infrastructure API
+    paths: {}
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-aws-ec2
+  title: AWS EC2 Provider
+  description: Upbound AWS EC2 provider for VPC resources
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-gcp-compute
+  title: GCP Compute Provider
+  description: Upbound GCP Compute provider for VPC resources
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-azure-network
+  title: Azure Network Provider
+  description: Upbound Azure Network provider for VNet resources
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: function-kcl
+  title: KCL Function
+  description: Crossplane KCL function for composition logic
+spec:
+  type: crossplane-function
+  owner: platform-team
+  system: kcl-crossplane-packages

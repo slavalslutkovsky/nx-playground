@@ -1,0 +1,40 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: events-pubsub
+  namespace: default
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: localhost:6379
+    - name: redisPassword
+      value: ""
+    - name: consumerID
+      value: "events-consumer"
+    - name: enableTLS
+      value: "false"
+    - name: processingTimeout
+      value: "60s"
+    - name: redeliverInterval
+      value: "15s"
+    - name: maxRetries
+      value: "3"
+scopes:
+  - zerg-mongo-api
+  - zerg-api
+  - zerg-tasks
+---
+# Subscription configuration for events topic
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: events-subscription
+spec:
+  topic: events
+  routes:
+    default: /api/events/subscribe
+  pubsubname: events-pubsub
+scopes:
+  - zerg-mongo-api

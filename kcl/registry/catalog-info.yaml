@@ -1,0 +1,98 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: registry-composition
+  title: Container Registry Composition
+  description: |
+    Multi-cloud container registry Crossplane composition using KCL.
+    Provisions container registries with security scanning, lifecycle policies,
+    and replication across AWS ECR, GCP Artifact Registry, and Azure Container Registry.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    crossplane.io/kind: CompositeResourceDefinition
+    crossplane.io/xrd-name: containerregistries.platform.yurikrupnik.com
+    github.com/project-slug: yurikrupnik/nx-playground
+  tags:
+    - kcl
+    - crossplane
+    - container-registry
+    - ecr
+    - artifact-registry
+    - acr
+    - multi-cloud
+    - security
+  links:
+    - url: https://xpkg.upbound.io/krupnik/registry
+      title: Upbound Package
+    - url: https://docs.crossplane.io/latest/concepts/compositions/
+      title: Crossplane Compositions
+spec:
+  type: crossplane-composition
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  providesApis:
+    - containerregistry-api
+  dependsOn:
+    - resource:provider-aws-ecr
+    - resource:provider-gcp-artifact
+    - resource:provider-azure-containerregistry
+    - resource:function-kcl
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: containerregistry-api
+  title: Container Registry XRD API
+  description: |
+    Crossplane XRD API for provisioning multi-cloud container registries.
+    Supports AWS ECR, GCP Artifact Registry, and Azure Container Registry.
+  tags:
+    - crossplane
+    - xrd
+    - container-registry
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-team
+  system: kcl-crossplane-packages
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Container Registry API
+      version: v1alpha1
+      description: Multi-cloud container registry API
+    paths: {}
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-aws-ecr
+  title: AWS ECR Provider
+  description: Upbound AWS ECR provider for container repositories
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-gcp-artifact
+  title: GCP Artifact Registry Provider
+  description: Upbound GCP Artifact Registry provider
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: provider-azure-containerregistry
+  title: Azure Container Registry Provider
+  description: Upbound Azure Container Registry provider
+spec:
+  type: crossplane-provider
+  owner: platform-team
+  system: kcl-crossplane-packages

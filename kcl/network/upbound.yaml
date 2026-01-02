@@ -1,0 +1,111 @@
+apiVersion: meta.dev.upbound.io/v2alpha1
+kind: Project
+metadata:
+  name: network
+spec:
+  dependsOn:
+  # AWS EC2 Provider for VPC, Subnets, NAT Gateway, Security Groups
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-ec2
+    version: '>=v2.0.0'
+  # GCP Compute Provider for VPC Network, Subnets, Cloud NAT, Firewalls
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-compute
+    version: '>=v2.0.0'
+  # Azure Network Provider for VNet, Subnets, NAT Gateway, NSGs
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-azure-network
+    version: '>=v2.0.0'
+  # KCL Function for composition logic
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    package: xpkg.upbound.io/crossplane-contrib/function-kcl
+    version: '>=v0.12.0'
+  description: |
+    Multi-cloud network infrastructure composition supporting AWS VPC, GCP VPC,
+    and Azure VNet. Includes best practices for security (security groups, firewalls,
+    NACLs), observability (flow logs, network monitoring), and Kubernetes cluster
+    network security (private endpoints, network policies).
+
+    Features:
+    - VPC/VNet creation with custom CIDR blocks
+    - Public, private, and database subnets with proper isolation
+    - NAT Gateways with optional high availability
+    - Internet Gateways and route tables
+    - Security Groups, Firewalls, and Network Security Groups
+    - VPC Flow Logs for traffic analysis
+    - Private endpoints for secure cloud service access
+    - Kubernetes cluster security configurations
+
+    Provider Selection:
+    Use labels to select target cloud providers:
+    - cloud.provider/aws: "true"    -> Creates AWS VPC resources
+    - cloud.provider/gcp: "true"    -> Creates GCP VPC resources
+    - cloud.provider/azure: "true"  -> Creates Azure VNet resources
+
+    Multiple providers can be selected simultaneously for multi-cloud deployments.
+  license: Apache-2.0
+  maintainer: Platform Team <platform@yurikrupnik.com>
+  readme: |
+    # Multi-Cloud Network Infrastructure
+
+    This package provides a unified Crossplane composition for managing network
+    infrastructure across AWS, GCP, and Azure using KCL.
+
+    ## Features
+
+    ### Core Networking
+    - VPC/VNet with configurable CIDR blocks
+    - Public, private, and database subnets
+    - NAT Gateways (single or HA mode)
+    - Internet Gateways
+    - Route tables with proper routing
+
+    ### Security
+    - Default security groups/NSGs with best practices
+    - Firewall rules (GCP)
+    - Network ACLs (AWS)
+    - SSH/RDP blocked from internet by default
+    - IAP and Bastion support for secure access
+
+    ### Observability
+    - VPC Flow Logs (AWS, GCP)
+    - Network Watcher (Azure)
+    - Configurable log retention
+
+    ### Cluster Security
+    - Private cluster endpoint support
+    - Pod and Service CIDR configuration
+    - Network policy enablement
+    - Secondary IP ranges for GKE
+
+    ## Quick Start
+
+    ```bash
+    # Install the composition
+    just install
+
+    # Deploy to AWS
+    just apply-aws
+
+    # Deploy to all clouds
+    just apply-multi
+    ```
+
+    ## Testing
+
+    ```bash
+    # Run unit tests
+    just test-unit
+
+    # Run stress tests
+    just stress count=100
+
+    # Run all tests
+    just test
+    ```
+  repository: xpkg.upbound.io/krupnik/network
+  source: github.com/yurikrupnik/nx-playground

@@ -1,0 +1,190 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-tests
+  namespace: default
+  labels:
+    app: k6
+    purpose: load-testing
+data:
+  helpers.js: |
+    // Shared k6 helper functions
+    import { check } from 'k6';
+    import { Rate, Trend } from 'k6/metrics';
+
+    export const errorRate = new Rate('errors');
+    export const requestDuration = new Trend('request_duration');
+
+    export function checkResponse(response, expectedStatus, name) {
+      const passed = check(response, {
+        [`${name} - status is ${expectedStatus}`]: (r) => r.status === expectedStatus,
+        [`${name} - response time < 500ms`]: (r) => r.timings.duration < 500,
+      });
+      errorRate.add(!passed);
+      requestDuration.add(response.timings.duration);
+      return passed;
+    }
+
+    export function checkJsonResponse(response, name) {
+      return check(response, {
+        [`${name} - has valid JSON`]: (r) => {
+          try { r.json(); return true; } catch (e) { return false; }
+        },
+      });
+    }
+
+    export function randomString(length = 10) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    export const jsonHeaders = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    export function getBaseUrl(envVar, defaultUrl) {
+      return __ENV[envVar] || defaultUrl;
+    }
+
+    export function randomSleep(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    export const standardThresholds = {
+      http_req_duration: ['p(95)<500', 'p(99)<1000'],
+      http_req_failed: ['rate<0.01'],
+      errors: ['rate<0.05'],
+    };
+
+  zerg-api.js: |
+    import http from 'k6/http';
+    import { sleep, group } from 'k6';
+    import { checkResponse, checkJsonResponse, jsonHeaders, getBaseUrl, randomString, standardThresholds, randomSleep } from './helpers.js';
+
+    const BASE_URL = getBaseUrl('ZERG_API_URL', 'http://zerg-api:3000');
+
+    export const options = {
+      stages: [
+        { duration: '30s', target: 5 },
+        { duration: '1m', target: 10 },
+        { duration: '30s', target: 0 },
+      ],
+      thresholds: standardThresholds,
+    };
+
+    export default function () {
+      group('Health', () => {
+        const healthRes = http.get(`${BASE_URL}/health`);
+        checkResponse(healthRes, 200, 'health');
+      });
+
+      group('Tasks', () => {
+        const listRes = http.get(`${BASE_URL}/api/tasks`, { headers: jsonHeaders });
+        checkResponse(listRes, 200, 'list tasks');
+
+        const createPayload = JSON.stringify({
+          title: `K6 Task ${randomString(6)}`,
+          description: 'Load test',
+          status: 'todo',
+          priority: 'medium',
+        });
+        const createRes = http.post(`${BASE_URL}/api/tasks`, createPayload, { headers: jsonHeaders });
+        if (checkResponse(createRes, 201, 'create task')) {
+          const task = createRes.json();
+          http.del(`${BASE_URL}/api/tasks/${task.id}`, null, { headers: jsonHeaders });
+        }
+      });
+
+      sleep(randomSleep(1, 2));
+    }
+
+  zerg-mongo-api.js: |
+    import http from 'k6/http';
+    import { sleep, group } from 'k6';
+    import { checkResponse, jsonHeaders, getBaseUrl, randomString, standardThresholds, randomSleep } from './helpers.js';
+
+    const BASE_URL = getBaseUrl('ZERG_MONGO_API_URL', 'http://zerg-mongo-api:3001');
+
+    export const options = {
+      stages: [
+        { duration: '30s', target: 5 },
+        { duration: '1m', target: 10 },
+        { duration: '30s', target: 0 },
+      ],
+      thresholds: standardThresholds,
+    };
+
+    export default function () {
+      group('Health', () => {
+        const healthRes = http.get(`${BASE_URL}/health`);
+        checkResponse(healthRes, 200, 'health');
+      });
+
+      group('Items', () => {
+        const listRes = http.get(`${BASE_URL}/api/items`, { headers: jsonHeaders });
+        checkResponse(listRes, 200, 'list items');
+
+        const createPayload = JSON.stringify({
+          name: `K6 Item ${randomString(6)}`,
+          description: 'Load test',
+          quantity: Math.floor(Math.random() * 100),
+          price: parseFloat((Math.random() * 100).toFixed(2)),
+        });
+        const createRes = http.post(`${BASE_URL}/api/items`, createPayload, { headers: jsonHeaders });
+        if (checkResponse(createRes, 201, 'create item')) {
+          const item = createRes.json();
+          http.del(`${BASE_URL}/api/items/${item.id || item._id}`, null, { headers: jsonHeaders });
+        }
+      });
+
+      sleep(randomSleep(1, 2));
+    }
+
+  products-api.js: |
+    import http from 'k6/http';
+    import { sleep, group } from 'k6';
+    import { checkResponse, jsonHeaders, getBaseUrl, randomString, standardThresholds, randomSleep } from './helpers.js';
+
+    const BASE_URL = getBaseUrl('PRODUCTS_API_URL', 'http://products-api:3003');
+
+    export const options = {
+      stages: [
+        { duration: '30s', target: 5 },
+        { duration: '1m', target: 10 },
+        { duration: '30s', target: 0 },
+      ],
+      thresholds: standardThresholds,
+    };
+
+    function randomSKU() {
+      return `SKU-${randomString(8).toUpperCase()}`;
+    }
+
+    function randomBarcode() {
+      let barcode = '';
+      for (let i = 0; i < 12; i++) barcode += Math.floor(Math.random() * 10);
+      return barcode;
+    }
+
+    export default function () {
+      group('Health', () => {
+        const healthRes = http.get(`${BASE_URL}/health`);
+        checkResponse(healthRes, 200, 'health');
+      });
+
+      group('Products', () => {
+        const listRes = http.get(`${BASE_URL}/api/products`, { headers: jsonHeaders });
+        checkResponse(listRes, 200, 'list products');
+
+        const searchRes = http.get(`${BASE_URL}/api/products/search?q=test`, { headers: jsonHeaders });
+        checkResponse(searchRes, 200, 'search products');
+      });
+
+      sleep(randomSleep(1, 2));
+    }

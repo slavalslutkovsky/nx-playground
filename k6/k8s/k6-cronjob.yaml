@@ -1,0 +1,116 @@
+---
+# k6 CronJob for scheduled load testing
+# Runs every hour for continuous performance monitoring
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k6-scheduled-test
+  namespace: default
+  labels:
+    app: k6
+    purpose: load-testing
+    schedule: hourly
+spec:
+  schedule: "0 * * * *"  # Every hour at minute 0
+  concurrencyPolicy: Forbid  # Don't run if a previous job is still running
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: k6
+            job-type: scheduled
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: k6
+              image: grafana/k6:latest
+              command:
+                - k6
+                - run
+                - --quiet
+                - /scripts/zerg-api.js
+              env:
+                - name: ZERG_API_URL
+                  value: "http://zerg-api.default.svc.cluster.local:3000"
+              volumeMounts:
+                - name: k6-scripts
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: k6-scripts
+              configMap:
+                name: k6-tests
+---
+# Smoke test CronJob - runs every 5 minutes for quick health validation
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k6-smoke-test
+  namespace: default
+  labels:
+    app: k6
+    purpose: smoke-testing
+    schedule: frequent
+spec:
+  schedule: "*/5 * * * *"  # Every 5 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 600  # Clean up after 10 minutes
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: k6
+            job-type: smoke
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: k6
+              image: grafana/k6:latest
+              command:
+                - sh
+                - -c
+                - |
+                  # Quick smoke test - just check health endpoints
+                  k6 run --vus 1 --duration 10s - <<'EOF'
+                  import http from 'k6/http';
+                  import { check, sleep } from 'k6';
+
+                  const urls = [
+                    'http://zerg-api.default.svc.cluster.local:3000/health',
+                    'http://zerg-mongo-api.default.svc.cluster.local:3001/health',
+                    'http://products-api.default.svc.cluster.local:3003/health',
+                  ];
+
+                  export default function () {
+                    for (const url of urls) {
+                      const res = http.get(url);
+                      check(res, {
+                        'status is 200': (r) => r.status === 200,
+                        'response time < 200ms': (r) => r.timings.duration < 200,
+                      });
+                    }
+                    sleep(1);
+                  }
+                  EOF
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi

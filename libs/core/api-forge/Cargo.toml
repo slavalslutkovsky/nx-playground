@@ -1,0 +1,30 @@
+[package]
+name = "api-forge"
+version = "0.1.0"
+edition = "2024"
+description = "Unified API documentation, aggregation, and analysis library"
+
+[dependencies]
+# Workspace dependencies
+async-trait.workspace = true
+axum.workspace = true
+
+# OpenAPI parsing
+openapiv3 = "2"
+
+# HTTP client for fetching specs
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng = "0.10"
+
+# Indexing for search
+strum.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+utoipa.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tokio-test = "0.4"
