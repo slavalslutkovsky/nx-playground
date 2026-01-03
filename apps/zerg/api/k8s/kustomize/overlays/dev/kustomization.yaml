@@ -30,7 +30,7 @@ patches:
           - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
             value: "true"
           - name: JWT_SECRET
-            value: "dev-secret-change-in-production"
+            value: "dev-secret-change-in-production-" # fixed by adding 1 more char
           - name: GOOGLE_CLIENT_ID
             value: "your-google-client-id"
           - name: GOOGLE_CLIENT_SECRET
