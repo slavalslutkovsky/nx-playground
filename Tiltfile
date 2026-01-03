@@ -32,7 +32,7 @@ include('./apps/zerg/web/Tiltfile')
 #     )
 # )
 
-#local_resource(
+# local_resource(
 #    'mongodb-port-forward',
 #    serve_cmd='kubectl port-forward -n dbs deployment/db 27017:27017',
 #    labels=['databases'],
@@ -40,7 +40,7 @@ include('./apps/zerg/web/Tiltfile')
 #        period_secs=5,
 #        exec=exec_action(['sh', '-c', 'nc -z localhost 27017'])
 #    )
-#)
+# )
 
 # local_resource(
 #     'influxdb2-port-forward',
