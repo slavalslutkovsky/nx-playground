@@ -32,7 +32,7 @@ local_resource(
     )
 )
 
-#local_resource(
+# local_resource(
 #    'mongodb-port-forward',
 #    serve_cmd='kubectl port-forward -n dbs deployment/db 27017:27017',
 #    labels=['databases'],
@@ -40,7 +40,7 @@ local_resource(
 #        period_secs=5,
 #        exec=exec_action(['sh', '-c', 'nc -z localhost 27017'])
 #    )
-#)
+# )
 
 local_resource(
     'influxdb2-port-forward',
@@ -52,35 +52,35 @@ local_resource(
     )
 )
 
-local_resource(
-    'komoplane-port-forward',
-    serve_cmd='kubectl port-forward -n crossplane-system deployment/komoplane 8090:8090',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 8090'])
-    )
-)
+# local_resource(
+#     'komoplane-port-forward',
+#     serve_cmd='kubectl port-forward -n crossplane-system deployment/komoplane 8090:8090',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 8090'])
+#     )
+# )
 
-local_resource(
-    'grafana-port-forward',
-    serve_cmd='kubectl port-forward -n monitoring deployment/monitoring-grafana 3000:3000',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 3000'])
-    )
-)
+# local_resource(
+#     'grafana-port-forward',
+#     serve_cmd='kubectl port-forward -n monitoring deployment/monitoring-grafana 3000:3000',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 3000'])
+#     )
+# )
 
-local_resource(
-    'argocd-port-forward',
-    serve_cmd='kubectl port-forward -n argocd deployment/argocd-server 8080:8080',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 8080'])
-    )
-)
+# local_resource(
+#     'argocd-port-forward',
+#     serve_cmd='kubectl port-forward -n argocd deployment/argocd-server 8080:8080',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 8080'])
+#     )
+# )
 
 #k8s_yaml(kustomize('./manifests/kustomize/backstage/overlays/dev'))
 
