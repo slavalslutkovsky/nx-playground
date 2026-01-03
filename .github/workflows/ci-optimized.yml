@@ -258,18 +258,41 @@ jobs:
           REGISTRY: ${{ vars.REGISTRY }}
           SHORT_SHA: ${{ github.sha }}
 
-      - name: Merge SARIF files
+      - name: Collect SARIF files
+        id: collect-sarif
         run: |
           mkdir -p sarif-results
           find . -name "trivy-*.sarif" -exec cp {} sarif-results/ \; 2>/dev/null || true
           if ls sarif-results/*.sarif 1>/dev/null 2>&1; then
-            echo "SARIF files found"
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "SARIF files found:"
+            ls -la sarif-results/
           else
+            echo "found=false" >> $GITHUB_OUTPUT
             echo "No SARIF files found"
           fi
 
       - name: Upload Trivy scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: sarif-results/
-        if: hashFiles('sarif-results/*.sarif') != ''
+        if: steps.collect-sarif.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for sarif_file in sarif-results/*.sarif; do
+            if [ -f "$sarif_file" ]; then
+              category=$(basename "$sarif_file" .sarif)
+              echo "Uploading $sarif_file with category: $category"
+
+              gzip -c "$sarif_file" | base64 -w0 > /tmp/sarif_base64.txt
+
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/repos/${{ github.repository }}/code-scanning/sarifs" \
+                -f "commit_sha=${{ github.sha }}" \
+                -f "ref=${{ github.ref }}" \
+                -f "sarif=@/tmp/sarif_base64.txt" \
+              && echo "Successfully uploaded $category" \
+              || echo "Warning: Failed to upload $sarif_file"
+            fi
+          done
