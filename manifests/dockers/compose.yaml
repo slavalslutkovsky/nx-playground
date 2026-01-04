@@ -1,58 +1,57 @@
-
 services:
-#  vault-test:
-#    image: vault:latest
-#    volumes:
-#      - ./vault/config:/vault/config
-#      - ./vault/policies:/vault/policies
-#      - ./vault/data:/vault/data
-#    ports:
-#      - 8200:8200
-#    environment:
-#      - VAULT_ADDR=http://0.0.0.0:8200
-#      - VAULT_API_ADDR=http://0.0.0.0:8200
-#      - VAULT_ADDRESS=http://0.0.0.0:8200
-#    cap_add:
-#      - IPC_LOCK
-#    command: vault server -config=/vault/config/vault.json
-#  vault:
-#    image: hashicorp/vault:latest
-#    container_name: vault
-#    restart: unless-stopped
-##    healthcheck:
-##      retries: 5
-#    environment:
-#      VAULT_ADDR: "https://127.0.0.1:8200"
-#      VAULT_API_ADDR: "https://127.0.0.1:8200"
-#      VAULT_LOCAL_CONFIG: |
-#        {
-#          "listener": [
-#            {
-#              "tcp": {
-#                "address": "0.0.0.0:8200",
-#                "tls_disable": 0,
-#                "tls_cert_file": "/vault/config/certs/vault-cert.pem",
-#                "tls_key_file": "/vault/config/certs/vault-key.pem"
-#              }
-#            }
-#          ],
-#          "storage": {
-#            "file": {
-#              "path": "/vault/data"
-#            }
-#          },
-#          "default_lease_ttl": "168h",
-#          "max_lease_ttl": "720h",
-#          "ui": true
-#        }
-#    ports:
-#      - "8200:8200"
-#    volumes:
-#      - "<CUSTOM_USER_DIRECTORY>/data:/vault/data"
-#      - "<CUSTOM_USER_DIRECTORY>/certs:/vault/config/certs"
-#    cap_add:
-#      - IPC_LOCK
-#    command: "vault server -config vault/config/local.json"
+  #  vault-test:
+  #    image: vault:latest
+  #    volumes:
+  #      - ./vault/config:/vault/config
+  #      - ./vault/policies:/vault/policies
+  #      - ./vault/data:/vault/data
+  #    ports:
+  #      - 8200:8200
+  #    environment:
+  #      - VAULT_ADDR=http://0.0.0.0:8200
+  #      - VAULT_API_ADDR=http://0.0.0.0:8200
+  #      - VAULT_ADDRESS=http://0.0.0.0:8200
+  #    cap_add:
+  #      - IPC_LOCK
+  #    command: vault server -config=/vault/config/vault.json
+  #  vault:
+  #    image: hashicorp/vault:latest
+  #    container_name: vault
+  #    restart: unless-stopped
+  ##    healthcheck:
+  ##      retries: 5
+  #    environment:
+  #      VAULT_ADDR: "https://127.0.0.1:8200"
+  #      VAULT_API_ADDR: "https://127.0.0.1:8200"
+  #      VAULT_LOCAL_CONFIG: |
+  #        {
+  #          "listener": [
+  #            {
+  #              "tcp": {
+  #                "address": "0.0.0.0:8200",
+  #                "tls_disable": 0,
+  #                "tls_cert_file": "/vault/config/certs/vault-cert.pem",
+  #                "tls_key_file": "/vault/config/certs/vault-key.pem"
+  #              }
+  #            }
+  #          ],
+  #          "storage": {
+  #            "file": {
+  #              "path": "/vault/data"
+  #            }
+  #          },
+  #          "default_lease_ttl": "168h",
+  #          "max_lease_ttl": "720h",
+  #          "ui": true
+  #        }
+  #    ports:
+  #      - "8200:8200"
+  #    volumes:
+  #      - "<CUSTOM_USER_DIRECTORY>/data:/vault/data"
+  #      - "<CUSTOM_USER_DIRECTORY>/certs:/vault/config/certs"
+  #    cap_add:
+  #      - IPC_LOCK
+  #    command: "vault server -config vault/config/local.json"
   mongo:
     image: "mongo"
     ports:
@@ -69,15 +68,15 @@ services:
       POSTGRES_PASSWORD: mypassword
       # Performance tuning for development/benchmarking
       # Adjust based on your system's available RAM
-      POSTGRES_SHARED_BUFFERS: "512MB"           # 25% of RAM for caching (default: 128MB)
-      POSTGRES_EFFECTIVE_CACHE_SIZE: "2GB"       # 50-75% of RAM (planner hint)
-      POSTGRES_WORK_MEM: "16MB"                  # Per-query operation memory (default: 4MB)
-      POSTGRES_MAINTENANCE_WORK_MEM: "128MB"     # VACUUM, CREATE INDEX memory (default: 64MB)
-      POSTGRES_MAX_CONNECTIONS: "200"            # Match application pool (default: 100)
-      POSTGRES_WAL_BUFFERS: "16MB"               # WAL buffer size (default: -1)
+      POSTGRES_SHARED_BUFFERS: "512MB" # 25% of RAM for caching (default: 128MB)
+      POSTGRES_EFFECTIVE_CACHE_SIZE: "2GB" # 50-75% of RAM (planner hint)
+      POSTGRES_WORK_MEM: "16MB" # Per-query operation memory (default: 4MB)
+      POSTGRES_MAINTENANCE_WORK_MEM: "128MB" # VACUUM, CREATE INDEX memory (default: 64MB)
+      POSTGRES_MAX_CONNECTIONS: "200" # Match application pool (default: 100)
+      POSTGRES_WAL_BUFFERS: "16MB" # WAL buffer size (default: -1)
       POSTGRES_CHECKPOINT_COMPLETION_TARGET: "0.9" # Spread checkpoint I/O (default: 0.5)
-      POSTGRES_RANDOM_PAGE_COST: "1.1"           # Lower for SSD (default: 4.0)
-      POSTGRES_EFFECTIVE_IO_CONCURRENCY: "200"   # SSD concurrent I/O (default: 1)
+      POSTGRES_RANDOM_PAGE_COST: "1.1" # Lower for SSD (default: 4.0)
+      POSTGRES_EFFECTIVE_IO_CONCURRENCY: "200" # SSD concurrent I/O (default: 1)
     ports:
       - "5432:5432"
     command:
@@ -104,12 +103,25 @@ services:
       - "min_wal_size=1GB"
       - "-c"
       - "max_wal_size=4GB"
-#  mailhog:
-#    image: mailhog/mailhog
-#    ports:
-#      - "1025:1025"
-#      - "8025:8025"
-
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats
+    restart: always
+    ports:
+      - "4222:4222" # Client connections
+      - "8222:8222" # HTTP monitoring
+      - "6222:6222" # Cluster routing (optional)
+    command: ["--jetstream", "-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   influxdb2:
     image: influxdb:2
     ports:
@@ -127,8 +139,8 @@ services:
     container_name: qdrant
     restart: always
     ports:
-      - "6333:6333"    # REST API
-      - "6334:6334"    # gRPC API (optional)
+      - "6333:6333" # REST API
+      - "6334:6334" # gRPC API (optional)
     volumes:
       #      - qdrant_data:/qdrant/storage
       - ./config:/qdrant/config
@@ -138,61 +150,13 @@ services:
       - QDRANT__SERVICE__HTTP_PORT=6333
       - QDRANT__SERVICE__GRPC_PORT=6334
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:6333/healthz" ]
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
     networks:
       - qdrant-network
 
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    container_name: rabbitmq
-#    restart: always
-#    ports:
-#      - "5672:5672"    # AMQP
-#      - "15672:15672"  # Management UI
-#      - "9419:9419"    # Prometheus metrics
-#    environment:
-#      - RABBITMQ_DEFAULT_USER=admin
-#      - RABBITMQ_DEFAULT_PASS=admin
-#      - RABBITMQ_PROMETHEUS_RETENTION_POLICY=24h
-#    volumes:
-#      - rabbitmq_data:/var/lib/rabbitmq
-#  nushell:
-#    image: ghcr.io/nushell/nushell:latest-alpine
-#    command: |
-#      ls
-#      sleep 29
-#  prometheus:
-#    image: prom/prometheus:latest
-#    container_name: prometheus
-#    restart: always
-#    volumes:
-#      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-#    ports:
-#      - "9090:9090"
-#  loki:
-#    image: grafana/loki:latest
-#    container_name: loki
-#    restart: always
-#    ports:
-#      - "3100:3100"
-#    volumes:
-#      - ./loki-config.yml:/etc/loki/local-config.yaml
-#  grafana:
-#    image: grafana/grafana:latest
-#    container_name: grafana
-#    environment:
-#      - GF_SECURITY_ADMIN_PASSWORD=admin
-#    ports:
-#      - "3000:3000"
-#    depends_on:
-#      - prometheus
-#      - loki
-#    volumes:
-#      - influxdb2-data:/var/lib/influxdb2
-#      - influxdb2-config:/etc/influxdb2
 volumes:
   influxdb2-data:
   influxdb2-config:

@@ -1,0 +1,50 @@
+// Database Schema
+// Auto-generated from SeaORM entities on 2026-01-04 11:05:06 UTC
+
+Table tasks {
+  id uuid [pk]
+  title varchar [not null]
+  description varchar [not null]
+  completed boolean [not null]
+  project_id uuid
+  priority taskpriority [not null]
+  status taskstatus [not null]
+  due_date timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table projects {
+  id uuid [pk]
+  name varchar [not null]
+  user_id uuid [not null]
+  description varchar [not null]
+  cloud_provider cloudprovider [not null]
+  region varchar [not null]
+  environment environment [not null]
+  status projectstatus [not null]
+  budget_limit float
+  tags jsonb [not null]
+  enabled boolean [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table cloud_resources {
+  id uuid [pk]
+  project_id uuid [not null]
+  name varchar [not null]
+  resource_type varchar [not null]
+  status varchar [not null]
+  region varchar [not null]
+  configuration jsonb [not null]
+  cost_per_hour float
+  monthly_cost_estimate float
+  tags jsonb [not null]
+  enabled boolean [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  deleted_at timestamptz
+}
+
+Ref: cloud_resources.project_id > entities.id
