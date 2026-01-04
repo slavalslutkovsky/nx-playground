@@ -50,6 +50,44 @@
           "command": "cargo run --package zerg_tasks --release"
         }
       }
+    },
+    "container": {
+      "executor": "@nx-tools/nx-container:build",
+      "options": {
+        "file": "manifests/dockers/rust.Dockerfile",
+        "context": ".",
+        "build-args": ["APP_NAME=zerg_tasks"],
+        "tags": ["$REGISTRY/zerg-tasks:latest"],
+        "push": false
+      },
+      "configurations": {
+        "ci": {
+          "push": true,
+          "metadata": {
+            "images": ["$REGISTRY/zerg-tasks"],
+            "tags": [
+              "type=sha",
+              "type=ref,event=branch",
+              "type=ref,event=tag",
+              "type=ref,event=pr",
+              "type=semver,pattern={{version}}"
+            ]
+          }
+        }
+      }
+    },
+    "scan": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container"],
+      "options": {
+        "command": "trivy image $REGISTRY/zerg-tasks:latest --severity CRITICAL,HIGH --exit-code 0",
+        "cwd": "{workspaceRoot}"
+      },
+      "configurations": {
+        "ci": {
+          "command": "trivy image $REGISTRY/zerg-tasks:sha-$(echo $SHORT_SHA | cut -c1-7) --severity CRITICAL,HIGH --format sarif --output trivy-zerg-tasks.sarif"
+        }
+      }
     }
   },
   "tags": []

@@ -12,25 +12,25 @@ include('./apps/zerg/web/Tiltfile')
 #include('./apps/terran/api/Tiltfile')
 #include('./apps/terran/web/Tiltfile')
 
-local_resource(
-    'redis-port-forward',
-    serve_cmd='kubectl port-forward -n dbs deployment/redis 6379:6379',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 6379'])
-    )
-)
+# local_resource(
+#     'redis-port-forward',
+#     serve_cmd='kubectl port-forward -n dbs deployment/redis 6379:6379',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 6379'])
+#     )
+# )
 
-local_resource(
-    'postgres-port-forward',
-    serve_cmd='kubectl port-forward -n dbs deployment/postgres 5433:5432',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
-    )
-)
+# local_resource(
+#     'postgres-port-forward',
+#     serve_cmd='kubectl port-forward -n dbs deployment/postgres 5433:5432',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
+#     )
+# )
 
 # local_resource(
 #    'mongodb-port-forward',
@@ -42,15 +42,15 @@ local_resource(
 #    )
 # )
 
-local_resource(
-    'influxdb2-port-forward',
-    serve_cmd='kubectl port-forward -n dbs deployment/influxdb2 8086:8086',
-    labels=['databases'],
-    readiness_probe=probe(
-        period_secs=5,
-        exec=exec_action(['sh', '-c', 'nc -z localhost 8086'])
-    )
-)
+# local_resource(
+#     'influxdb2-port-forward',
+#     serve_cmd='kubectl port-forward -n dbs deployment/influxdb2 8086:8086',
+#     labels=['databases'],
+#     readiness_probe=probe(
+#         period_secs=5,
+#         exec=exec_action(['sh', '-c', 'nc -z localhost 8086'])
+#     )
+# )
 
 # local_resource(
 #     'komoplane-port-forward',
