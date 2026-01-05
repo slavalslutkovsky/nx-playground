@@ -109,9 +109,8 @@ mod tests {
         let timeout_err = NatsError::Timeout("timed out".to_string());
         assert_eq!(timeout_err.category(), ErrorCategory::Transient);
 
-        let serialization_err = NatsError::Serialization(
-            serde_json::from_str::<String>("invalid").unwrap_err()
-        );
+        let serialization_err =
+            NatsError::Serialization(serde_json::from_str::<String>("invalid").unwrap_err());
         assert_eq!(serialization_err.category(), ErrorCategory::Permanent);
 
         let config_err = NatsError::Config("bad config".to_string());

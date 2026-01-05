@@ -12,6 +12,11 @@ use serde::de::DeserializeOwned;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 
+// Type aliases for complex Redis stream result types
+type StreamReadResult = Vec<(String, Vec<(String, Vec<(String, String)>)>)>;
+type StreamEntries = Vec<(String, Vec<(String, String)>)>;
+type PendingResult = (i64, Option<String>, Option<String>, Option<Vec<(String, i64)>>);
+
 /// Stream consumer for Redis operations
 pub struct StreamConsumer {
     redis: Arc<ConnectionManager>,
@@ -87,7 +92,7 @@ impl StreamConsumer {
         let mut conn = (*self.redis).clone();
 
         // Read pending messages for this consumer
-        let result: RedisResult<Vec<(String, Vec<(String, Vec<(String, String)>)>)>> =
+        let result: RedisResult<StreamReadResult> =
             redis::cmd("XREADGROUP")
                 .arg("GROUP")
                 .arg(&self.config.consumer_group)
@@ -133,7 +138,7 @@ impl StreamConsumer {
             .arg(&self.config.stream_name)
             .arg(">"); // Only new messages
 
-        let result: RedisResult<Option<Vec<(String, Vec<(String, Vec<(String, String)>)>)>>> =
+        let result: RedisResult<Option<StreamReadResult>> =
             cmd.query_async(&mut conn).await;
 
         match result {
@@ -211,7 +216,7 @@ impl StreamConsumer {
             cmd.arg(id);
         }
 
-        let result: RedisResult<Vec<(String, Vec<(String, String)>)>> =
+        let result: RedisResult<StreamEntries> =
             cmd.query_async(&mut conn).await;
 
         match result {
@@ -233,12 +238,11 @@ impl StreamConsumer {
         let len: i64 = conn.xlen(&self.config.stream_name).await?;
 
         // Get pending count for this consumer group
-        let pending: RedisResult<(i64, Option<String>, Option<String>, Option<Vec<(String, i64)>>)> =
-            redis::cmd("XPENDING")
-                .arg(&self.config.stream_name)
-                .arg(&self.config.consumer_group)
-                .query_async(&mut conn)
-                .await;
+        let pending: RedisResult<PendingResult> = redis::cmd("XPENDING")
+            .arg(&self.config.stream_name)
+            .arg(&self.config.consumer_group)
+            .query_async(&mut conn)
+            .await;
 
         let pending_count = pending.map(|(count, _, _, _)| count).unwrap_or(0);
 
@@ -253,7 +257,7 @@ impl StreamConsumer {
     /// Parse stream response from XREADGROUP
     fn parse_stream_response<J: StreamJob + DeserializeOwned>(
         &self,
-        streams: Vec<(String, Vec<(String, Vec<(String, String)>)>)>,
+        streams: StreamReadResult,
     ) -> Result<Vec<StreamEvent<J>>, StreamError> {
         let mut events = Vec::new();
 
@@ -268,7 +272,7 @@ impl StreamConsumer {
     /// Parse entries from Redis response
     fn parse_entries<J: StreamJob + DeserializeOwned>(
         &self,
-        entries: Vec<(String, Vec<(String, String)>)>,
+        entries: StreamEntries,
     ) -> Result<Vec<StreamEvent<J>>, StreamError> {
         let mut events = Vec::new();
 

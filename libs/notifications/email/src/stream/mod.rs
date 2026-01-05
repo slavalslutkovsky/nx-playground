@@ -224,7 +224,7 @@ impl EmailConsumer {
                                 }
                                 // Copy template data if present
                                 email.template_data = job.template_vars.clone();
-                                let event = EmailEvent::SendEmail(email);
+                                let event = EmailEvent::SendEmail(Box::new(email));
                                 emails.push((stream_id.id.clone(), event));
                             }
                             Err(e) => {
@@ -337,12 +337,10 @@ impl EmailConsumer {
         };
 
         for stream_id in results.claimed {
-            if let Some(event_data) = stream_id.map.get("event") {
-                if let redis::Value::BulkString(bytes) = event_data {
-                    let event_str = String::from_utf8_lossy(bytes);
-                    if let Ok(event) = serde_json::from_str::<EmailEvent>(&event_str) {
-                        emails.push((stream_id.id.clone(), event));
-                    }
+            if let Some(redis::Value::BulkString(bytes)) = stream_id.map.get("event") {
+                let event_str = String::from_utf8_lossy(bytes);
+                if let Ok(event) = serde_json::from_str::<EmailEvent>(&event_str) {
+                    emails.push((stream_id.id.clone(), event));
                 }
             }
         }

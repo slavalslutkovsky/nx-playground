@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zerg-shared-config
+  namespace: zerg
+data:
+  # Override defaults for development
+  DB_SQLX_LOGGING: "true"
+  RUST_LOG: "info,zerg=debug"
+
+  # Development-specific URLs
+  CORS_ALLOWED_ORIGIN: "http://zerg.local"
+  REDIRECT_BASE_URL: "http://api.zerg.local"
+  FRONTEND_URL: "http://zerg.local"
+
+  # SMTP for dev (Mailpit)
+  SMTP_HOST: "mailpit.dbs.svc.cluster.local"
+  SMTP_PORT: "1025"
+  EMAIL_FROM_ADDRESS: "noreply@zerg.local"
+  EMAIL_FROM_NAME: "Zerg Dev"

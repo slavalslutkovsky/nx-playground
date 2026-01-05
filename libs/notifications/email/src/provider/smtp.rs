@@ -96,7 +96,8 @@ impl SmtpProvider {
             from_email: std::env::var("EMAIL_FROM_ADDRESS")
                 .or_else(|_| std::env::var("SMTP_FROM_EMAIL"))
                 .wrap_err("EMAIL_FROM_ADDRESS not set")?,
-            from_name: std::env::var("EMAIL_FROM_NAME").unwrap_or_else(|_| "Notifications".to_string()),
+            from_name: std::env::var("EMAIL_FROM_NAME")
+                .unwrap_or_else(|_| "Notifications".to_string()),
             use_tls: std::env::var("SMTP_USE_TLS")
                 .map(|v| v == "true" || v == "1")
                 .unwrap_or(true),

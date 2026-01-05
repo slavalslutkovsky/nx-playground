@@ -51,7 +51,7 @@ impl NatsConsumer {
                 let info = stream
                     .info()
                     .await
-                    .map_err(|e| NatsError::from_jetstream_error(e))?;
+                    .map_err(NatsError::from_jetstream_error)?;
                 debug!(
                     stream = %self.config.stream_name,
                     messages = info.state.messages,
@@ -76,7 +76,7 @@ impl NatsConsumer {
                         ..Default::default()
                     })
                     .await
-                    .map_err(|e| NatsError::from_jetstream_error(e))?;
+                    .map_err(NatsError::from_jetstream_error)?;
 
                 info!(
                     stream = %self.config.stream_name,
@@ -96,7 +96,7 @@ impl NatsConsumer {
             .jetstream
             .get_stream(&self.config.stream_name)
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         // Try to get existing consumer
         match stream
@@ -129,7 +129,7 @@ impl NatsConsumer {
                         ..Default::default()
                     })
                     .await
-                    .map_err(|e| NatsError::from_jetstream_error(e))?;
+                    .map_err(NatsError::from_jetstream_error)?;
 
                 info!(
                     consumer = %self.config.durable_name,
@@ -149,10 +149,7 @@ impl NatsConsumer {
     }
 
     /// Fetch a batch of messages.
-    pub async fn fetch<J: Job>(
-        &self,
-        batch_size: usize,
-    ) -> Result<Vec<NatsMessage<J>>, NatsError> {
+    pub async fn fetch<J: Job>(&self, batch_size: usize) -> Result<Vec<NatsMessage<J>>, NatsError> {
         let consumer = self.ensure_consumer().await?;
 
         let mut messages = consumer
@@ -161,7 +158,7 @@ impl NatsConsumer {
             .expires(self.config.fetch_timeout)
             .messages()
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         let mut result = Vec::new();
 
@@ -212,12 +209,12 @@ impl NatsConsumer {
             .jetstream
             .get_stream(&self.config.stream_name)
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         let info = stream
             .info()
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         Ok(StreamInfo {
             stream_name: self.config.stream_name.clone(),

@@ -43,8 +43,8 @@ impl SendGridProvider {
     /// - `SENDGRID_FROM_EMAIL` or `EMAIL_FROM_ADDRESS`
     /// - `SENDGRID_FROM_NAME` or `EMAIL_FROM_NAME`
     pub fn from_env() -> Result<Self> {
-        let api_key = std::env::var("SENDGRID_API_KEY")
-            .map_err(|_| eyre!("SENDGRID_API_KEY not set"))?;
+        let api_key =
+            std::env::var("SENDGRID_API_KEY").map_err(|_| eyre!("SENDGRID_API_KEY not set"))?;
 
         let from_email = std::env::var("SENDGRID_FROM_EMAIL")
             .or_else(|_| std::env::var("EMAIL_FROM_ADDRESS"))

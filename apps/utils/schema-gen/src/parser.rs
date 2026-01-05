@@ -225,7 +225,9 @@ fn pluralize(word: &str) -> String {
 }
 
 /// Parse relations from the Relation enum in entity files
-pub fn parse_relations(entities_paths: &[String]) -> color_eyre::Result<Vec<(String, Vec<Relation>)>> {
+pub fn parse_relations(
+    entities_paths: &[String],
+) -> color_eyre::Result<Vec<(String, Vec<Relation>)>> {
     let mut relations_map = Vec::new();
 
     for entities_path in entities_paths {
@@ -249,7 +251,9 @@ pub fn parse_relations(entities_paths: &[String]) -> color_eyre::Result<Vec<(Str
                                     if let Some(start) = tokens_str.find("table_name") {
                                         let after = &tokens_str[start..];
                                         if let Some(quote_start) = after.find('"') {
-                                            if let Some(quote_end) = after[quote_start + 1..].find('"') {
+                                            if let Some(quote_end) =
+                                                after[quote_start + 1..].find('"')
+                                            {
                                                 entity_name = after
                                                     [quote_start + 1..quote_start + 1 + quote_end]
                                                     .to_string();

@@ -1,15 +1,19 @@
-//! EmailJob - Implements StreamJob for email processing
+//! EmailJob - Implements Job traits for email processing
 //!
-//! This module provides the job type used by the stream worker.
+//! This module provides the job type used by both Redis Streams
+//! and NATS JetStream workers.
 
 use crate::models::{Email, EmailPriority};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use stream_worker::StreamJob;
 use uuid::Uuid;
 
+// Re-export both Job traits for convenience
+pub use messaging::Job as MessagingJob;
+pub use stream_worker::StreamJob;
+
 /// Email type variants for different email templates
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum EmailType {
     /// Welcome email for new users
@@ -23,15 +27,10 @@ pub enum EmailType {
     /// Task-related notifications (assigned, due soon, overdue, completed)
     TaskNotification,
     /// Generic transactional email
+    #[default]
     Transactional,
     /// Custom template
     Custom(String),
-}
-
-impl Default for EmailType {
-    fn default() -> Self {
-        Self::Transactional
-    }
 }
 
 /// Email job for stream processing
@@ -79,7 +78,11 @@ pub struct EmailJob {
 
 impl EmailJob {
     /// Create a new EmailJob
-    pub fn new(email_type: EmailType, to_email: impl Into<String>, subject: impl Into<String>) -> Self {
+    pub fn new(
+        email_type: EmailType,
+        to_email: impl Into<String>,
+        subject: impl Into<String>,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             email_type,
@@ -155,13 +158,21 @@ impl EmailJob {
     }
 
     /// Create a welcome email job
-    pub fn welcome(to_email: impl Into<String>, name: impl Into<String>, app_name: impl Into<String>) -> Self {
+    pub fn welcome(
+        to_email: impl Into<String>,
+        name: impl Into<String>,
+        app_name: impl Into<String>,
+    ) -> Self {
         let name = name.into();
-        Self::new(EmailType::Welcome, to_email, format!("Welcome to {}", app_name.into()))
-            .with_name(name.clone())
-            .with_vars(serde_json::json!({
-                "name": name,
-            }))
+        Self::new(
+            EmailType::Welcome,
+            to_email,
+            format!("Welcome to {}", app_name.into()),
+        )
+        .with_name(name.clone())
+        .with_vars(serde_json::json!({
+            "name": name,
+        }))
     }
 
     /// Create a password reset email job
@@ -199,6 +210,35 @@ impl EmailJob {
     }
 }
 
+// Implement messaging::Job for NATS backend
+impl MessagingJob for EmailJob {
+    fn job_id(&self) -> String {
+        self.id.to_string()
+    }
+
+    fn retry_count(&self) -> u32 {
+        self.retry_count
+    }
+
+    fn with_retry(&self) -> Self {
+        Self {
+            id: Uuid::new_v4(), // New ID for retry
+            retry_count: self.retry_count + 1,
+            created_at: Utc::now(),
+            ..self.clone()
+        }
+    }
+
+    fn max_retries(&self) -> u32 {
+        match self.priority {
+            EmailPriority::High => 5, // More retries for important emails
+            EmailPriority::Normal => 3,
+            EmailPriority::Low => 2,
+        }
+    }
+}
+
+// Implement stream_worker::StreamJob for Redis Streams backend
 impl StreamJob for EmailJob {
     fn job_id(&self) -> String {
         self.id.to_string()
@@ -219,7 +259,7 @@ impl StreamJob for EmailJob {
 
     fn max_retries(&self) -> u32 {
         match self.priority {
-            EmailPriority::High => 5,   // More retries for important emails
+            EmailPriority::High => 5, // More retries for important emails
             EmailPriority::Normal => 3,
             EmailPriority::Low => 2,
         }
@@ -232,11 +272,7 @@ mod tests {
 
     #[test]
     fn test_email_job_creation() {
-        let job = EmailJob::new(
-            EmailType::Welcome,
-            "test@example.com",
-            "Welcome!",
-        );
+        let job = EmailJob::new(EmailType::Welcome, "test@example.com", "Welcome!");
 
         assert_eq!(job.to_email, "test@example.com");
         assert_eq!(job.subject, "Welcome!");
@@ -255,14 +291,16 @@ mod tests {
 
     #[test]
     fn test_stream_job_impl() {
+        use stream_worker::StreamJob;
+
         let job = EmailJob::new(EmailType::Transactional, "test@example.com", "Test");
 
-        assert!(!job.job_id().is_empty());
-        assert_eq!(job.retry_count(), 0);
-        assert!(job.can_retry());
+        assert!(!StreamJob::job_id(&job).is_empty());
+        assert_eq!(StreamJob::retry_count(&job), 0);
+        assert!(StreamJob::can_retry(&job));
 
-        let retried = job.with_retry();
-        assert_eq!(retried.retry_count(), 1);
-        assert_ne!(retried.job_id(), job.job_id()); // New ID
+        let retried = StreamJob::with_retry(&job);
+        assert_eq!(StreamJob::retry_count(&retried), 1);
+        assert_ne!(StreamJob::job_id(&retried), StreamJob::job_id(&job)); // New ID
     }
 }

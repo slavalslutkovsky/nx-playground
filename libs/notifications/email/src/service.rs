@@ -104,12 +104,11 @@ impl NotificationService {
         let mut rng = rand::rng();
         iter::repeat_with(|| {
             let idx = rand::Rng::random_range(&mut rng, 0..62);
-            let c = match idx {
+            match idx {
                 0..=9 => (b'0' + idx) as char,
                 10..=35 => (b'a' + idx - 10) as char,
                 _ => (b'A' + idx - 36) as char,
-            };
-            c
+            }
         })
         .take(64)
         .collect()
@@ -232,9 +231,13 @@ impl NotificationService {
             "company_name": self.config.company_name,
         });
 
-        let job = EmailJob::new(EmailType::Verification, email.to_string(), "Verify your email address")
-            .with_name(name)
-            .with_vars(template_data);
+        let job = EmailJob::new(
+            EmailType::Verification,
+            email.to_string(),
+            "Verify your email address",
+        )
+        .with_name(name)
+        .with_vars(template_data);
 
         let stream_id = self.queue_job(&job).await?;
 
@@ -260,7 +263,12 @@ impl NotificationService {
             self.config.frontend_url, reset_token
         );
 
-        let job = EmailJob::password_reset(email, name, &reset_url, self.config.password_reset_expiry_hours as u32);
+        let job = EmailJob::password_reset(
+            email,
+            name,
+            &reset_url,
+            self.config.password_reset_expiry_hours as u32,
+        );
 
         let stream_id = self.queue_job(&job).await?;
 
@@ -274,6 +282,7 @@ impl NotificationService {
     }
 
     /// Queue a task notification email.
+    #[allow(clippy::too_many_arguments)]
     pub async fn queue_task_notification(
         &self,
         user_id: Uuid,
@@ -390,13 +399,7 @@ mod tests {
     #[test]
     fn test_stream_names_from_email_stream() {
         // Verify that NotificationService uses the same stream names as EmailStream
-        assert_eq!(
-            EmailStream::STREAM_NAME,
-            "notifications:email:stream"
-        );
-        assert_eq!(
-            EmailStream::CONSUMER_GROUP,
-            "email-workers"
-        );
+        assert_eq!(EmailStream::STREAM_NAME, "notifications:email:stream");
+        assert_eq!(EmailStream::CONSUMER_GROUP, "email-workers");
     }
 }

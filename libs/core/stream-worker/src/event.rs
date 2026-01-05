@@ -52,7 +52,7 @@ impl<J: StreamJob> StreamEvent<J> {
             .split('-')
             .next()
             .and_then(|ts| ts.parse::<i64>().ok())
-            .and_then(|ms| DateTime::from_timestamp_millis(ms))
+            .and_then(DateTime::from_timestamp_millis)
             .unwrap_or_else(Utc::now)
     }
 

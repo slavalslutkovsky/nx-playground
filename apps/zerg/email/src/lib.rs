@@ -25,12 +25,14 @@
 //! - Health check endpoint for Kubernetes probes
 
 use axum::Router;
-use core_config::{app_info, Environment, FromEnv};
+use core_config::{Environment, FromEnv, app_info};
 use database::redis::RedisConfig;
-use email::{EmailJob, EmailProcessor, EmailStream, SendGridProvider, SmtpProvider, TemplateEngine};
+use email::{
+    EmailJob, EmailProcessor, EmailStream, SendGridProvider, SmtpProvider, TemplateEngine,
+};
 use eyre::{Result, WrapErr};
 use std::sync::Arc;
-use stream_worker::{full_admin_router, metrics, HealthState, StreamWorker, WorkerConfig};
+use stream_worker::{HealthState, StreamWorker, WorkerConfig, full_admin_router, metrics};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tokio::sync::watch;
@@ -111,7 +113,10 @@ pub async fn run() -> Result<()> {
     info!("Connected to Redis successfully");
 
     // Create worker configuration from EmailStream definition
-    let worker_config = WorkerConfig::from_stream_def::<EmailStream>();
+    // Note: Disable blocking reads because ConnectionManager uses a single connection,
+    // and blocking XREADGROUP prevents other commands (XPENDING, etc.) from executing.
+    let worker_config = WorkerConfig::from_stream_def::<EmailStream>()
+        .with_blocking(None);
     info!(
         stream = %worker_config.stream_name,
         consumer_group = %worker_config.consumer_group,
@@ -159,7 +164,10 @@ pub async fn run() -> Result<()> {
                 Ok(provider) => {
                     let processor = EmailProcessor::new(provider, templates);
                     let worker = StreamWorker::<EmailJob, _>::new(redis, processor, worker_config);
-                    worker.run(shutdown_rx).await.map_err(|e| eyre::eyre!("{}", e))?;
+                    worker
+                        .run(shutdown_rx)
+                        .await
+                        .map_err(|e| eyre::eyre!("{}", e))?;
                 }
                 Err(e) => {
                     error!("Failed to create SendGrid provider: {}", e);
@@ -176,7 +184,10 @@ pub async fn run() -> Result<()> {
                 Ok(provider) => {
                     let processor = EmailProcessor::new(provider, templates);
                     let worker = StreamWorker::<EmailJob, _>::new(redis, processor, worker_config);
-                    worker.run(shutdown_rx).await.map_err(|e| eyre::eyre!("{}", e))?;
+                    worker
+                        .run(shutdown_rx)
+                        .await
+                        .map_err(|e| eyre::eyre!("{}", e))?;
                 }
                 Err(e) => {
                     error!("Failed to create SMTP provider: {}", e);

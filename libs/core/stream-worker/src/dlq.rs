@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info};
 
+// Type alias for Redis stream entries
+type StreamEntries = Vec<(String, Vec<(String, String)>)>;
+
 /// Dead Letter Queue manager
 pub struct DlqManager {
     redis: Arc<ConnectionManager>,
@@ -87,7 +90,7 @@ impl DlqManager {
         let len: i64 = conn.xlen(&self.dlq_stream).await.unwrap_or(0);
 
         // Get oldest and newest entries
-        let oldest: Option<Vec<(String, Vec<(String, String)>)>> = redis::cmd("XRANGE")
+        let oldest: Option<StreamEntries> = redis::cmd("XRANGE")
             .arg(&self.dlq_stream)
             .arg("-")
             .arg("+")
@@ -97,7 +100,7 @@ impl DlqManager {
             .await
             .ok();
 
-        let newest: Option<Vec<(String, Vec<(String, String)>)>> = redis::cmd("XREVRANGE")
+        let newest: Option<StreamEntries> = redis::cmd("XREVRANGE")
             .arg(&self.dlq_stream)
             .arg("+")
             .arg("-")
@@ -107,10 +110,8 @@ impl DlqManager {
             .await
             .ok();
 
-        let oldest_id = oldest
-            .and_then(|v| v.first().map(|(id, _)| id.clone()));
-        let newest_id = newest
-            .and_then(|v| v.first().map(|(id, _)| id.clone()));
+        let oldest_id = oldest.and_then(|v| v.first().map(|(id, _)| id.clone()));
+        let newest_id = newest.and_then(|v| v.first().map(|(id, _)| id.clone()));
 
         Ok(DlqStats {
             stream_name: self.dlq_stream.clone(),
@@ -121,12 +122,16 @@ impl DlqManager {
     }
 
     /// List DLQ entries
-    pub async fn list(&self, count: usize, offset: Option<&str>) -> Result<Vec<DlqEntry>, StreamError> {
+    pub async fn list(
+        &self,
+        count: usize,
+        offset: Option<&str>,
+    ) -> Result<Vec<DlqEntry>, StreamError> {
         let mut conn = (*self.redis).clone();
 
         let start = offset.unwrap_or("-");
 
-        let entries: Vec<(String, Vec<(String, String)>)> = redis::cmd("XRANGE")
+        let entries: StreamEntries = redis::cmd("XRANGE")
             .arg(&self.dlq_stream)
             .arg(start)
             .arg("+")
@@ -138,10 +143,10 @@ impl DlqManager {
         let mut results = Vec::new();
 
         for (_id, fields) in entries {
-            if let Some(data) = fields.iter().find(|(k, _)| k == "data").map(|(_, v)| v) {
-                if let Ok(entry) = serde_json::from_str::<DlqEntry>(data) {
-                    results.push(entry);
-                }
+            if let Some(data) = fields.iter().find(|(k, _)| k == "data").map(|(_, v)| v)
+                && let Ok(entry) = serde_json::from_str::<DlqEntry>(data)
+            {
+                results.push(entry);
             }
         }
 
@@ -152,17 +157,17 @@ impl DlqManager {
     pub async fn get(&self, dlq_id: &str) -> Result<Option<DlqEntry>, StreamError> {
         let mut conn = (*self.redis).clone();
 
-        let entries: Vec<(String, Vec<(String, String)>)> = redis::cmd("XRANGE")
+        let entries: StreamEntries = redis::cmd("XRANGE")
             .arg(&self.dlq_stream)
             .arg(dlq_id)
             .arg(dlq_id)
             .query_async(&mut conn)
             .await?;
 
-        if let Some((_id, fields)) = entries.first() {
-            if let Some(data) = fields.iter().find(|(k, _)| k == "data").map(|(_, v)| v) {
-                return Ok(serde_json::from_str(data).ok());
-            }
+        if let Some((_id, fields)) = entries.first()
+            && let Some(data) = fields.iter().find(|(k, _)| k == "data").map(|(_, v)| v)
+        {
+            return Ok(serde_json::from_str(data).ok());
         }
 
         Ok(None)

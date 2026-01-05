@@ -68,7 +68,7 @@ mod consumer;
 mod dlq;
 mod error;
 mod health;
-mod metrics;
+pub mod metrics;
 mod producer;
 mod worker;
 
@@ -77,9 +77,9 @@ pub use consumer::NatsConsumer;
 pub use dlq::DlqManager;
 pub use error::NatsError;
 pub use health::HealthServer;
-pub use metrics::NatsMetrics;
+pub use metrics::{init_metrics, NatsMetrics};
 pub use producer::NatsProducer;
 pub use worker::NatsWorker;
 
 // Re-export from messaging
-pub use messaging::{Job, Processor, ProcessingError, ErrorCategory, JobEvent};
+pub use messaging::{ErrorCategory, Job, JobEvent, ProcessingError, Processor};

@@ -50,11 +50,7 @@ impl MockSmtpProvider {
 
     /// Check if an email was sent to a specific address
     pub async fn was_sent_to(&self, email: &str) -> bool {
-        self.sent_emails
-            .lock()
-            .await
-            .iter()
-            .any(|e| e.to == email)
+        self.sent_emails.lock().await.iter().any(|e| e.to == email)
     }
 }
 
@@ -102,8 +98,7 @@ mod tests {
     async fn test_mock_provider_sends_email() {
         let provider = MockSmtpProvider::new();
 
-        let email = Email::new("test@example.com", "Test Subject")
-            .with_text("Test body");
+        let email = Email::new("test@example.com", "Test Subject").with_text("Test body");
 
         let result = provider.send(&email).await;
         assert!(result.is_ok());
@@ -117,12 +112,14 @@ mod tests {
     async fn test_mock_provider_fails() {
         let provider = MockSmtpProvider::failing("Simulated failure");
 
-        let email = Email::new("test@example.com", "Test Subject")
-            .with_text("Test body");
+        let email = Email::new("test@example.com", "Test Subject").with_text("Test body");
 
         let result = provider.send(&email).await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Simulated failure"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Simulated failure"));
     }
 
     #[tokio::test]

@@ -117,10 +117,7 @@ impl TemplateEngine {
     pub fn register(&mut self, template: EmailTemplate) -> Result<()> {
         // Register subject
         self.handlebars
-            .register_template_string(
-                &format!("{}_subject", template.name),
-                &template.subject,
-            )
+            .register_template_string(&format!("{}_subject", template.name), &template.subject)
             .map_err(|e| eyre!("Failed to register subject template: {}", e))?;
 
         // Register text body if present

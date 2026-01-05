@@ -214,16 +214,10 @@ pub enum BackoffStrategy {
     Fixed(Duration),
 
     /// Exponential backoff (base * 2^retry_count, capped at max)
-    Exponential {
-        base: Duration,
-        max: Duration,
-    },
+    Exponential { base: Duration, max: Duration },
 
     /// Linear backoff (base * (retry_count + 1), capped at max)
-    Linear {
-        base: Duration,
-        max: Duration,
-    },
+    Linear { base: Duration, max: Duration },
 }
 
 impl BackoffStrategy {
@@ -285,7 +279,7 @@ mod tests {
             max: Duration::from_secs(60),
         };
 
-        assert_eq!(backoff.delay(0), Duration::from_secs(5));  // 5 * 1
+        assert_eq!(backoff.delay(0), Duration::from_secs(5)); // 5 * 1
         assert_eq!(backoff.delay(1), Duration::from_secs(10)); // 5 * 2
         assert_eq!(backoff.delay(2), Duration::from_secs(15)); // 5 * 3
         assert_eq!(backoff.delay(20), Duration::from_secs(60)); // Capped

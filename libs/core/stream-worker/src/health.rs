@@ -6,11 +6,11 @@ use crate::consumer::StreamConsumer;
 use crate::dlq::{DlqEntry, DlqManager, DlqStats};
 use crate::metrics::render_metrics;
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     routing::{delete, get, post},
-    Json, Router,
 };
 use redis::aio::ConnectionManager;
 use serde::{Deserialize, Serialize};
@@ -232,16 +232,16 @@ async fn dlq_list(
         Ok(entries) => (StatusCode::OK, Json(entries)),
         Err(e) => {
             error!("Failed to list DLQ entries: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(vec![] as Vec<DlqEntry>))
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(vec![] as Vec<DlqEntry>),
+            )
         }
     }
 }
 
 // DLQ get entry endpoint
-async fn dlq_get(
-    State(state): State<HealthState>,
-    Path(id): Path<String>,
-) -> impl IntoResponse {
+async fn dlq_get(State(state): State<HealthState>, Path(id): Path<String>) -> impl IntoResponse {
     let dlq_stream = format!("{}:dlq", state.stream_name.trim_end_matches(":jobs"));
     let dlq = DlqManager::new(state.redis.clone(), dlq_stream);
 
@@ -256,10 +256,7 @@ async fn dlq_get(
 }
 
 // DLQ delete entry endpoint
-async fn dlq_delete(
-    State(state): State<HealthState>,
-    Path(id): Path<String>,
-) -> impl IntoResponse {
+async fn dlq_delete(State(state): State<HealthState>, Path(id): Path<String>) -> impl IntoResponse {
     let dlq_stream = format!("{}:dlq", state.stream_name.trim_end_matches(":jobs"));
     let dlq = DlqManager::new(state.redis.clone(), dlq_stream);
 
@@ -332,10 +329,18 @@ async fn dlq_purge(State(state): State<HealthState>) -> impl IntoResponse {
     let dlq = DlqManager::new(state.redis.clone(), dlq_stream);
 
     match dlq.purge().await {
-        Ok(count) => (StatusCode::OK, Json(PurgeResponse { deleted_count: count })),
+        Ok(count) => (
+            StatusCode::OK,
+            Json(PurgeResponse {
+                deleted_count: count,
+            }),
+        ),
         Err(e) => {
             error!("Failed to purge DLQ: {}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(PurgeResponse { deleted_count: -1 }))
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(PurgeResponse { deleted_count: -1 }),
+            )
         }
     }
 }

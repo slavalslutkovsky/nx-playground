@@ -38,9 +38,9 @@ impl ErrorCategory {
     /// Get the base backoff delay in milliseconds.
     pub fn base_backoff_ms(&self) -> u64 {
         match self {
-            ErrorCategory::Transient => 1000,    // 1s
-            ErrorCategory::Permanent => 0,        // No retry
-            ErrorCategory::RateLimited => 5000,   // 5s
+            ErrorCategory::Transient => 1000,   // 1s
+            ErrorCategory::Permanent => 0,      // No retry
+            ErrorCategory::RateLimited => 5000, // 5s
         }
     }
 
@@ -48,8 +48,8 @@ impl ErrorCategory {
     pub fn max_backoff_ms(&self) -> u64 {
         match self {
             ErrorCategory::Transient => 30_000,    // 30s
-            ErrorCategory::Permanent => 0,          // No retry
-            ErrorCategory::RateLimited => 120_000,  // 2 min
+            ErrorCategory::Permanent => 0,         // No retry
+            ErrorCategory::RateLimited => 120_000, // 2 min
         }
     }
 
@@ -203,7 +203,11 @@ impl ProcessingError {
     /// Calculate backoff delay for a given retry count.
     pub fn backoff_delay_ms(&self, retry_count: u32) -> u64 {
         // Use retry-after hint if available for rate limited errors
-        if let ProcessingError::RateLimited { retry_after_ms: Some(ms), .. } = self {
+        if let ProcessingError::RateLimited {
+            retry_after_ms: Some(ms),
+            ..
+        } = self
+        {
             return *ms;
         }
         self.category().backoff_delay_ms(retry_count)

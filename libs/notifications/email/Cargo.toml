@@ -28,8 +28,12 @@ reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-# Stream worker framework
+# Messaging abstractions (unified traits)
+messaging = { workspace = true }
+
+# Stream worker frameworks
 stream-worker = { workspace = true }
+nats-worker = { workspace = true }
 
 tokio = { workspace = true }
 tracing = { workspace = true }

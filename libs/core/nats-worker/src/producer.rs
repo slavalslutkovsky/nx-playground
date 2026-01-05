@@ -134,12 +134,12 @@ impl NatsProducer {
             .jetstream
             .get_stream(&self.stream_name)
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         let _info = stream
             .info()
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         Ok(())
     }
@@ -159,6 +159,7 @@ impl Clone for NatsProducer {
 mod tests {
     use super::*;
 
+    #[allow(dead_code)]
     struct TestStream;
 
     impl StreamConfig for TestStream {

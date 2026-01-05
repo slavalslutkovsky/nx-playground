@@ -48,7 +48,7 @@ impl DlqManager {
                         ..Default::default()
                     })
                     .await
-                    .map_err(|e| NatsError::from_jetstream_error(e))?;
+                    .map_err(NatsError::from_jetstream_error)?;
 
                 info!(stream = %self.dlq_stream, "DLQ stream created");
                 Ok(())
@@ -98,12 +98,12 @@ impl DlqManager {
             .jetstream
             .get_stream(&self.dlq_stream)
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         let info = stream
             .info()
             .await
-            .map_err(|e| NatsError::from_jetstream_error(e))?;
+            .map_err(NatsError::from_jetstream_error)?;
 
         Ok(StreamInfo {
             stream_name: self.dlq_stream.clone(),

@@ -1,21 +1,16 @@
 use serde::{Deserialize, Serialize};
 
 /// Email priority levels for queue processing
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum EmailPriority {
     /// Urgent emails (password reset, OTP)
     High,
     /// Normal transactional emails
+    #[default]
     Normal,
     /// Bulk/marketing emails
     Low,
-}
-
-impl Default for EmailPriority {
-    fn default() -> Self {
-        Self::Normal
-    }
 }
 
 /// Email processing status
@@ -134,7 +129,7 @@ impl Email {
 #[serde(tag = "event_type", content = "payload")]
 pub enum EmailEvent {
     /// Request to send an email
-    SendEmail(Email),
+    SendEmail(Box<Email>),
     /// Email was sent successfully
     EmailSent { id: String, message_id: String },
     /// Email sending failed

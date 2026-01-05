@@ -2,8 +2,8 @@
 //!
 //! These patterns help protect downstream services from overload.
 
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tracing::{info, warn};
@@ -63,15 +63,14 @@ impl CircuitBreaker {
         let mut state = *self.state.read().await;
 
         // Check if we should transition from Open to HalfOpen
-        if state == CircuitState::Open {
-            if let Some(last_failure) = *self.last_failure_time.read().await {
-                if last_failure.elapsed() >= self.recovery_timeout {
-                    state = CircuitState::HalfOpen;
-                    *self.state.write().await = state;
-                    self.success_count.store(0, Ordering::SeqCst);
-                    info!("Circuit breaker transitioned to HalfOpen");
-                }
-            }
+        if state == CircuitState::Open
+            && let Some(last_failure) = *self.last_failure_time.read().await
+            && last_failure.elapsed() >= self.recovery_timeout
+        {
+            state = CircuitState::HalfOpen;
+            *self.state.write().await = state;
+            self.success_count.store(0, Ordering::SeqCst);
+            info!("Circuit breaker transitioned to HalfOpen");
         }
 
         state
@@ -260,19 +259,20 @@ impl Resilience {
     }
 
     /// Check if request is allowed
+    #[allow(dead_code)]
     pub async fn allow_request(&self) -> bool {
         // Check circuit breaker first
-        if let Some(cb) = &self.circuit_breaker {
-            if !cb.allow_request().await {
-                return false;
-            }
+        if let Some(cb) = &self.circuit_breaker
+            && !cb.allow_request().await
+        {
+            return false;
         }
 
         // Then check rate limiter
-        if let Some(rl) = &self.rate_limiter {
-            if !rl.try_acquire().await {
-                return false;
-            }
+        if let Some(rl) = &self.rate_limiter
+            && !rl.try_acquire().await
+        {
+            return false;
         }
 
         true

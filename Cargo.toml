@@ -5,6 +5,7 @@ members = [
     'apps/utils/schema-gen',
     'apps/zerg/api',
     'apps/zerg/email',
+    'apps/zerg/email-nats',
     'apps/zerg/tasks',
     'libs/core/axum-helpers',
     'libs/core/config',

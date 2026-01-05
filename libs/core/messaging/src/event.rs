@@ -41,11 +41,7 @@ impl<J: Job> JobEvent<J> {
     }
 
     /// Create a job event with delivery count (for redeliveries).
-    pub fn with_delivery_count(
-        job: J,
-        message_id: impl Into<String>,
-        delivery_count: u32,
-    ) -> Self {
+    pub fn with_delivery_count(job: J, message_id: impl Into<String>, delivery_count: u32) -> Self {
         Self {
             job,
             message_id: message_id.into(),

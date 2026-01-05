@@ -31,17 +31,17 @@ impl ErrorCategory {
     /// Get the base delay in milliseconds for this error category
     pub fn base_delay_ms(&self) -> u64 {
         match self {
-            ErrorCategory::Transient => 1000,    // 1 second
-            ErrorCategory::Permanent => 0,       // No retry
-            ErrorCategory::RateLimited => 5000,  // 5 seconds
+            ErrorCategory::Transient => 1000,   // 1 second
+            ErrorCategory::Permanent => 0,      // No retry
+            ErrorCategory::RateLimited => 5000, // 5 seconds
         }
     }
 
     /// Get the maximum delay in milliseconds for this error category
     pub fn max_delay_ms(&self) -> u64 {
         match self {
-            ErrorCategory::Transient => 30_000,   // 30 seconds
-            ErrorCategory::Permanent => 0,        // No retry
+            ErrorCategory::Transient => 30_000,    // 30 seconds
+            ErrorCategory::Permanent => 0,         // No retry
             ErrorCategory::RateLimited => 120_000, // 2 minutes
         }
     }

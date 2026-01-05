@@ -6,7 +6,7 @@ use axum::{
     routing::{get, post},
 };
 use axum_helpers::{ACCESS_TOKEN_TTL, JwtRedisAuth, REFRESH_TOKEN_TTL, ValidatedJson};
-use email::{Email, EmailProducer, EmailPriority};
+use email::{Email, EmailPriority, EmailProducer};
 use serde::Deserialize;
 use std::sync::Arc;
 

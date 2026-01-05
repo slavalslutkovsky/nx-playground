@@ -30,9 +30,7 @@ pub fn prometheus_handle() -> Option<&'static PrometheusHandle> {
 
 /// Render metrics in Prometheus format
 pub fn render_metrics() -> String {
-    prometheus_handle()
-        .map(|h| h.render())
-        .unwrap_or_default()
+    prometheus_handle().map(|h| h.render()).unwrap_or_default()
 }
 
 /// Stream worker metrics helper

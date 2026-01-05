@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zerg-shared-config
+  namespace: zerg
+data:
+  # Production-specific values
+  DB_SQLX_LOGGING: "false"
+  RUST_LOG: "info"
+
+  # Production URLs (update with actual domains)
+  CORS_ALLOWED_ORIGIN: "https://zerg.example.com"
+  REDIRECT_BASE_URL: "https://api.zerg.example.com"
+  FRONTEND_URL: "https://zerg.example.com"
+
+  # OAuth settings
+  OAUTH_AUTO_LINK_VERIFIED_EMAILS: "true"

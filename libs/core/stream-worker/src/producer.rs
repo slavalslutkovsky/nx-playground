@@ -18,8 +18,8 @@
 
 use crate::error::StreamError;
 use crate::registry::StreamDef;
-use redis::aio::ConnectionManager;
 use redis::AsyncCommands;
+use redis::aio::ConnectionManager;
 use serde::Serialize;
 use std::sync::Arc;
 use tracing::debug;
@@ -202,8 +202,6 @@ impl Clone for StreamProducer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_producer_clone() {
         // Just test that the struct is cloneable

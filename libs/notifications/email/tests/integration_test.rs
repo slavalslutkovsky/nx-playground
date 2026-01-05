@@ -53,11 +53,11 @@ mod stream_tests {
         let (received_stream_id, event) = &emails[0];
         assert_eq!(received_stream_id, &stream_id);
 
-        if let EmailEvent::SendEmail(received_email) = event {
-            assert_eq!(received_email.id, email_id);
-            assert_eq!(received_email.to, "test@example.com");
-            assert_eq!(received_email.subject, "Test Subject");
-            assert_eq!(received_email.priority, EmailPriority::High);
+        if let EmailEvent::SendEmail(boxed_email) = event {
+            assert_eq!(boxed_email.id, email_id);
+            assert_eq!(boxed_email.to, "test@example.com");
+            assert_eq!(boxed_email.subject, "Test Subject");
+            assert_eq!(boxed_email.priority, EmailPriority::High);
         } else {
             panic!("Expected SendEmail event");
         }
@@ -116,7 +116,9 @@ mod template_tests {
             name: "test_template".to_string(),
             subject: "Hello {{name}}!".to_string(),
             body_text: Some("Dear {{name}}, your order #{{order_id}} is ready.".to_string()),
-            body_html: Some("<h1>Hello {{name}}!</h1><p>Order #{{order_id}} ready.</p>".to_string()),
+            body_html: Some(
+                "<h1>Hello {{name}}!</h1><p>Order #{{order_id}} ready.</p>".to_string(),
+            ),
         };
 
         store.set(template).await.unwrap();

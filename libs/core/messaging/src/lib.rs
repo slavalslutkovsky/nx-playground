@@ -57,14 +57,14 @@
 //! let worker = nats_worker::Worker::new(nats, processor, config);
 //! ```
 
+mod config;
 mod error;
+mod event;
 mod job;
 mod processor;
-mod config;
-mod event;
 
+pub use config::{BackoffStrategy, QueueConfig, QueueDef, RetryPolicy};
 pub use error::{ErrorCategory, ProcessingError};
-pub use job::{Job, JobPriority};
-pub use processor::{Processor, NoOpProcessor, FailingProcessor};
-pub use config::{QueueConfig, QueueDef, RetryPolicy, BackoffStrategy};
 pub use event::{JobEvent, ProcessResult};
+pub use job::{Job, JobPriority};
+pub use processor::{FailingProcessor, NoOpProcessor, Processor};

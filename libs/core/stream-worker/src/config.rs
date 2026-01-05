@@ -60,7 +60,7 @@ impl WorkerConfig {
             poll_interval_ms: S::POLL_INTERVAL_MS,
             batch_size: S::BATCH_SIZE,
             blocking_timeout_ms: Some(5000), // Default 5s blocking
-            max_concurrent_jobs: 1,           // Sequential by default
+            max_concurrent_jobs: 1,          // Sequential by default
             claim_timeout_ms: S::CLAIM_TIMEOUT_MS,
             enable_circuit_breaker: true,
             enable_rate_limiter: false,

@@ -121,12 +121,12 @@ impl<J: StreamJob, P: StreamProcessor<J>> StreamWorker<J, P> {
     /// Process a batch of messages
     async fn process_batch(&self) -> Result<(), StreamError> {
         // Check circuit breaker
-        if let Some(cb) = &self.resilience.circuit_breaker {
-            if cb.state().await == CircuitState::Open {
-                debug!("Circuit breaker open, waiting...");
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                return Ok(());
-            }
+        if let Some(cb) = &self.resilience.circuit_breaker
+            && cb.state().await == CircuitState::Open
+        {
+            debug!("Circuit breaker open, waiting...");
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            return Ok(());
         }
 
         // First, process pending messages (redeliveries)
@@ -165,10 +165,7 @@ impl<J: StreamJob, P: StreamProcessor<J>> StreamWorker<J, P> {
     }
 
     /// Process a single event
-    async fn process_event(
-        &self,
-        event: crate::event::StreamEvent<J>,
-    ) -> Result<(), StreamError> {
+    async fn process_event(&self, event: crate::event::StreamEvent<J>) -> Result<(), StreamError> {
         let stream_id = event.stream_id.clone();
         let job_id = event.job_id();
         let retry_count = event.retry_count();
@@ -181,12 +178,12 @@ impl<J: StreamJob, P: StreamProcessor<J>> StreamWorker<J, P> {
         );
 
         // Check rate limiter
-        if let Some(rl) = &self.resilience.rate_limiter {
-            if !rl.try_acquire().await {
-                self.metrics.rate_limited();
-                tokio::time::sleep(Duration::from_millis(100)).await;
-                return Ok(()); // Don't ack - will be redelivered
-            }
+        if let Some(rl) = &self.resilience.rate_limiter
+            && !rl.try_acquire().await
+        {
+            self.metrics.rate_limited();
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            return Ok(()); // Don't ack - will be redelivered
         }
 
         let start = Instant::now();
@@ -299,11 +296,9 @@ impl<J: StreamJob, P: StreamProcessor<J>> StreamWorker<J, P> {
     async fn requeue_job(&self, job: &J) -> Result<String, StreamError> {
         use crate::producer::StreamProducer;
 
-        let producer = StreamProducer::from_arc(
-            self.consumer.redis(),
-            self.config.stream_name.clone(),
-        )
-        .with_max_length(self.config.max_length);
+        let producer =
+            StreamProducer::from_arc(self.consumer.redis(), self.config.stream_name.clone())
+                .with_max_length(self.config.max_length);
 
         producer.send(job).await
     }
@@ -340,6 +335,7 @@ mod tests {
     use async_trait::async_trait;
     use serde::{Deserialize, Serialize};
 
+    #[allow(dead_code)]
     #[derive(Clone, Serialize, Deserialize)]
     struct TestJob {
         id: String,
@@ -361,6 +357,7 @@ mod tests {
         }
     }
 
+    #[allow(dead_code)]
     struct TestStream;
 
     impl StreamDef for TestStream {
@@ -369,6 +366,7 @@ mod tests {
         const DLQ_STREAM: &'static str = "test:dlq";
     }
 
+    #[allow(dead_code)]
     struct TestProcessor;
 
     #[async_trait]
