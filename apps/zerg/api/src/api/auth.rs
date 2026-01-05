@@ -4,6 +4,7 @@ use domain_users::{
     PostgresUserRepository, UserService,
     auth_handlers::{AuthState, OAuthConfig, auth_router},
 };
+use email::EmailProducer;
 
 pub fn router(state: &crate::state::AppState) -> Router {
     // Use PostgreSQL repository with database connection
@@ -28,6 +29,9 @@ pub fn router(state: &crate::state::AppState) -> Router {
     let account_linking =
         AccountLinkingService::new(user_repository.clone(), oauth_repository.clone());
 
+    // Create email producer for sending welcome emails
+    let email_producer = EmailProducer::new(state.redis.clone());
+
     // Create auth state with JWT authentication
     let auth_state = AuthState {
         service: service.clone(),
@@ -35,6 +39,7 @@ pub fn router(state: &crate::state::AppState) -> Router {
         jwt_auth: state.jwt_auth.clone(),
         oauth_state_manager,
         account_linking,
+        email_producer: Some(email_producer),
     };
 
     // Return auth router

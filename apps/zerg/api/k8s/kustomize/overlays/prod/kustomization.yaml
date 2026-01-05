@@ -5,42 +5,90 @@ namespace: zerg
 
 resources:
   - ../../base
+  # Note: Apply k8s/core/overlays/prod separately for shared ConfigMap + Ingress
 
 patches:
+  # Add secrets reference
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: zerg-shared-secrets
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: APP_ENV
+          value: "production"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: JWT_SECRET
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GOOGLE_CLIENT_ID
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GOOGLE_CLIENT_SECRET
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GITHUB_CLIENT_ID
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GITHUB_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GITHUB_CLIENT_SECRET
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: FLAGSMITH_ENVIRONMENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: FLAGSMITH_ENVIRONMENT_KEY
+    target:
+      kind: Deployment
+      name: zerg-api
+  # Production replicas
   - patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/env
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: zerg-api
+  # Increased resources for production
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
         value:
-          - name: PORT
-            value: "8080"
-          - name: RUST_LOG
-            value: "info,zerg1_api=info"
-          - name: DATABASE_URL
-            value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-          - name: REDIS_HOST
-            value: "redis://redis.dbs.svc.cluster.local"
-          - name: CORS_ALLOWED_ORIGIN
-            value: "https://your-production-domain.com"
-          - name: REDIRECT_BASE_URL
-            value: "https://api.your-production-domain.com"
-          - name: FRONTEND_URL
-            value: "https://your-production-domain.com"
-          - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
-            value: "false"
-          - name: JWT_SECRET
-            value: "CHANGE-ME-use-k8s-secret"
-          - name: GOOGLE_CLIENT_ID
-            value: "CHANGE-ME-use-k8s-secret"
-          - name: GOOGLE_CLIENT_SECRET
-            value: "CHANGE-ME-use-k8s-secret"
-          - name: GITHUB_CLIENT_ID
-            value: "CHANGE-ME-use-k8s-secret"
-          - name: GITHUB_CLIENT_SECRET
-            value: "CHANGE-ME-use-k8s-secret"
-          - name: FLAGSMITH_API_URL
-            value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
-          - name: FLAGSMITH_ENVIRONMENT_KEY
-            value: "CHANGE-ME-use-k8s-secret"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
     target:
       kind: Deployment
       name: zerg-api

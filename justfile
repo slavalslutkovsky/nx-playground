@@ -3,6 +3,14 @@
 default:
     just -l
 
+reset:
+    cargo fmt --all
+    just sort-deps
+    just lint
+    just test-all
+    just buf
+    just schema
+
 # Full quality check for Rust monorepo (read-only, CI-safe)
 check: fmt-check lint test audit
     @echo "All checks passed!"
@@ -73,7 +81,7 @@ _seed:
     @echo "Seed data not yet implemented for new schema"
 
 sort-deps:
-    cargo fmt
+    cargo fmt --all
     cargo sort --workspace
 
 #  cargo doc --workspace --no-deps --document-private-items --open
@@ -88,10 +96,6 @@ reset-db:
 
 schema:
     cargo run --bin schema-gen -- --format all -o docs
-
-# docker rm $(docker ps -aq) -f
-test-all:
-    cargo nextest run --workspace
 
 kompose:
     kubectl create ns dbs

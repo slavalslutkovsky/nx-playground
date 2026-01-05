@@ -6,6 +6,7 @@ use axum::{
     routing::{get, post},
 };
 use axum_helpers::{ACCESS_TOKEN_TTL, JwtRedisAuth, REFRESH_TOKEN_TTL, ValidatedJson};
+use email::{Email, EmailPriority, EmailProducer};
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -40,6 +41,8 @@ pub struct AuthState<R: UserRepository, O: OAuthAccountRepository> {
     pub jwt_auth: JwtRedisAuth,
     pub oauth_state_manager: OAuthStateManager,
     pub account_linking: AccountLinkingService<R, O>,
+    /// Optional email producer for sending welcome emails
+    pub email_producer: Option<EmailProducer>,
 }
 
 /// Check if running in development mode
@@ -58,12 +61,31 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
     let user = state
         .service
         .create_user(crate::models::CreateUser {
-            email: input.email,
-            name: input.name,
+            email: input.email.clone(),
+            name: input.name.clone(),
             password: input.password,
             roles: vec![],
         })
         .await?;
+
+    // Send welcome email (non-blocking, don't fail registration if email fails)
+    if let Some(ref email_producer) = state.email_producer {
+        let welcome_email = Email::new(&input.email, "Welcome to Zerg!")
+            .with_template(
+                "welcome",
+                serde_json::json!({
+                    "app_name": "Zerg",
+                    "name": &input.name
+                }),
+            )
+            .with_priority(EmailPriority::High);
+
+        if let Err(e) = email_producer.send(welcome_email).await {
+            tracing::warn!(error = %e, email = %input.email, "Failed to queue welcome email");
+        } else {
+            tracing::info!(email = %input.email, "Welcome email queued");
+        }
+    }
 
     let user_id = user.id.to_string();
 

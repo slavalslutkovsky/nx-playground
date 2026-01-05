@@ -9,3 +9,6 @@ configMapGenerator:
   - name: nginx-config
     files:
       - default.conf.template
+secretGenerator:
+  - name: aris
+    env: .env

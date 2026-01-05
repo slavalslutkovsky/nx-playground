@@ -1,0 +1,30 @@
+[package]
+name = "messaging"
+version = "0.1.0"
+edition = "2021"
+description = "Common messaging abstractions for job queues and event streaming"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+async-trait = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }
+
+# Serialization
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Time
+chrono = { workspace = true, features = ["serde"] }
+
+# UUID
+uuid = { workspace = true, features = ["v4"] }
+
+# Observability
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

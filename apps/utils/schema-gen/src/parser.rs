@@ -1,8 +1,30 @@
 use crate::schema::{DatabaseSchema, Field, Relation, RelationType, Table};
+use pluralizer::pluralize as pluralize_word;
 use std::fs;
 use std::path::Path;
 use syn::{Attribute, File, Item, ItemStruct, Meta, Type};
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
+
+/// Check if a directory entry is an entity file
+fn is_entity_file(entry: &DirEntry) -> bool {
+    let path = entry.path();
+    path.extension().and_then(|s| s.to_str()) == Some("rs")
+        && (path.ends_with("entity.rs")
+            || path
+                .parent()
+                .map(|p| p.ends_with("entities"))
+                .unwrap_or(false))
+        && !path.ends_with("mod.rs")
+        && !path.ends_with("prelude.rs")
+}
+
+/// Iterate over entity files in the given path
+fn walk_entity_files(entities_path: &str) -> impl Iterator<Item = DirEntry> {
+    WalkDir::new(entities_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(is_entity_file)
+}
 
 pub struct EntityParser {
     entities_paths: Vec<String>,
@@ -18,22 +40,7 @@ impl EntityParser {
         let mut schema = DatabaseSchema::new();
 
         for entities_path in &self.entities_paths {
-            // Walk through all .rs files in the entities directory
-            for entry in WalkDir::new(entities_path)
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter(|e| {
-                    let path = e.path();
-                    path.extension().and_then(|s| s.to_str()) == Some("rs")
-                        && (path.ends_with("entity.rs")
-                            || path
-                                .parent()
-                                .map(|p| p.ends_with("entities"))
-                                .unwrap_or(false))
-                        && !path.ends_with("mod.rs")
-                        && !path.ends_with("prelude.rs")
-                })
-            {
+            for entry in walk_entity_files(entities_path) {
                 let path = entry.path();
                 if let Ok(table) = self.parse_entity_file(path) {
                     schema.add_table(table);
@@ -212,37 +219,19 @@ impl EntityParser {
     }
 }
 
-/// Simple pluralization
+/// Pluralize a word using the pluralizer crate
 fn pluralize(word: &str) -> String {
-    if word.ends_with('y') {
-        format!("{}ies", &word[..word.len() - 1])
-    } else if word.ends_with('s') {
-        word.to_string()
-    } else {
-        format!("{}s", word)
-    }
+    pluralize_word(word, 2, false)
 }
 
 /// Parse relations from the Relation enum in entity files
-pub fn parse_relations(entities_paths: &[String]) -> color_eyre::Result<Vec<(String, Vec<Relation>)>> {
+pub fn parse_relations(
+    entities_paths: &[String],
+) -> color_eyre::Result<Vec<(String, Vec<Relation>)>> {
     let mut relations_map = Vec::new();
 
     for entities_path in entities_paths {
-        for entry in WalkDir::new(entities_path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-            .filter(|e| {
-                let path = e.path();
-                path.extension().and_then(|s| s.to_str()) == Some("rs")
-                    && (path.ends_with("entity.rs")
-                        || path
-                            .parent()
-                            .map(|p| p.ends_with("entities"))
-                            .unwrap_or(false))
-                    && !path.ends_with("mod.rs")
-                    && !path.ends_with("prelude.rs")
-            })
-        {
+        for entry in walk_entity_files(entities_path) {
             let path = entry.path();
             let content = fs::read_to_string(path)?;
             let syntax_tree: File = syn::parse_file(&content)?;
@@ -262,7 +251,9 @@ pub fn parse_relations(entities_paths: &[String]) -> color_eyre::Result<Vec<(Str
                                     if let Some(start) = tokens_str.find("table_name") {
                                         let after = &tokens_str[start..];
                                         if let Some(quote_start) = after.find('"') {
-                                            if let Some(quote_end) = after[quote_start + 1..].find('"') {
+                                            if let Some(quote_end) =
+                                                after[quote_start + 1..].find('"')
+                                            {
                                                 entity_name = after
                                                     [quote_start + 1..quote_start + 1 + quote_end]
                                                     .to_string();

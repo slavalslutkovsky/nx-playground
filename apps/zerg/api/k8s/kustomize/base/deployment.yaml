@@ -32,17 +32,20 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
+          # Load shared config from core ConfigMap
+          envFrom:
+            - configMapRef:
+                name: zerg-shared-config
+                # secrets:
+
+            # Secrets loaded in overlays via secretRef
+          # App-specific env vars (override or additions)
           env:
             - name: PORT
               value: "8080"
-            - name: RUST_LOG
-              value: "info"
+            # DATABASE_URL constructed from shared config + secrets
             - name: DATABASE_URL
-              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-            - name: REDIS_HOST
-              value: "redis://redis.dbs.svc.cluster.local"
-            - name: CORS_ALLOWED_ORIGIN
-              value: "http://localhost:3000"
+              value: "postgres://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(DATABASE_NAME)"
           # Startup probe: allows up to 30s for container to start (6 * 5s)
           startupProbe:
             httpGet:

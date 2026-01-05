@@ -17,14 +17,23 @@ allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
 
-[jobs.zerg-email]
+[jobs.zerg-tasks]
 command = ["cargo", "run", "-p", "zerg_tasks", "--color", "always"]
+need_stdout = true
+watch = ["apps/zerg/tasks", "libs"]
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+env = { PORT = "7777" }
+
+[jobs.zerg-email]
+command = ["cargo", "run", "-p", "zerg_email", "--color", "always"]
 need_stdout = true
 watch = ["apps/zerg/email", "libs"]
 allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
-env = { PORT = "7777" }
+env = { HEALTH_PORT = "8082", SMTP_HOST = "localhost", SMTP_PORT = "1025", SMTP_USE_TLS = "false", REDIS_HOST = "redis://localhost:6379", EMAIL_FROM_ADDRESS = "noreply@zerg.local", EMAIL_FROM_NAME = "Zerg" }
 
 [jobs.terran-api]
 command = ["cargo", "run", "-p", "terran_api", "--color", "always"]

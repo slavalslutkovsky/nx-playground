@@ -5,59 +5,86 @@ namespace: zerg
 
 resources:
   - ../../base
+  # Include core infrastructure (shared ConfigMap, Ingress)
+  # Note: Apply k8s/core/overlays/dev separately or include here
+  # - ../../../../../k8s/core/overlays/dev
 
 patches:
+  # Add secrets reference and app-specific env vars
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: zerg-shared-secrets
+            optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: APP_ENV
+          value: "development"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: JWT_SECRET
+              optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GOOGLE_CLIENT_ID
+              optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GOOGLE_CLIENT_SECRET
+              optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GITHUB_CLIENT_ID
+              optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GITHUB_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: GITHUB_CLIENT_SECRET
+              optional: true
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: FLAGSMITH_ENVIRONMENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: zerg-shared-secrets
+              key: FLAGSMITH_ENVIRONMENT_KEY
+              optional: true
+    target:
+      kind: Deployment
+      name: zerg-api
+  # Single replica for dev
   - patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/env
-        value:
-          - name: APP_ENV
-            value: "production"
-          - name: PORT
-            value: "8080"
-          - name: RUST_LOG
-            value: "info"
-          - name: DATABASE_URL
-            value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-          - name: REDIS_HOST
-            value: "redis://redis.dbs.svc.cluster.local"
-          - name: CORS_ALLOWED_ORIGIN
-            value: "http://localhost:5206"
-          - name: REDIRECT_BASE_URL
-            value: "http://localhost:5201"
-          - name: FRONTEND_URL
-            value: "http://localhost:5206"
-          - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
-            value: "true"
-          - name: JWT_SECRET
-            value: "dev-secret-change-in-production-"
-          - name: GOOGLE_CLIENT_ID
-            value: "your-google-client-id"
-          - name: GOOGLE_CLIENT_SECRET
-            value: "your-google-client-secret"
-          - name: GITHUB_CLIENT_ID
-            value: "your-github-client-id"
-          - name: GITHUB_CLIENT_SECRET
-            value: "your-github-client-secret"
-          - name: FLAGSMITH_API_URL
-            value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
-          - name: FLAGSMITH_ENVIRONMENT_KEY
-            value: "your-flagsmith-key"
-          - name: TASKS_SERVICE_ADDR
-            value: "http://zerg-tasks.zerg.svc.cluster.local:50051"
-          # DB Pool Optimization (keep low - postgres has 100 max connections shared across all pods)
-          - name: DB_MAX_CONNECTIONS
-            value: "10"
-          - name: DB_MIN_CONNECTIONS
-            value: "2"
-          - name: DB_ACQUIRE_TIMEOUT_SECS
-            value: "5"
-          - name: DB_IDLE_TIMEOUT_SECS
-            value: "300"
-          - name: DB_MAX_LIFETIME_SECS
-            value: "1800"
-          - name: DB_SQLX_LOGGING
-            value: "false"
+        path: /spec/replicas
+        value: 1
     target:
       kind: Deployment
       name: zerg-api
