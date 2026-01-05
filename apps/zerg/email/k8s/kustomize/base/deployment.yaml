@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerg-email
+  labels:
+    app: zerg-email
+    app.kubernetes.io/name: zerg-email
+    app.kubernetes.io/component: email-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zerg-email
+  template:
+    metadata:
+      labels:
+        app: zerg-email
+        app.kubernetes.io/name: zerg-email
+        app.kubernetes.io/component: email-worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: zerg-email
+          image: yurikrupnik/zerg-email:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: RUST_LOG
+              value: "info"
+            - name: REDIS_HOST
+              value: "redis://redis.dbs.svc.cluster.local"
+          # Startup probe: allows up to 30s for container to start (6 * 5s)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 3
+          # Liveness probe: restarts container if unhealthy
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          # Readiness probe: removes from service if not ready
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 2
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              # No CPU limit prevents throttling for latency-sensitive services
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always

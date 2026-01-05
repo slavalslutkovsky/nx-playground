@@ -3,6 +3,7 @@
 #k8s_yaml(kustomize('./manifests/kustomize/all/dev'))
 
 include('./apps/zerg/api/Tiltfile')
+include('./apps/zerg/email/Tiltfile')
 include('./apps/zerg/tasks/Tiltfile')
 include('./apps/zerg/web/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
