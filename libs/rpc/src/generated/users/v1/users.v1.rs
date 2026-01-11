@@ -158,5 +158,5 @@ pub struct ListStreamResponse {
     #[prost(string, tag="7")]
     pub updated_at: ::prost::alloc::string::String,
 }
-include!("users.tonic.rs");
+include!("users.v1.tonic.rs");
 // @@protoc_insertion_point(module)

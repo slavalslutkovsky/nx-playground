@@ -1,0 +1,49 @@
+[package]
+name = "stream-worker"
+version = "0.1.0"
+edition = "2024"
+description = "Generic Redis Streams worker framework with DLQ, metrics, and resilience features"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# Async runtime
+async-trait = { workspace = true }
+
+# Web framework (for health endpoints)
+axum = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+eyre = { workspace = true }
+futures = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+once_cell = { workspace = true }
+
+# Redis
+redis = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# Utils
+uuid = { workspace = true }
+
+[dev-dependencies]
+test-utils = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

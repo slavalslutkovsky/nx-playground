@@ -294,3 +294,19 @@ dsa:
     nx add @nx/vite
     nx g @nx/vite:app web --directory=apps/zerg/web --unitTestRunner=vitest --projectNameAndRootFormat=as-provided
     cargo run -- migrate up # test is why it is up like this
+
+# ============================================================================
+# Environment Lifecycle (nu scripts)
+# ============================================================================
+
+# Bring up full dev environment (Kind cluster + services)
+up *args:
+    nu scripts/nu/mod.nu up {{args}}
+
+# Tear down dev environment
+down *args:
+    nu scripts/nu/mod.nu down {{args}}
+
+# Show environment status
+status:
+    nu scripts/nu/mod.nu status

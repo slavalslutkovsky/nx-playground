@@ -214,8 +214,8 @@ impl EntityParser {
 
 /// Simple pluralization
 fn pluralize(word: &str) -> String {
-    if word.ends_with('y') {
-        format!("{}ies", &word[..word.len() - 1])
+    if let Some(stem) = word.strip_suffix('y') {
+        format!("{}ies", stem)
     } else if word.ends_with('s') {
         word.to_string()
     } else {

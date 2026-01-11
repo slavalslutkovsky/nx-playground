@@ -1,2 +1,2 @@
-// @generated
-include!("users.rs");
+pub mod v1;
+pub use v1::*;

@@ -10,17 +10,17 @@ use tonic::codec::CompressionEncoding;
 /// on external types. Instead, we provide helper functions that work with
 /// any type that implements this trait.
 pub trait ConfigurableClient: Sized {
-    /// Accept compressed responses
-    fn accept_compressed(self, encoding: CompressionEncoding) -> Self;
+  /// Accept compressed responses
+  fn accept_compressed(self, encoding: CompressionEncoding) -> Self;
 
-    /// Send compressed requests
-    fn send_compressed(self, encoding: CompressionEncoding) -> Self;
+  /// Send compressed requests
+  fn send_compressed(self, encoding: CompressionEncoding) -> Self;
 
-    /// Set maximum size for incoming messages
-    fn max_decoding_message_size(self, limit: usize) -> Self;
+  /// Set maximum size for incoming messages
+  fn max_decoding_message_size(self, limit: usize) -> Self;
 
-    /// Set maximum size for outgoing messages
-    fn max_encoding_message_size(self, limit: usize) -> Self;
+  /// Set maximum size for outgoing messages
+  fn max_encoding_message_size(self, limit: usize) -> Self;
 }
 
 /// Apply production-ready configuration to any tonic client
@@ -53,13 +53,13 @@ pub trait ConfigurableClient: Sized {
 /// ```
 pub fn configure_client<T>(client: T) -> T
 where
-    T: ConfigurableClient,
+  T: ConfigurableClient,
 {
-    client
-        .accept_compressed(CompressionEncoding::Zstd)
-        .send_compressed(CompressionEncoding::Zstd)
-        .max_decoding_message_size(8 * 1024 * 1024) // 8MB
-        .max_encoding_message_size(8 * 1024 * 1024) // 8MB
+  client
+    .accept_compressed(CompressionEncoding::Zstd)
+    .send_compressed(CompressionEncoding::Zstd)
+    .max_decoding_message_size(8 * 1024 * 1024) // 8MB
+    .max_encoding_message_size(8 * 1024 * 1024) // 8MB
 }
 
 /// Apply compression configuration to any tonic client
@@ -78,9 +78,9 @@ where
 /// ```
 pub fn with_compression<T>(client: T, encoding: CompressionEncoding) -> T
 where
-    T: ConfigurableClient,
+  T: ConfigurableClient,
 {
-    client.accept_compressed(encoding).send_compressed(encoding)
+  client.accept_compressed(encoding).send_compressed(encoding)
 }
 
 /// Apply zstd compression to any tonic client
@@ -97,9 +97,9 @@ where
 /// ```
 pub fn with_zstd_compression<T>(client: T) -> T
 where
-    T: ConfigurableClient,
+  T: ConfigurableClient,
 {
-    with_compression(client, CompressionEncoding::Zstd)
+  with_compression(client, CompressionEncoding::Zstd)
 }
 
 /// Apply message size limits to any tonic client
@@ -118,11 +118,11 @@ where
 /// ```
 pub fn with_limits<T>(client: T, max_decoding: usize, max_encoding: usize) -> T
 where
-    T: ConfigurableClient,
+  T: ConfigurableClient,
 {
-    client
-        .max_decoding_message_size(max_decoding)
-        .max_encoding_message_size(max_encoding)
+  client
+    .max_decoding_message_size(max_decoding)
+    .max_encoding_message_size(max_encoding)
 }
 
 /// Apply standard 8MB limits to any tonic client
@@ -137,7 +137,7 @@ where
 /// ```
 pub fn with_standard_limits<T>(client: T) -> T
 where
-    T: ConfigurableClient,
+  T: ConfigurableClient,
 {
-    with_limits(client, 8 * 1024 * 1024, 8 * 1024 * 1024)
+  with_limits(client, 8 * 1024 * 1024, 8 * 1024 * 1024)
 }

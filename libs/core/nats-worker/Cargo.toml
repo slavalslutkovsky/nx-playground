@@ -1,0 +1,44 @@
+[package]
+name = "nats-worker"
+version = "0.1.0"
+edition = "2021"
+description = "NATS JetStream worker framework for background job processing"
+license = "MIT"
+
+[dependencies]
+
+# NATS
+async-nats = { workspace = true }
+
+# Async runtime
+async-trait = { workspace = true }
+
+# HTTP server (for health endpoints)
+axum = { workspace = true }
+
+# Time
+chrono = { workspace = true, features = ["serde"] }
+eyre = { workspace = true }
+futures = { workspace = true }
+# Core messaging abstractions
+messaging = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+# Serialization
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["sync", "rt-multi-thread", "macros", "time"] }
+tower-http = { workspace = true }
+
+# Observability
+tracing = { workspace = true }
+
+# UUID
+uuid = { workspace = true, features = ["v4"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

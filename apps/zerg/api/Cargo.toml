@@ -4,16 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+async-stream = { workspace = true }
 axum = { workspace = true }
 axum-helpers = { workspace = true }
 chrono = { workspace = true }
 color-eyre = { workspace = true }
 core_config = { workspace = true }
+futures = { workspace = true }
 database = { workspace = true, features = ["all"] }
 domain_cloud_resources = { workspace = true }
 domain_projects = { workspace = true }
 domain_tasks = { path = "../../../libs/domains/tasks" }
 domain_users = { workspace = true }
+domain_vector = { path = "../../../libs/domains/vector" }
 eyre = { workspace = true }
 grpc-client = { workspace = true }
 migration = { workspace = true }

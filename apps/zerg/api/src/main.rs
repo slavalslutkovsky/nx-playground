@@ -25,10 +25,18 @@ async fn main() -> eyre::Result<()> {
 
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
+    let vector_addr =
+        std::env::var("VECTOR_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50053".to_string());
+    // let agent_addr =
+    //     std::env::var("AGENT_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50052".to_string());
 
     info!("Connecting to TasksService at {} (optimized)", tasks_addr);
+    info!("Connecting to VectorService at {} (lazy)", vector_addr);
+    // info!("Connecting to AgentService at {} (lazy)", agent_addr);
 
     let tasks_client = grpc_pool::create_optimized_tasks_client(tasks_addr).await?;
+    let vector_client = grpc_pool::create_lazy_vector_client(vector_addr)?;
+    // let agent_client = grpc_pool::create_lazy_agent_client(agent_addr)?;
 
     // Initialize database connections concurrently
     let postgres_future = async {
@@ -53,6 +61,8 @@ async fn main() -> eyre::Result<()> {
     let state = AppState {
         config,
         tasks_client,
+        vector_client,
+        // agent_client,
         db,
         redis,
         jwt_auth,
