@@ -6,39 +6,39 @@ pub type GrpcResult<T> = Result<T, GrpcError>;
 /// Errors that can occur during gRPC client creation and configuration
 #[derive(Error, Debug)]
 pub enum GrpcError {
-    /// Invalid URI provided for connection
-    #[error("Invalid URI: {0}")]
-    InvalidUri(#[from] tonic::transport::Error),
+  /// Invalid URI provided for connection
+  #[error("Invalid URI: {0}")]
+  InvalidUri(#[from] tonic::transport::Error),
 
-    /// Failed to establish connection
-    #[error("Connection failed: {0}")]
-    ConnectionFailed(tonic::transport::Error),
+  /// Failed to establish connection
+  #[error("Connection failed: {0}")]
+  ConnectionFailed(tonic::transport::Error),
 
-    /// Connection timeout
-    #[error("Connection timeout after {0:?}")]
-    ConnectionTimeout(Duration),
+  /// Connection timeout
+  #[error("Connection timeout after {0:?}")]
+  ConnectionTimeout(Duration),
 
-    /// Invalid configuration
-    #[error("Invalid configuration: {0}")]
-    InvalidConfig(String),
+  /// Invalid configuration
+  #[error("Invalid configuration: {0}")]
+  InvalidConfig(String),
 
-    /// Maximum retries exceeded
-    #[error("Maximum retries ({0}) exceeded")]
-    MaxRetriesExceeded(u32),
+  /// Maximum retries exceeded
+  #[error("Maximum retries ({0}) exceeded")]
+  MaxRetriesExceeded(u32),
 }
 
 // Implement conversion to tonic::Status for use in interceptors
 impl From<GrpcError> for tonic::Status {
-    fn from(err: GrpcError) -> Self {
-        match err {
-            GrpcError::InvalidUri(_) | GrpcError::InvalidConfig(_) => {
-                tonic::Status::invalid_argument(err.to_string())
-            }
-            GrpcError::ConnectionFailed(_)
-            | GrpcError::ConnectionTimeout(_)
-            | GrpcError::MaxRetriesExceeded(_) => tonic::Status::unavailable(err.to_string()),
-        }
+  fn from(err: GrpcError) -> Self {
+    match err {
+      GrpcError::InvalidUri(_) | GrpcError::InvalidConfig(_) => {
+        tonic::Status::invalid_argument(err.to_string())
+      }
+      GrpcError::ConnectionFailed(_)
+      | GrpcError::ConnectionTimeout(_)
+      | GrpcError::MaxRetriesExceeded(_) => tonic::Status::unavailable(err.to_string()),
     }
+  }
 }
 
 // ============================================================================
@@ -65,21 +65,21 @@ impl From<GrpcError> for tonic::Status {
 /// let result = validate_input("").to_tonic();
 /// ```
 pub trait ToTonicResult<T> {
-    /// Convert the error in this Result to a tonic::Status with INVALID_ARGUMENT code
-    fn to_tonic(self) -> Result<T, tonic::Status>;
+  /// Convert the error in this Result to a tonic::Status with INVALID_ARGUMENT code
+  fn to_tonic(self) -> Result<T, tonic::Status>;
 
-    /// Convert the error to a tonic::Status with a custom code
-    fn to_tonic_with_code(self, code: tonic::Code) -> Result<T, tonic::Status>;
+  /// Convert the error to a tonic::Status with a custom code
+  fn to_tonic_with_code(self, code: tonic::Code) -> Result<T, tonic::Status>;
 }
 
 impl<T> ToTonicResult<T> for Result<T, String> {
-    fn to_tonic(self) -> Result<T, tonic::Status> {
-        self.map_err(tonic::Status::invalid_argument)
-    }
+  fn to_tonic(self) -> Result<T, tonic::Status> {
+    self.map_err(tonic::Status::invalid_argument)
+  }
 
-    fn to_tonic_with_code(self, code: tonic::Code) -> Result<T, tonic::Status> {
-        self.map_err(|e| tonic::Status::new(code, e))
-    }
+  fn to_tonic_with_code(self, code: tonic::Code) -> Result<T, tonic::Status> {
+    self.map_err(|e| tonic::Status::new(code, e))
+  }
 }
 
 /// Extension trait for Option types to convert None to tonic::Status errors
@@ -92,19 +92,19 @@ impl<T> ToTonicResult<T> for Result<T, String> {
 /// let result = user_id.ok_or_not_found("User not found");
 /// ```
 pub trait ToTonicOption<T> {
-    /// Convert None to a tonic::Status with NOT_FOUND code
-    fn ok_or_not_found(self, message: impl Into<String>) -> Result<T, tonic::Status>;
+  /// Convert None to a tonic::Status with NOT_FOUND code
+  fn ok_or_not_found(self, message: impl Into<String>) -> Result<T, tonic::Status>;
 
-    /// Convert None to a tonic::Status with INVALID_ARGUMENT code
-    fn ok_or_invalid(self, message: impl Into<String>) -> Result<T, tonic::Status>;
+  /// Convert None to a tonic::Status with INVALID_ARGUMENT code
+  fn ok_or_invalid(self, message: impl Into<String>) -> Result<T, tonic::Status>;
 }
 
 impl<T> ToTonicOption<T> for Option<T> {
-    fn ok_or_not_found(self, message: impl Into<String>) -> Result<T, tonic::Status> {
-        self.ok_or_else(|| tonic::Status::not_found(message.into()))
-    }
+  fn ok_or_not_found(self, message: impl Into<String>) -> Result<T, tonic::Status> {
+    self.ok_or_else(|| tonic::Status::not_found(message.into()))
+  }
 
-    fn ok_or_invalid(self, message: impl Into<String>) -> Result<T, tonic::Status> {
-        self.ok_or_else(|| tonic::Status::invalid_argument(message.into()))
-    }
+  fn ok_or_invalid(self, message: impl Into<String>) -> Result<T, tonic::Status> {
+    self.ok_or_else(|| tonic::Status::invalid_argument(message.into()))
+  }
 }

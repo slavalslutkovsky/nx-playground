@@ -1,0 +1,50 @@
+[package]
+name = "zerg_email_nats"
+version = "0.1.0"
+edition = "2021"
+description = "Email worker service using NATS JetStream"
+license = "MIT"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "zerg_email_nats"
+path = "src/main.rs"
+
+[dependencies]
+
+# NATS client
+async-nats = { workspace = true }
+
+# HTTP server for health
+axum = { workspace = true }
+# Core configuration
+core_config = { workspace = true }
+
+# Email library (with NATS support)
+email = { workspace = true }
+
+# Error handling
+eyre = { workspace = true }
+messaging = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+# NATS worker framework
+nats-worker = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["full", "signal"] }
+
+# Observability
+tracing = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[[example]]
+name = "publish_test"
+path = "examples/publish_test.rs"

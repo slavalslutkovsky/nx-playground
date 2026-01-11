@@ -27,5 +27,3 @@ docker_build(
 )
 
 k8s_yaml(kustomize('k8s/kustomize/overlays/dev'))
-
-k8s_resource("zerg-tasks", port_forwards="50051:50051", labels=['backend'])

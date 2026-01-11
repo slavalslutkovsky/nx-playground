@@ -5,6 +5,9 @@
 include('./apps/zerg/api/Tiltfile')
 include('./apps/zerg/tasks/Tiltfile')
 include('./apps/zerg/web/Tiltfile')
+include('./apps/zerg/email/Tiltfile')
+include('./apps/zerg/email-nats/Tiltfile')
+include('./apps/zerg/vector/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
 
 #include('./apps/cargo-docs/Tiltfile')
@@ -12,35 +15,35 @@ include('./apps/zerg/web/Tiltfile')
 #include('./apps/terran/api/Tiltfile')
 #include('./apps/terran/web/Tiltfile')
 
-# local_resource(
-#     'redis-port-forward',
-#     serve_cmd='kubectl port-forward -n dbs deployment/redis 6379:6379',
-#     labels=['databases'],
-#     readiness_probe=probe(
-#         period_secs=5,
-#         exec=exec_action(['sh', '-c', 'nc -z localhost 6379'])
-#     )
-# )
+local_resource(
+    'redis-port-forward',
+    serve_cmd='kubectl port-forward -n dbs deployment/redis 6379:6379',
+    labels=['databases'],
+    readiness_probe=probe(
+        period_secs=5,
+        exec=exec_action(['sh', '-c', 'nc -z localhost 6379'])
+    )
+)
 
-# local_resource(
-#     'postgres-port-forward',
-#     serve_cmd='kubectl port-forward -n dbs deployment/postgres 5433:5432',
-#     labels=['databases'],
-#     readiness_probe=probe(
-#         period_secs=5,
-#         exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
-#     )
-# )
+local_resource(
+    'postgres-port-forward',
+    serve_cmd='kubectl port-forward -n dbs deployment/postgres 5433:5432',
+    labels=['databases'],
+    readiness_probe=probe(
+        period_secs=5,
+        exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
+    )
+)
 
-# local_resource(
-#    'mongodb-port-forward',
-#    serve_cmd='kubectl port-forward -n dbs deployment/db 27017:27017',
-#    labels=['databases'],
-#    readiness_probe=probe(
-#        period_secs=5,
-#        exec=exec_action(['sh', '-c', 'nc -z localhost 27017'])
-#    )
-# )
+local_resource(
+   'mongodb-port-forward',
+   serve_cmd='kubectl port-forward -n dbs deployment/mongo 27017:27017',
+   labels=['databases'],
+   readiness_probe=probe(
+       period_secs=5,
+       exec=exec_action(['sh', '-c', 'nc -z localhost 27017'])
+   )
+)
 
 # local_resource(
 #     'influxdb2-port-forward',

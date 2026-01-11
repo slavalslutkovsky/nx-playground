@@ -5,3 +5,7 @@ namespace: zerg
 
 resources:
   - ../../base
+
+replicas:
+  - name: zerg-web
+    count: 1

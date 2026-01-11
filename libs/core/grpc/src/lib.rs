@@ -72,17 +72,18 @@ pub mod retry;
 
 // Re-export main types and functions for convenience
 pub use channel::{
-    ChannelConfig, create_channel, create_channel_with_config, create_channel_with_retry,
+  ChannelConfig, create_channel, create_channel_lazy, create_channel_lazy_with_config,
+  create_channel_with_config, create_channel_with_retry,
 };
 pub use client::{
-    ConfigurableClient, configure_client, with_compression, with_limits, with_standard_limits,
-    with_zstd_compression,
+  ConfigurableClient, configure_client, with_compression, with_limits, with_standard_limits,
+  with_zstd_compression,
 };
 pub use error::{GrpcError, GrpcResult, ToTonicOption, ToTonicResult};
 pub use retry::{RetryConfig, retry, retry_with_backoff};
 
 // Re-export interceptors for convenience
 pub use interceptors::{
-    AuthInterceptor, ComposedInterceptor, MetricsInterceptor, TracingInterceptor,
-    compose_interceptors,
+  AuthInterceptor, ComposedInterceptor, MetricsInterceptor, TracingInterceptor,
+  compose_interceptors,
 };

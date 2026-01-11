@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zerg-vector
+spec:
+  selector:
+    app: zerg-vector
+  ports:
+    - protocol: TCP
+      name: grpc
+      port: 50051
+      targetPort: 50051
+  type: ClusterIP

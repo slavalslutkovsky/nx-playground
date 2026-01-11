@@ -3,10 +3,11 @@ kind: Kustomization
 #resources:
 #  - gateway.yaml
 #  - monitoring-virtualservices.yaml
-configMapGenerator:
-  - name: proto-configs
-    options:
-      disableNameSuffixHash: true
-    files:
-      - apps/v1/users.proto
-      - apps/v1/tasks.proto
+#configMapGenerator:
+#  - name: proto-configs
+#    options:
+#      disableNameSuffixHash: true
+#    files:
+#      - apps/v1/users.proto
+#      - apps/v1/tasks.proto
+#      - apps/v1/tasks.proto
