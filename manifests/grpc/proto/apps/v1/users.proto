@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package users;
+package users.v1;
 
-option go_package = "grpc/users";
+option go_package = "grpc/users/v1";
 
 service UserService {
   rpc Create(CreateRequest) returns (CreateResponse) {}

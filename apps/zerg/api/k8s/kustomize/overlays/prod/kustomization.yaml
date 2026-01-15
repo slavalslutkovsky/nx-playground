@@ -5,6 +5,7 @@ namespace: zerg
 
 resources:
   - ../../base
+  - scaledobject.yaml
 
 patches:
   - patch: |-

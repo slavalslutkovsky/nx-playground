@@ -1,0 +1,66 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: APP_ENV
+            value: "production"
+          - name: PORT
+            value: "8080"
+          - name: RUST_LOG
+            value: "info"
+          - name: REDIS_HOST
+            value: "redis://redis.dbs.svc.cluster.local"
+          # SMTP Settings (use secrets in production)
+          - name: SMTP_HOST
+            valueFrom:
+              secretKeyRef:
+                name: email-secrets
+                key: smtp-host
+          - name: SMTP_PORT
+            value: "587"
+          - name: SMTP_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: email-secrets
+                key: smtp-username
+          - name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: email-secrets
+                key: smtp-password
+          - name: SMTP_USE_TLS
+            value: "true"
+          - name: EMAIL_FROM_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                name: email-secrets
+                key: from-address
+          - name: EMAIL_FROM_NAME
+            value: "Zerg"
+          # Worker Settings (higher for production)
+          - name: EMAIL_WORKER_COUNT
+            value: "4"
+          - name: EMAIL_BATCH_SIZE
+            value: "20"
+          - name: EMAIL_BLOCK_TIMEOUT_MS
+            value: "5000"
+    target:
+      kind: Deployment
+      name: zerg-email
+  # Increase replicas for production
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: zerg-email

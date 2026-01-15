@@ -1,0 +1,8 @@
+procs:
+  zerg-email: bacon zerg-email
+  zerg-email-nats: bacon zerg-email-nats
+  zerg-vector: bacon zerg-vector
+  zerg-api: bacon zerg-api
+  zerg-tasks: bacon zerg-tasks
+  zerg-web: nx serve zerg-web
+  tilt: tilt up

@@ -5,7 +5,9 @@ namespace: zerg
 
 resources:
   - ../../base
-
+replicas:
+  - name: zerg-tasks
+    count: 1
 patches:
   - patch: |-
       - op: replace

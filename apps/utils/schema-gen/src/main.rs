@@ -10,7 +10,11 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about = "Generate database schema diagrams from SeaORM entities")]
+#[command(
+    author,
+    version,
+    about = "Generate database schema diagrams from SeaORM entities"
+)]
 struct Args {
     /// Paths to entity directories or files (can specify multiple)
     /// Defaults to libs/domains/*/src for this repo's structure

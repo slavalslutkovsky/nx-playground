@@ -31,6 +31,55 @@ pub async fn create_channel(addr: impl Into<String>) -> GrpcResult<Channel> {
     create_channel_with_config(addr, ChannelConfig::default()).await
 }
 
+/// Creates a lazy gRPC channel that connects on first request
+///
+/// Unlike `create_channel`, this function returns immediately without
+/// establishing a connection. The actual connection is made when the
+/// first RPC is invoked. This is useful for:
+/// - Faster application startup
+/// - Services that may not be immediately available
+/// - Development environments where not all services are running
+///
+/// ## Example
+/// ```ignore
+/// use grpc_client::create_channel_lazy;
+/// use rpc::tasks::tasks_service_client::TasksServiceClient;
+///
+/// // Returns immediately, no connection attempt yet
+/// let channel = create_channel_lazy("http://[::1]:50051")?;
+/// let client = TasksServiceClient::new(channel);
+///
+/// // Connection is established here on first RPC call
+/// let response = client.list_tasks(request).await?;
+/// ```
+pub fn create_channel_lazy(addr: impl Into<String>) -> GrpcResult<Channel> {
+    create_channel_lazy_with_config(addr, ChannelConfig::default())
+}
+
+/// Creates a lazy gRPC channel with custom configuration
+pub fn create_channel_lazy_with_config(
+    addr: impl Into<String>,
+    config: ChannelConfig,
+) -> GrpcResult<Channel> {
+    let addr_string = addr.into();
+
+    let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
+        tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
+        GrpcError::InvalidUri(e)
+    })?;
+
+    let endpoint = config.apply_to_endpoint(endpoint);
+
+    tracing::debug!(
+        target: "grpc_client",
+        addr = %addr_string,
+        "Creating lazy gRPC channel (connects on first request)"
+    );
+
+    // connect_lazy() returns a Channel without establishing connection
+    Ok(endpoint.connect_lazy())
+}
+
 /// Creates a gRPC channel with custom configuration
 ///
 /// Use this function when you need to override the default settings,

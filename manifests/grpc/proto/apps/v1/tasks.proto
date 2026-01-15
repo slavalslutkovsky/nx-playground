@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package tasks;
+package tasks.v1;
 
-option go_package = "grpc/tasks";
+option go_package = "grpc/tasks/v1";
 
 // Optimized TasksService with binary serialization
 service TasksService {
@@ -17,17 +17,17 @@ service TasksService {
 // Enums use 1 byte instead of 4-6 bytes for strings
 enum Priority {
   PRIORITY_UNSPECIFIED = 0;
-  LOW = 1;
-  MEDIUM = 2;
-  HIGH = 3;
-  URGENT = 4;
+  PRIORITY_LOW = 1;
+  PRIORITY_MEDIUM = 2;
+  PRIORITY_HIGH = 3;
+  PRIORITY_URGENT = 4;
 }
 
 enum Status {
   STATUS_UNSPECIFIED = 0;
-  TODO = 1;
-  IN_PROGRESS = 2;
-  DONE = 3;
+  STATUS_TODO = 1;
+  STATUS_IN_PROGRESS = 2;
+  STATUS_DONE = 3;
 }
 
 message CreateRequest {
@@ -35,14 +35,14 @@ message CreateRequest {
   string description = 2;
   // UUIDs as bytes: 16 bytes instead of 36-char string
   optional bytes project_id = 3;
-  Priority priority = 4;  // 1 byte enum instead of string
-  Status status = 5;      // 1 byte enum instead of string
+  Priority priority = 4; // 1 byte enum instead of string
+  Status status = 5; // 1 byte enum instead of string
   // Unix timestamp (seconds): 8 bytes instead of 24+ char ISO8601
   optional int64 due_date = 6;
 }
 
 message CreateResponse {
-  bytes id = 1;  // 16 bytes UUID
+  bytes id = 1; // 16 bytes UUID
   string title = 2;
   string description = 3;
   bool completed = 4;
@@ -50,12 +50,12 @@ message CreateResponse {
   Priority priority = 6;
   Status status = 7;
   optional int64 due_date = 8;
-  int64 created_at = 9;  // Unix timestamp
+  int64 created_at = 9; // Unix timestamp
   int64 updated_at = 10;
 }
 
 message GetByIdRequest {
-  bytes id = 1;  // Binary UUID
+  bytes id = 1; // Binary UUID
 }
 
 message GetByIdResponse {
@@ -106,7 +106,7 @@ message ListRequest {
   optional Status status = 2;
   optional Priority priority = 3;
   optional bool completed = 4;
-  int32 limit = 5;  // int32 instead of string
+  int32 limit = 5; // int32 instead of string
   int32 offset = 6; // int32 instead of string
 }
 

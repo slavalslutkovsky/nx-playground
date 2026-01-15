@@ -1,0 +1,55 @@
+[package]
+name = "email"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+vault = ["dep:vaultrs"]
+
+[dependencies]
+async-trait = { workspace = true }
+aws-config = { workspace = true }
+aws-sdk-sesv2 = { workspace = true }
+base64 = { workspace = true }
+chrono = { workspace = true }
+eyre = { workspace = true }
+
+# Template engine
+handlebars = "6"
+jsonwebtoken = { workspace = true }
+
+# Email sending
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "builder", "smtp-transport", "hostname"] }
+
+# Messaging abstractions (unified traits)
+messaging = { workspace = true }
+nats-worker = { workspace = true }
+
+# Random token generation
+rand = { workspace = true }
+
+redis = { workspace = true }
+
+# HTTP client for SendGrid
+reqwest = { workspace = true, features = ["json"] }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Stream worker frameworks
+stream-worker = { workspace = true }
+
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+# Vault integration (optional)
+vaultrs = { workspace = true, optional = true }
+
+[dev-dependencies]
+test-utils = { path = "../../testing/test-utils", features = ["redis"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

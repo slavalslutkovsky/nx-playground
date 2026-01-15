@@ -4,8 +4,25 @@
   "projectType": "library",
   "sourceRoot": "libs/rpc/src",
   "targets": {
+    "generate": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/src/generated",
+        "{projectRoot}/types"
+      ],
+      "inputs": [
+        "{workspaceRoot}/manifests/grpc/proto/**/*.proto",
+        "{workspaceRoot}/manifests/grpc/buf.gen.yaml"
+      ],
+      "options": {
+        "command": "cd manifests/grpc && buf generate",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "build": {
       "cache": true,
+      "dependsOn": ["generate"],
       "executor": "nx:run-commands",
       "outputs": [
         "{workspaceRoot}/dist/target"
