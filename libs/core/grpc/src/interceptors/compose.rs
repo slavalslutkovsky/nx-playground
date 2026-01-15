@@ -17,10 +17,10 @@ use tonic::{Request, Status};
 /// ```
 pub fn compose_interceptors<A, B>(first: A, second: B) -> ComposedInterceptor<A, B>
 where
-  A: tonic::service::Interceptor,
-  B: tonic::service::Interceptor,
+    A: tonic::service::Interceptor,
+    B: tonic::service::Interceptor,
 {
-  ComposedInterceptor { first, second }
+    ComposedInterceptor { first, second }
 }
 
 /// A composed interceptor that applies two interceptors in sequence
@@ -29,60 +29,60 @@ where
 /// don't need to construct this directly.
 #[derive(Clone, Debug)]
 pub struct ComposedInterceptor<A, B> {
-  first: A,
-  second: B,
+    first: A,
+    second: B,
 }
 
 impl<A, B> tonic::service::Interceptor for ComposedInterceptor<A, B>
 where
-  A: tonic::service::Interceptor,
-  B: tonic::service::Interceptor,
+    A: tonic::service::Interceptor,
+    B: tonic::service::Interceptor,
 {
-  fn call(&mut self, request: Request<()>) -> Result<Request<()>, Status> {
-    let request = self.first.call(request)?;
-    self.second.call(request)
-  }
+    fn call(&mut self, request: Request<()>) -> Result<Request<()>, Status> {
+        let request = self.first.call(request)?;
+        self.second.call(request)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::interceptors::{AuthInterceptor, TracingInterceptor};
-  use tonic::service::Interceptor;
+    use super::*;
+    use crate::interceptors::{AuthInterceptor, TracingInterceptor};
+    use tonic::service::Interceptor;
 
-  #[test]
-  fn test_compose_interceptors() {
-    let auth = AuthInterceptor::bearer("test-token");
-    let tracing = TracingInterceptor::new();
-    let mut composed = compose_interceptors(auth, tracing);
+    #[test]
+    fn test_compose_interceptors() {
+        let auth = AuthInterceptor::bearer("test-token");
+        let tracing = TracingInterceptor::new();
+        let mut composed = compose_interceptors(auth, tracing);
 
-    let request = Request::new(());
-    let result = composed.call(request);
-    assert!(result.is_ok());
+        let request = Request::new(());
+        let result = composed.call(request);
+        assert!(result.is_ok());
 
-    let req = result.unwrap();
-    // Both interceptors should have added their headers
-    assert!(req.metadata().get("authorization").is_some());
-    assert!(req.metadata().get("x-request-id").is_some());
-  }
+        let req = result.unwrap();
+        // Both interceptors should have added their headers
+        assert!(req.metadata().get("authorization").is_some());
+        assert!(req.metadata().get("x-request-id").is_some());
+    }
 
-  #[test]
-  fn test_compose_three_interceptors() {
-    use crate::interceptors::MetricsInterceptor;
+    #[test]
+    fn test_compose_three_interceptors() {
+        use crate::interceptors::MetricsInterceptor;
 
-    let auth = AuthInterceptor::bearer("token");
-    let tracing = TracingInterceptor::new();
-    let metrics = MetricsInterceptor::new();
+        let auth = AuthInterceptor::bearer("token");
+        let tracing = TracingInterceptor::new();
+        let metrics = MetricsInterceptor::new();
 
-    // Compose all three: auth -> (tracing -> metrics)
-    let mut composed = compose_interceptors(auth, compose_interceptors(tracing, metrics));
+        // Compose all three: auth -> (tracing -> metrics)
+        let mut composed = compose_interceptors(auth, compose_interceptors(tracing, metrics));
 
-    let request = Request::new(());
-    let result = composed.call(request);
-    assert!(result.is_ok());
+        let request = Request::new(());
+        let result = composed.call(request);
+        assert!(result.is_ok());
 
-    let req = result.unwrap();
-    assert!(req.metadata().get("authorization").is_some());
-    assert!(req.metadata().get("x-request-id").is_some());
-  }
+        let req = result.unwrap();
+        assert!(req.metadata().get("authorization").is_some());
+        assert!(req.metadata().get("x-request-id").is_some());
+    }
 }

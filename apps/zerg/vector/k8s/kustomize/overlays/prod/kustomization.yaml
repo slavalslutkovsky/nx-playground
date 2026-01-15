@@ -18,11 +18,10 @@ patches:
             value: "50051"
           - name: RUST_LOG
             value: "info"
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: DATABASE_URL
+          - name: QDRANT_URL
+            value: "http://qdrant.dbs.svc.cluster.local:6334"
+          - name: QDRANT_TIMEOUT_SECS
+            value: "30"
     target:
       kind: Deployment
-      name: zerg-tasks
+      name: zerg-vector

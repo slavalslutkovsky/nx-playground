@@ -52,6 +52,14 @@ export def "main create" [
     kubectl -n kube-system rollout status deploy/coredns --timeout=180s
 
     success $"Kind cluster '($name)' created successfully"
+
+    if $ingress {
+      istioctl install --set profile=ambient --set values.pilot.env.PILOT_ENABLE_GATEWAY_API=true -y
+      # Wait for Istio
+      kubectl wait -n istio-system deployment/istiod --for=condition=Available --timeout=300s
+
+      log info "Istio installed with Gateway API support"
+    }
 }
 
 # Delete a Kind cluster

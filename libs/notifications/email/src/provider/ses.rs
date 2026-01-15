@@ -237,10 +237,7 @@ mod tests {
             format_address("test@example.com", Some("Test User")),
             "Test User <test@example.com>"
         );
-        assert_eq!(
-            format_address("test@example.com", None),
-            "test@example.com"
-        );
+        assert_eq!(format_address("test@example.com", None), "test@example.com");
         assert_eq!(
             format_address("test@example.com", Some("")),
             "test@example.com"

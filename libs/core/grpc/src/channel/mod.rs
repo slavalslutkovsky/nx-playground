@@ -28,7 +28,7 @@ use tonic::transport::{Channel, Endpoint};
 /// let client = TasksServiceClient::new(channel);
 /// ```
 pub async fn create_channel(addr: impl Into<String>) -> GrpcResult<Channel> {
-  create_channel_with_config(addr, ChannelConfig::default()).await
+    create_channel_with_config(addr, ChannelConfig::default()).await
 }
 
 /// Creates a lazy gRPC channel that connects on first request
@@ -53,31 +53,31 @@ pub async fn create_channel(addr: impl Into<String>) -> GrpcResult<Channel> {
 /// let response = client.list_tasks(request).await?;
 /// ```
 pub fn create_channel_lazy(addr: impl Into<String>) -> GrpcResult<Channel> {
-  create_channel_lazy_with_config(addr, ChannelConfig::default())
+    create_channel_lazy_with_config(addr, ChannelConfig::default())
 }
 
 /// Creates a lazy gRPC channel with custom configuration
 pub fn create_channel_lazy_with_config(
-  addr: impl Into<String>,
-  config: ChannelConfig,
+    addr: impl Into<String>,
+    config: ChannelConfig,
 ) -> GrpcResult<Channel> {
-  let addr_string = addr.into();
+    let addr_string = addr.into();
 
-  let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
-    tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
-    GrpcError::InvalidUri(e)
-  })?;
+    let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
+        tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
+        GrpcError::InvalidUri(e)
+    })?;
 
-  let endpoint = config.apply_to_endpoint(endpoint);
+    let endpoint = config.apply_to_endpoint(endpoint);
 
-  tracing::debug!(
+    tracing::debug!(
         target: "grpc_client",
         addr = %addr_string,
         "Creating lazy gRPC channel (connects on first request)"
     );
 
-  // connect_lazy() returns a Channel without establishing connection
-  Ok(endpoint.connect_lazy())
+    // connect_lazy() returns a Channel without establishing connection
+    Ok(endpoint.connect_lazy())
 }
 
 /// Creates a gRPC channel with custom configuration
@@ -99,33 +99,33 @@ pub fn create_channel_lazy_with_config(
 /// let channel = create_channel_with_config("http://[::1]:50051", config).await?;
 /// ```
 pub async fn create_channel_with_config(
-  addr: impl Into<String>,
-  config: ChannelConfig,
+    addr: impl Into<String>,
+    config: ChannelConfig,
 ) -> GrpcResult<Channel> {
-  let addr_string = addr.into();
+    let addr_string = addr.into();
 
-  let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
-    tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
-    GrpcError::InvalidUri(e)
-  })?;
+    let endpoint = Endpoint::from_shared(addr_string.clone()).map_err(|e| {
+        tracing::error!(target: "grpc_client", addr = %addr_string, error = ?e, "Invalid URI");
+        GrpcError::InvalidUri(e)
+    })?;
 
-  let endpoint = config.apply_to_endpoint(endpoint);
+    let endpoint = config.apply_to_endpoint(endpoint);
 
-  tracing::debug!(
+    tracing::debug!(
         target: "grpc_client",
         addr = %addr_string,
         "Creating gRPC channel"
     );
 
-  endpoint.connect().await.map_err(|e| {
-    tracing::error!(
+    endpoint.connect().await.map_err(|e| {
+        tracing::error!(
             target: "grpc_client",
             addr = %addr_string,
             error = ?e,
             "Failed to connect to gRPC service"
         );
-    GrpcError::ConnectionFailed(e)
-  })
+        GrpcError::ConnectionFailed(e)
+    })
 }
 
 /// Creates a channel with retry logic
@@ -146,50 +146,50 @@ pub async fn create_channel_with_config(
 /// let channel = create_channel_with_retry("http://[::1]:50051", Some(retry)).await?;
 /// ```
 pub async fn create_channel_with_retry(
-  addr: impl Into<String>,
-  retry_config: Option<crate::retry::RetryConfig>,
+    addr: impl Into<String>,
+    retry_config: Option<crate::retry::RetryConfig>,
 ) -> GrpcResult<Channel> {
-  let addr = addr.into();
+    let addr = addr.into();
 
-  match retry_config {
-    Some(config) => {
-      crate::retry::retry_with_backoff(
-        || {
-          let addr = addr.clone();
-          async move { create_channel(addr).await }
-        },
-        config,
-      )
-        .await
+    match retry_config {
+        Some(config) => {
+            crate::retry::retry_with_backoff(
+                || {
+                    let addr = addr.clone();
+                    async move { create_channel(addr).await }
+                },
+                config,
+            )
+            .await
+        }
+        None => {
+            crate::retry::retry(|| {
+                let addr = addr.clone();
+                async move { create_channel(addr).await }
+            })
+            .await
+        }
     }
-    None => {
-      crate::retry::retry(|| {
-        let addr = addr.clone();
-        async move { create_channel(addr).await }
-      })
-        .await
-    }
-  }
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn test_invalid_uri() {
-    let runtime = tokio::runtime::Runtime::new().unwrap();
-    let result = runtime.block_on(create_channel("not a valid uri"));
-    assert!(result.is_err());
-    assert!(matches!(result.unwrap_err(), GrpcError::InvalidUri(_)));
-  }
+    #[test]
+    fn test_invalid_uri() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let result = runtime.block_on(create_channel("not a valid uri"));
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), GrpcError::InvalidUri(_)));
+    }
 
-  #[test]
-  fn test_connection_failed() {
-    let runtime = tokio::runtime::Runtime::new().unwrap();
-    // Try to connect to a port that's definitely not listening
-    let result = runtime.block_on(create_channel("http://[::1]:9999"));
-    assert!(result.is_err());
-    // Will timeout or fail to connect
-  }
+    #[test]
+    fn test_connection_failed() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        // Try to connect to a port that's definitely not listening
+        let result = runtime.block_on(create_channel("http://[::1]:9999"));
+        assert!(result.is_err());
+        // Will timeout or fail to connect
+    }
 }

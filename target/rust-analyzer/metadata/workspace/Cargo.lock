@@ -7502,6 +7502,7 @@ dependencies = [
  "domain_projects",
  "domain_tasks",
  "domain_users",
+ "domain_vector",
  "eyre",
  "futures",
  "grpc-client",
@@ -7534,6 +7535,24 @@ dependencies = [
  "eyre",
  "redis",
  "stream-worker",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "zerg_email_nats"
+version = "0.1.0"
+dependencies = [
+ "async-nats",
+ "axum 0.8.8",
+ "core_config",
+ "email",
+ "eyre",
+ "messaging",
+ "metrics",
+ "metrics-exporter-prometheus",
+ "nats-worker",
+ "serde_json",
  "tokio",
  "tracing",
 ]
