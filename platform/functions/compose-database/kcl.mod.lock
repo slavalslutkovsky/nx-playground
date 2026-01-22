@@ -1,0 +1,41 @@
+[dependencies]
+  [dependencies.cloudnative-pg]
+    name = "cloudnative-pg"
+    full_name = "cloudnative-pg_1.27.0"
+    version = "1.27.0"
+    sum = "H2krBdN6JlZDE4jCdwfNslXEVaf4QeQINQsAQzqACWw="
+    reg = "ghcr.io"
+    repo = "kcl-lang/cloudnative-pg"
+    oci_tag = "1.27.0"
+  [dependencies.crossplane-provider-upjet-aws]
+    name = "crossplane-provider-upjet-aws"
+    full_name = "crossplane-provider-upjet-aws_1.23.0"
+    version = "1.23.0"
+    sum = "WrS6bUpp/7QAWCb0EZd281C8n34hzlr0v25Alofn2wQ="
+    reg = "ghcr.io"
+    repo = "kcl-lang/crossplane-provider-upjet-aws"
+    oci_tag = "1.23.0"
+  [dependencies.k8s]
+    name = "k8s"
+    full_name = "k8s_1.31.2"
+    version = "1.31.2"
+    sum = "xBZgPsnpVVyWBpahuPQHReeRx28eUHGFoaPeqbct+vs="
+    reg = "ghcr.io"
+    repo = "kcl-lang/k8s"
+    oci_tag = "1.31.2"
+  [dependencies.model]
+    name = "model"
+    full_name = "models_0.0.1"
+    version = "0.0.1"
+    reg = "ghcr.io"
+    repo = "kcl-lang/model"
+    oci_tag = "0.0.1"
+  [dependencies.models]
+    name = "models"
+    full_name = "models_0.0.1"
+    version = "0.0.1"
+  [dependencies.schemas]
+    name = "schemas"
+    full_name = "platform-schemas_0.1.0"
+    version = "0.1.0"
+    sum = "VJIl4yhFRSuVGTrGD+rS7a1NQoe4rNVd5MzRYyDNHsk="

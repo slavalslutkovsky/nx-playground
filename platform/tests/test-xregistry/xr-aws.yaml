@@ -1,0 +1,15 @@
+apiVersion: registry.platform.io/v1alpha1
+kind: XRegistry
+metadata:
+  name: test-registry-aws
+spec:
+  provider: aws
+  name: test-registry
+  region: eu-west-1
+  format: docker
+  immutableTags: false
+  scanOnPush: true
+  encryption: true
+  publicAccess: false
+  environment: dev
+  deletionPolicy: Delete

@@ -1,0 +1,17 @@
+apiVersion: platform.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: default
+spec:
+  name: my-full-app
+  provider: gcp
+  region: us-east1
+  environment: dev
+  storage:
+    enabled: true
+    storageClass: standard
+  database:
+    enabled: true
+    engine: postgres
+    size: small

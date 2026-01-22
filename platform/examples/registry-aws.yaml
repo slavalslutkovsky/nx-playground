@@ -1,0 +1,13 @@
+apiVersion: registry.platform.io/v1alpha1
+kind: Registry
+metadata:
+  name: my-ecr-registry
+  namespace: default
+spec:
+  provider: aws
+  name: my-app-images
+  region: us-east-1
+  immutableTags: true
+  scanOnPush: true
+  retentionDays: 30
+  environment: dev

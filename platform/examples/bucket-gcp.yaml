@@ -1,0 +1,13 @@
+apiVersion: storage.platform.io/v1alpha1
+kind: Bucket
+metadata:
+  name: my-gcp-bucket
+  namespace: default
+spec:
+  provider: gcp
+  region: us-east1
+  name: yurikrupnik-platform-example-bucket
+  environment: dev
+  storageClass: standard
+  versioning: false
+  encryption: true

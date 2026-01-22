@@ -1,0 +1,5 @@
+[dependencies]
+  [dependencies.common]
+    name = "common"
+    full_name = "common_0.1.0"
+    version = "0.1.0"

@@ -1,0 +1,13 @@
+apiVersion: database.platform.io/v1alpha1
+kind: XDatabase
+metadata:
+  name: test-database-gcp
+spec:
+  provider: gcp
+  region: europe-west1
+  engine: postgres
+  engineVersion: "15"
+  size: small
+  storageGB: 20
+  environment: dev
+  deletionPolicy: Delete

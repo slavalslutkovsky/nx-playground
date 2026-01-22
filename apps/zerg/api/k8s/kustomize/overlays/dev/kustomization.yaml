@@ -23,6 +23,12 @@ patches:
             value: "info"
           - name: DATABASE_URL
             value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+         # - name: DATABASE_URL_READ_ONLY # does not work
+            #      value: "ppostgresql://postgres:vwraVPmFZ21uUldlYL4Bokvh107ZWsAhgWbaAVta3c0aVDhO4S0RdWlmusWSTFSN@pg-rw.zerg:5432/postgres"
+         #   valueFrom:
+         #     secretKeyRef:
+         #       name: pg-app
+         #       key: uri
           - name: REDIS_HOST
             value: "redis://redis.dbs.svc.cluster.local"
           - name: CORS_ALLOWED_ORIGIN

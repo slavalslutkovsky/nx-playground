@@ -1,0 +1,17 @@
+apiVersion: network.platform.io/v1alpha1
+kind: Network
+metadata:
+  name: my-aws-network
+  namespace: default
+spec:
+  provider: aws
+  name: my-vpc
+  region: europe-west1  # Mapped to eu-west-1 automatically
+  cidrBlock: "10.0.0.0/16"
+  environment: dev
+  enableDnsSupport: true
+  enableDnsHostnames: true
+  # Uses default subnets with multi-AZ:
+  # - public-a (10.0.1.0/24), public-b (10.0.2.0/24)
+  # - private-a (10.0.10.0/24), private-b (10.0.11.0/24)
+  deletionPolicy: Delete

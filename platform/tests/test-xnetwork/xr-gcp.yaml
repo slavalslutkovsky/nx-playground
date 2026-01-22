@@ -1,0 +1,11 @@
+apiVersion: network.platform.io/v1alpha1
+kind: XNetwork
+metadata:
+  name: test-network-gcp
+spec:
+  provider: gcp
+  name: test-vpc
+  region: europe-west1
+  cidrBlock: "10.0.0.0/16"
+  environment: dev
+  deletionPolicy: Delete

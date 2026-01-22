@@ -1,0 +1,101 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xbuckets.storage.platform.io
+spec:
+  group: storage.platform.io
+  names:
+    kind: XBucket
+    plural: xbuckets
+  claimNames:
+    kind: Bucket
+    plural: buckets
+  defaultCompositionRef:
+    name: xbucket
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - provider
+            - region
+            - name
+            properties:
+              provider:
+                type: string
+                description: Cloud provider (aws or gcp)
+                enum:
+                - aws
+                - gcp
+              region:
+                type: string
+                description: Cloud region for the bucket
+              name:
+                type: string
+                description: Name of the bucket (must be globally unique)
+              environment:
+                type: string
+                description: Environment (dev, staging, prod)
+                enum:
+                - dev
+                - staging
+                - prod
+                default: dev
+              storageClass:
+                type: string
+                description: Storage class
+                enum:
+                - standard
+                - nearline
+                - coldline
+                default: standard
+              versioning:
+                type: boolean
+                description: Enable versioning
+                default: false
+              encryption:
+                type: boolean
+                description: Enable encryption
+                default: true
+              publicAccess:
+                type: boolean
+                description: Allow public access
+                default: false
+              deletionPolicy:
+                type: string
+                description: Deletion policy
+                enum:
+                - Delete
+                - Orphan
+                default: Delete
+          status:
+            type: object
+            properties:
+              provider:
+                type: string
+              region:
+                type: string
+              bucketName:
+                type: string
+              url:
+                type: string
+              id:
+                type: string
+              cloud-url:
+                type: string
+    additionalPrinterColumns:
+    - name: url
+      type: string
+      jsonPath: '.status.url'
+    - name: id
+      type: string
+      jsonPath: '.status.id'
+    - name: cloud-url
+      type: string
+      jsonPath: '.status.cloud-url'

@@ -1,0 +1,17 @@
+[dependencies]
+  [dependencies.model]
+    name = "model"
+    full_name = "models_0.0.1"
+    version = "0.0.1"
+    reg = "ghcr.io"
+    repo = "kcl-lang/model"
+    oci_tag = "0.0.1"
+  [dependencies.models]
+    name = "models"
+    full_name = "models_0.0.1"
+    version = "0.0.1"
+  [dependencies.schemas]
+    name = "schemas"
+    full_name = "platform-schemas_0.1.0"
+    version = "0.1.0"
+    sum = "HADhMSPcWwN5xub45btIBUZVX0iAsgJk+Qi4sppkg3Y="

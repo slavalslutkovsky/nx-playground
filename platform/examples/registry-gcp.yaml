@@ -1,0 +1,11 @@
+apiVersion: registry.platform.io/v1alpha1
+kind: Registry
+metadata:
+  name: my-artifact-registry
+  namespace: default
+spec:
+  provider: gcp
+  name: my-app-images
+  region: us-east1
+  format: docker        # docker | npm | maven | python
+  environment: dev

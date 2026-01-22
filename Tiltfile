@@ -12,6 +12,9 @@ include('./apps/zerg/email-nats/Tiltfile')
 include('./apps/zerg/vector/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
 
+# Platform - Crossplane XRDs and Compositions
+include('./platform/Tiltfile')
+
 #include('./apps/cargo-docs/Tiltfile')
 #manifests/kustomize/all/dev
 #include('./apps/terran/api/Tiltfile')
@@ -34,6 +37,16 @@ local_resource(
     readiness_probe=probe(
         period_secs=5,
         exec=exec_action(['sh', '-c', 'nc -z localhost 5433'])
+    )
+)
+
+local_resource(
+    'postgres-shared-port-forward',
+    serve_cmd='kubectl port-forward -n dbs deployment/mailhog 8025:8025',
+    labels=['port-forward'],
+    readiness_probe=probe(
+        period_secs=5,
+        exec=exec_action(['sh', '-c', 'nc -z localhost 8025'])
     )
 )
 
@@ -77,12 +90,12 @@ local_resource(
      )
 )
 local_resource(
-    'tempo-port-forward',
-     serve_cmd='kubectl port-forward -n monitoring deployment/tempo-o 3100:3100',
+    'flagsmith-port-forward',
+     serve_cmd='kubectl port-forward -n flagsmith deployment/flagsmith 8082:8080',
      labels=['port-forward'],
      readiness_probe=probe(
          period_secs=5,
-         exec=exec_action(['sh', '-c', 'nc -z localhost 3100'])
+         exec=exec_action(['sh', '-c', 'nc -z localhost 8082'])
      )
 )
 # local_resource(

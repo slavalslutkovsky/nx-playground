@@ -1,0 +1,5 @@
+[dependencies]
+  [dependencies.schemas]
+    name = "schemas"
+    full_name = "platform-schemas_0.1.0"
+    version = "0.1.0"

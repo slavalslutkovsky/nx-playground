@@ -39,6 +39,7 @@ spec:
               value: "info"
             - name: DATABASE_URL
               value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+#              value: "postgresql://postgres:pEqFW3CNqn7CFjebn88YiZdOleghqoE1t1Y1Bb6moIbsSR1EcxOmdlX8VwCGQqYS@shared-postgres-rw.dbs:5432/postgres"
             - name: REDIS_HOST
               value: "redis://redis.dbs.svc.cluster.local"
             - name: CORS_ALLOWED_ORIGIN

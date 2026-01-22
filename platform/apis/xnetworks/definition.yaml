@@ -1,0 +1,113 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xnetworks.network.platform.io
+spec:
+  group: network.platform.io
+  names:
+    kind: XNetwork
+    plural: xnetworks
+  claimNames:
+    kind: Network
+    plural: networks
+  defaultCompositionRef:
+    name: xnetwork
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - provider
+            - name
+            properties:
+              provider:
+                type: string
+                description: Cloud provider (aws or gcp)
+                enum:
+                - aws
+                - gcp
+              region:
+                type: string
+                description: Cloud region (e.g., europe-west1, us-east1). Mapped to provider-specific region.
+                default: europe-west1
+              name:
+                type: string
+                description: Name of the network/VPC
+              cidrBlock:
+                type: string
+                description: CIDR block for the VPC (e.g., 10.0.0.0/16)
+                default: '10.0.0.0/16'
+              subnets:
+                type: array
+                description: Array of subnet configurations. If not specified, default public/private subnets are created.
+                items:
+                  type: object
+                  description: Subnet configuration
+                  properties:
+                    name:
+                      type: string
+                      description: Subnet name
+                    cidrBlock:
+                      type: string
+                      description: CIDR block for the subnet (e.g., 10.0.1.0/24)
+                    type:
+                      type: string
+                      enum:
+                      - public
+                      - private
+                      default: private
+                      description: Subnet type
+                    availabilityZone:
+                      type: string
+                      description: Availability zone suffix (e.g., 'a', 'b') - AWS only
+                  required:
+                  - name
+                  - cidrBlock
+              enableDnsSupport:
+                type: boolean
+                description: Enable DNS support in the VPC
+                default: true
+              enableDnsHostnames:
+                type: boolean
+                description: Enable DNS hostnames in the VPC
+                default: true
+              environment:
+                type: string
+                description: Environment (dev, staging, prod)
+                enum:
+                - dev
+                - staging
+                - prod
+                default: dev
+              deletionPolicy:
+                type: string
+                description: Deletion policy
+                enum:
+                - Delete
+                - Orphan
+                default: Delete
+          status:
+            type: object
+            properties:
+              provider:
+                type: string
+              region:
+                type: string
+              networkId:
+                type: string
+                description: GCP Network ID or AWS VPC ID
+              vpcId:
+                type: string
+                description: AWS VPC ID (alias for networkId)
+              subnetIds:
+                type: array
+                items:
+                  type: string
+                description: List of created subnet IDs
+    additionalPrinterColumns: null

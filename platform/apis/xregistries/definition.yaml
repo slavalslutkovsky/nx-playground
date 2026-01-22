@@ -1,0 +1,101 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xregistries.registry.platform.io
+spec:
+  group: registry.platform.io
+  names:
+    kind: XRegistry
+    plural: xregistries
+  claimNames:
+    kind: Registry
+    plural: registries
+  defaultCompositionRef:
+    name: xregistry
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - provider
+            - name
+            properties:
+              provider:
+                type: string
+                description: Cloud provider (aws, gcp) or kubernetes for in-cluster registry
+                enum:
+                - aws
+                - gcp
+                - kubernetes
+              name:
+                type: string
+                description: Registry/repository name
+              region:
+                type: string
+                description: Cloud region (required for aws/gcp)
+              format:
+                type: string
+                description: Repository format (docker, npm, maven, etc.) - GCP Artifact Registry only
+                enum:
+                - docker
+                - npm
+                - maven
+                - python
+                default: docker
+              immutableTags:
+                type: boolean
+                description: Prevent tag overwrites (ECR/Artifact Registry)
+                default: false
+              scanOnPush:
+                type: boolean
+                description: Enable vulnerability scanning on push (ECR only)
+                default: true
+              encryption:
+                type: boolean
+                description: Enable encryption
+                default: true
+              publicAccess:
+                type: boolean
+                description: Allow public access
+                default: false
+              retentionDays:
+                type: integer
+                description: Image retention in days (0 = no expiration)
+                default: 0
+              namespace:
+                type: string
+                description: Target namespace for kubernetes provider
+                default: default
+              environment:
+                type: string
+                description: Environment (dev, staging, prod)
+                enum:
+                - dev
+                - staging
+                - prod
+                default: dev
+              deletionPolicy:
+                type: string
+                description: Deletion policy
+                enum:
+                - Delete
+                - Orphan
+                default: Delete
+          status:
+            type: object
+            properties:
+              provider:
+                type: string
+              region:
+                type: string
+              registryUrl:
+                type: string
+              repositoryName:
+                type: string
+    additionalPrinterColumns: null

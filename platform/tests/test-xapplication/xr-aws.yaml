@@ -1,0 +1,17 @@
+apiVersion: platform.io/v1alpha1
+kind: XApplication
+metadata:
+  name: test-application-aws
+spec:
+  provider: aws
+  name: test-app
+  region: eu-west-1
+  environment: dev
+  storage:
+    enabled: true
+    storageClass: standard
+  database:
+    enabled: true
+    engine: postgres
+    size: small
+  deletionPolicy: Delete

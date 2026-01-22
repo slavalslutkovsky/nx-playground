@@ -24,7 +24,7 @@ const CONFIG = {
 
 # Check all required tools are installed
 def check-prerequisites []: nothing -> bool {
-    let required = ["kind" "kubectl" "tilt" "kcl" "kompose"]
+    let required = ["kind" "kubectl" "tilt" "kcl" "kompose", "istioctl"]
     let optional = ["flux" "gh" "helm"]
 
     info "Checking prerequisites..."
