@@ -31,3 +31,27 @@ run = "up project run"
 [tasks.lint]
 description = "Lint KCL schemas and render scripts"
 run = ["kcl lint schemas/", "kcl lint render/"]
+
+[tasks.test-compositions]
+description = "Run composition tests for all providers"
+run = "up test run tests/composition/*"
+
+[tasks.test-compositions-bucket]
+description = "Run bucket composition tests (AWS/GCP)"
+run = "up test run tests/composition/test-xbucket"
+
+[tasks.test-compositions-database]
+description = "Run database composition tests (AWS/GCP/K8s)"
+run = "up test run tests/composition/test-xdatabase"
+
+[tasks.test-compositions-network]
+description = "Run network composition tests (AWS/GCP)"
+run = "up test run tests/composition/test-xnetwork"
+
+[tasks.test-compositions-registry]
+description = "Run registry composition tests (AWS/GCP)"
+run = "up test run tests/composition/test-xregistry"
+
+[tasks.test-compositions-application]
+description = "Run application composition tests (AWS/GCP)"
+run = "up test run tests/composition/test-xapplication"

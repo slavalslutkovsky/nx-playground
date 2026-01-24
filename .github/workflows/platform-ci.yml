@@ -283,7 +283,7 @@ jobs:
         run: mise run gen-xrds
 
       - name: Run composition tests
-        run: up test run tests/* || echo "No tests found or tests failed"
+        run: up test run tests/composition/* || echo "No tests found or tests failed"
 
   # Build platform package
   build:
@@ -401,11 +401,11 @@ jobs:
 
       - name: Run composition tests
         working-directory: platform
-        run: up test run tests/*
+        run: up test run tests/composition/*
 
       - name: Run E2E tests (if available)
         working-directory: platform
-        run: up test run tests/* --e2e || echo "No E2E tests configured"
+        run: up test run tests/composition/* --e2e || echo "No E2E tests configured"
 
       - name: Notify on failure
         if: failure()

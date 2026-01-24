@@ -259,7 +259,7 @@ pub async fn get_collection<R: VectorRepository>(
     let info = service
         .get_collection(&tenant, &name)
         .await?
-        .ok_or_else(|| VectorError::CollectionNotFound(name))?;
+        .ok_or(VectorError::CollectionNotFound(name))?;
 
     Ok(Json(CollectionResponse {
         name: info.name,

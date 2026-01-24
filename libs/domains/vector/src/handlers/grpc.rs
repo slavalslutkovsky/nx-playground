@@ -550,7 +550,7 @@ pub async fn get_vectors(
         .split(',')
         .map(|s| {
             Uuid::parse_str(s.trim())
-                .map(|u| uuid_to_bytes(u))
+                .map(uuid_to_bytes)
                 .map_err(|_| VectorError::Validation(format!("Invalid UUID: {}", s)))
         })
         .collect();
@@ -626,7 +626,7 @@ pub async fn delete_vectors(
         .split(',')
         .map(|s| {
             Uuid::parse_str(s.trim())
-                .map(|u| uuid_to_bytes(u))
+                .map(uuid_to_bytes)
                 .map_err(|_| VectorError::Validation(format!("Invalid UUID: {}", s)))
         })
         .collect();
