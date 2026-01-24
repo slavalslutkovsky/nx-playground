@@ -60,6 +60,26 @@ local_resource(
    )
 )
 
+local_resource(
+   'reporter-port-forward',
+   serve_cmd='kubectl port-forward -n kyverno deployment/policy-reporter-ui  8989:8080',
+   labels=['port-forward'],
+   readiness_probe=probe(
+       period_secs=5,
+       exec=exec_action(['sh', '-c', 'nc -z localhost 8989'])
+   )
+)
+
+local_resource(
+   'kiali-port-forward',
+   serve_cmd='kubectl port-forward -n istio-system deployment/kiali  20001:20001',
+   labels=['port-forward'],
+   readiness_probe=probe(
+       period_secs=5,
+       exec=exec_action(['sh', '-c', 'nc -z localhost 20001'])
+   )
+)
+
 # local_resource(
 #     'influxdb2-port-forward',
 #     serve_cmd='kubectl port-forward -n dbs deployment/influxdb2 8086:8086',

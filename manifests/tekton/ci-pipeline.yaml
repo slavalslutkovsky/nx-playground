@@ -15,7 +15,10 @@ spec:
   steps:
   - name: clone
     image: alpine/git:latest
-    script: "\n                    git clone $(params.repo-url) $(workspaces.source.path)\n                    cd $(workspaces.source.path)\n                    git checkout $(params.revision)\n                "
+    script: |
+      git clone $(params.repo-url) $(workspaces.source.path)
+      cd $(workspaces.source.path)
+      git checkout $(params.revision)
   workspaces:
   - name: source
     description: Workspace to clone into
@@ -29,7 +32,7 @@ spec:
   steps:
   - name: install
     image: oven/bun:1
-    script: "\n                    bun install\n                "
+    script: bun install
     workingDir: $(workspaces.source.path)
   workspaces:
   - name: source
@@ -47,7 +50,12 @@ spec:
   steps:
   - name: nx-lint
     image: oven/bun:1
-    script: "\n                        if [ \"$(params.affected)\" = \"true\" ]; then\n                            bun nx affected -t lint\n                        else\n                            bun nx run-many -t lint\n                        fi\n                    "
+    script: |
+      if [ "$(params.affected)" = "true" ]; then
+          bun nx affected -t lint
+      else
+          bun nx run-many -t lint
+      fi
     workingDir: $(workspaces.source.path)
   workspaces:
   - name: source
@@ -65,7 +73,12 @@ spec:
   steps:
   - name: nx-test
     image: oven/bun:1
-    script: "\n                        if [ \"$(params.affected)\" = \"true\" ]; then\n                            bun nx affected -t test\n                        else\n                            bun nx run-many -t test\n                        fi\n                    "
+    script: |
+      if [ "$(params.affected)" = "true" ]; then
+          bun nx affected -t test
+      else
+          bun nx run-many -t test
+      fi
     workingDir: $(workspaces.source.path)
   workspaces:
   - name: source
@@ -83,7 +96,12 @@ spec:
   steps:
   - name: nx-build
     image: oven/bun:1
-    script: "\n                        if [ \"$(params.affected)\" = \"true\" ]; then\n                            bun nx affected -t build\n                        else\n                            bun nx run-many -t build\n                        fi\n                    "
+    script: |
+      if [ "$(params.affected)" = "true" ]; then
+          bun nx affected -t build
+      else
+          bun nx run-many -t build
+      fi
     workingDir: $(workspaces.source.path)
   workspaces:
   - name: source
@@ -105,6 +123,7 @@ spec:
   - name: clone
     taskRef:
       name: git-clone
+      kind: Task
     params:
     - name: repo-url
       value: $(params.repo-url)
@@ -116,6 +135,7 @@ spec:
   - name: install
     taskRef:
       name: install-deps
+      kind: Task
     runAfter:
     - clone
     workspaces:
@@ -124,6 +144,7 @@ spec:
   - name: lint
     taskRef:
       name: nx-lint
+      kind: Task
     runAfter:
     - install
     workspaces:
@@ -132,6 +153,7 @@ spec:
   - name: test
     taskRef:
       name: nx-test
+      kind: Task
     runAfter:
     - install
     workspaces:
@@ -140,6 +162,7 @@ spec:
   - name: build
     taskRef:
       name: nx-build
+      kind: Task
     runAfter:
     - lint
     - test

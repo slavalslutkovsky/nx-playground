@@ -15,30 +15,31 @@ PORT = "8080"
 
 [tools]
 # Core
-bun = "latest"
-node = "24"
-go = "1.23"
-
-# Kubernetes
-kubectl = "1.35"
-helm = "3.16"
-kustomize = "5.5"
-kind = "0.31.0"
-tilt = "0.36.1"
-
-# Platform
-kcl = "0.12.3"
-buf = "1.64.0"
-
-# Cargo tools (compiled from source - slow first install, cached after)
-"cargo:cargo-nextest" = "latest"
-"cargo:cargo-audit" = "latest"
-"cargo:cargo-deny" = "latest"
-"cargo:bacon" = "latest"
-"cargo:sea-orm-cli" = "latest"
-
-# Optional (nushell installed via homebrew)
-kompose = "1.35"
+just = "latest"
+#bun = "latest"
+#node = "24"
+#go = "1.23"
+#
+## Kubernetes
+#kubectl = "1.35"
+#helm = "3.16"
+#kustomize = "5.5"
+#kind = "0.31.0"
+#tilt = "0.36.1"
+#
+## Platform
+#kcl = "0.12.3"
+#buf = "1.64.0"
+#
+## Cargo tools (compiled from source - slow first install, cached after)
+#"cargo:cargo-nextest" = "latest"
+#"cargo:cargo-audit" = "latest"
+#"cargo:cargo-deny" = "latest"
+#"cargo:bacon" = "latest"
+#"cargo:sea-orm-cli" = "latest"
+#
+## Optional (nushell installed via homebrew)
+#kompose = "1.35"
 
 # CI validation
 actionlint = "latest"

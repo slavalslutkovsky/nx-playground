@@ -55,6 +55,7 @@ export def "main create" [
 
     if $ingress {
       istioctl install --set profile=ambient --set values.pilot.env.PILOT_ENABLE_GATEWAY_API=true -y
+      kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/addons/kiali.yaml
       # Wait for Istio
       kubectl wait -n istio-system deployment/istiod --for=condition=Available --timeout=300s
 
