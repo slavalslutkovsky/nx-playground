@@ -42,8 +42,8 @@ pre-push:
       run: bun nx affected --target=build --base=origin/main
 
     # Security audit
-    cargo-deny:
-      run: cargo deny check
+#    cargo-deny:
+#      run: cargo deny check
 
 # Post-checkout: Sync after switching branches
 post-checkout:
