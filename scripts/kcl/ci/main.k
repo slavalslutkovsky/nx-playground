@@ -110,47 +110,47 @@ config = RepoConfig {
 }
 
 # =============================================================================
-# REUSABLE STEP BUILDERS
+# REUSABLE STEP BUILDERS (using dicts to avoid schema defaults)
 # =============================================================================
 
-checkoutStep = lambda fetch_depth: int = 0 -> gh.NormalJobStepsItems0 {
-    gh.NormalJobStepsItems0 {
+checkoutStep = lambda fetch_depth: int = 0 -> {str:} {
+    {
         name = "Checkout"
         uses = "actions/checkout@v4"
-        with = {"fetch-depth" = fetch_depth}
+        "with" = {"fetch-depth" = fetch_depth}
     }
 }
 
-miseStep = lambda working_dir: str = "" -> gh.NormalJobStepsItems0 {
-    gh.NormalJobStepsItems0 {
+miseStep = lambda working_dir: str = "" -> {str:} {
+    {
         name = "Setup mise"
         uses = "jdx/mise-action@v2"
-        with = {"experimental" = "true"} | ({"working_directory" = working_dir} if working_dir else {})
+        "with" = {"experimental" = "true"} | ({"working_directory" = working_dir} if working_dir else {})
     }
 }
 
-nxShasStep = lambda -> gh.NormalJobStepsItems0 {
-    gh.NormalJobStepsItems0 {
+nxShasStep = lambda -> {str:} {
+    {
         name = "Set NX SHAs"
         uses = "nrwl/nx-set-shas@v4"
     }
 }
 
-installStep = lambda pm: str = "bun" -> gh.NormalJobStepsItems0 {
+installStep = lambda pm: str = "bun" -> {str:} {
     _cmd = {
         bun = "bun install"
         npm = "npm ci"
         pnpm = "pnpm install --frozen-lockfile"
         yarn = "yarn install --frozen-lockfile"
     }[pm]
-    gh.NormalJobStepsItems0 {
+    {
         name = "Install dependencies"
         run = _cmd
     }
 }
 
-nxAffectedStep = lambda target: str, pm: str = "bun" -> gh.NormalJobStepsItems0 {
-    gh.NormalJobStepsItems0 {
+nxAffectedStep = lambda target: str, pm: str = "bun" -> {str:} {
+    {
         name = "Run ${target}"
         run = "${pm} nx affected -t ${target}"
     }
@@ -160,7 +160,7 @@ nxAffectedStep = lambda target: str, pm: str = "bun" -> gh.NormalJobStepsItems0 
 # COMMON STEP SEQUENCES
 # =============================================================================
 
-baseSteps = lambda cfg: RepoConfig -> [gh.NormalJobStepsItems0] {
+baseSteps = lambda cfg: RepoConfig -> [{str:}] {
     [
         checkoutStep(0)
         nxShasStep() if cfg.monorepo_tool == "nx" else None
@@ -213,6 +213,10 @@ githubWorkflow = gh.GithubWorkflow {
                 nxAffectedStep("build", config.package_manager)
             ]
         }
+    }
+    permissions = {
+        actions = "read"
+        contents = "read"
     }
 }
 
