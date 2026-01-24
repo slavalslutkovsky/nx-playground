@@ -183,3 +183,44 @@ run = "cargo run -p migration -- up"
 
 [tasks.dam]
 run = "docker ps"
+
+# =============================================================================
+# CI Generation Tasks
+# =============================================================================
+
+[tasks.ci-gen]
+description = "Generate all CI resources"
+dir = "scripts/kcl/ci"
+run = """
+kcl run main.k -S githubWorkflow > ../../../.github/workflows/ci-generated.yml
+mkdir -p ../../../manifests/tekton
+kcl run main.k -S tektonResources > ../../../manifests/tekton/ci-pipeline.yaml
+"""
+
+[tasks.ci-gen-github]
+description = "Generate GitHub Actions only"
+dir = "scripts/kcl/ci"
+run = "kcl run main.k -S githubWorkflow > ../../../.github/workflows/ci-generated.yml"
+
+[tasks.ci-gen-tekton]
+description = "Generate Tekton resources only"
+dir = "scripts/kcl/ci"
+run = """
+mkdir -p ../../../manifests/tekton
+kcl run main.k -S tektonResources > ../../../manifests/tekton/ci-pipeline.yaml
+"""
+
+[tasks.ci-validate]
+description = "Validate CI generation"
+dir = "scripts/kcl/ci"
+run = "kcl run main.k"
+
+[tasks.ci-show-github]
+description = "Preview GitHub Actions output"
+dir = "scripts/kcl/ci"
+run = "kcl run main.k -S githubWorkflow"
+
+[tasks.ci-show-tekton]
+description = "Preview Tekton output"
+dir = "scripts/kcl/ci"
+run = "kcl run main.k -S tektonResources"
