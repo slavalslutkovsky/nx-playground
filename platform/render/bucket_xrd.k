@@ -6,16 +6,16 @@ import schemas.bucket as bucket
 import schemas.xrd as xrd
 
 _config = xrd.XRDConfig {
-    name = bucket.XRD_NAME
-    group = bucket.XRD_GROUP
-    kind = bucket.XRD_KIND
-    plural = bucket.XRD_PLURAL
-    claimKind = bucket.XRD_CLAIM_KIND
-    claimPlural = bucket.XRD_CLAIM_PLURAL
-    compositionName = bucket.XRD_COMPOSITION
-    specProperties = bucket.SPEC_PROPERTIES
-    specRequired = bucket.SPEC_REQUIRED
-    statusProperties = bucket.STATUS_PROPERTIES
+    name = bucket.BUCKET_XRD_NAME
+    group = bucket.BUCKET_XRD_GROUP
+    kind = bucket.BUCKET_XRD_KIND
+    plural = bucket.BUCKET_XRD_PLURAL
+    claimKind = bucket.BUCKET_XRD_CLAIM_KIND
+    claimPlural = bucket.BUCKET_XRD_CLAIM_PLURAL
+    compositionName = bucket.BUCKET_XRD_COMPOSITION
+    specProperties = bucket.BUCKET_SPEC_PROPERTIES
+    specRequired = bucket.BUCKET_SPEC_REQUIRED
+    statusProperties = bucket.BUCKET_STATUS_PROPERTIES
     additionalPrinterColumns = bucket.ADDITIONAL_PRINTER_COLUMNS
 }
 

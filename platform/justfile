@@ -70,9 +70,22 @@ stop:
 # Testing
 # ============================================
 
-# Test all compositions with up test
+# Run unit tests (fast, schema validation)
+test-unit:
+    cd schemas && kcl test
+
+# Run composition tests (slower, requires up CLI)
+test-composition:
+    up test run tests/composition/ || echo "No composition test files found"
+
+# Run all tests (unit + composition)
+test-all:
+    just test-unit
+    just test-composition
+
+# Alias for test-composition (backwards compatibility)
 test:
-    up test run tests/ || echo "No test files found"
+    just test-composition
 
 # Render a specific composition (usage: just render database)
 render composition:

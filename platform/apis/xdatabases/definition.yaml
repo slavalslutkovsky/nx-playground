@@ -46,7 +46,7 @@ spec:
               engineVersion:
                 type: string
                 description: Database engine version
-                default: '15'
+                default: '18'
               size:
                 type: string
                 description: Instance size
@@ -54,11 +54,24 @@ spec:
                 - small
                 - medium
                 - large
+                - xlarge
                 default: small
               storageGB:
                 type: integer
-                description: Storage size in GB
+                description: Storage size in GB (20-65536)
                 default: 20
+              storageType:
+                type: string
+                description: 'Storage type (AWS: gp2, gp3, io1; GCP: SSD)'
+                default: gp3
+              multiAZ:
+                type: boolean
+                description: Enable Multi-AZ (AWS) or Regional availability (GCP)
+                default: false
+              publiclyAccessible:
+                type: boolean
+                description: Allow public access (not recommended)
+                default: false
               instances:
                 type: integer
                 description: Number of instances (kubernetes/CNPG only)
@@ -82,6 +95,43 @@ spec:
                 - Delete
                 - Orphan
                 default: Delete
+              tags:
+                type: object
+                description: Custom tags/labels to apply to resources
+                additionalProperties:
+                  type: string
+              backup:
+                type: object
+                description: Backup configuration
+                properties:
+                  enabled:
+                    type: boolean
+                    default: true
+                    description: Enable automated backups
+                  retentionDays:
+                    type: integer
+                    default: 7
+                    minimum: 0
+                    maximum: 35
+                    description: Number of days to retain backups
+                  preferredWindow:
+                    type: string
+                    default: '03:00-04:00'
+                    description: Preferred backup window (UTC)
+              secrets:
+                type: object
+                description: Secrets configuration for credentials
+                properties:
+                  generatePassword:
+                    type: boolean
+                    default: true
+                    description: Auto-generate database password
+                  passwordSecretRef:
+                    type: string
+                    description: Reference to existing password secret
+                  usernameSecretRef:
+                    type: string
+                    description: Reference to existing username secret
           status:
             type: object
             properties:

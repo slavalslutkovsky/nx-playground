@@ -34,8 +34,47 @@ generate_composition() {
 
     # Read the KCL source and transform imports for OCI dependencies
     # Replace local path imports with OCI-compatible module names
+    # Also inline provider files for modular compositions
     local kcl_source
-    kcl_source=$(cat "$main_k" | sed 's/import models\./import model./g')
+    local func_dir_path="$func_dir"
+
+    # Check if this function has providers directory
+    if [[ -d "$func_dir/providers" ]]; then
+        # Concatenate main.k with provider files, removing relative provider imports
+        kcl_source=""
+
+        # First, add provider files
+        for provider_file in "$func_dir"/providers/*.k; do
+            if [[ -f "$provider_file" ]]; then
+                provider_name=$(basename "$provider_file" .k)
+                kcl_source+="# --- Provider: $provider_name ---"$'\n'
+                # Replace relative imports with absolute and add namespace
+                cat "$provider_file" | \
+                    sed 's/import models\./import model./g' | \
+                    sed "s/import schemas\./import schemas./g" | \
+                    sed "s/^generate = lambda/generate_${provider_name} = lambda/g" | \
+                    sed "s/^get_status = lambda/get_status_${provider_name} = lambda/g" >> /tmp/provider_content.k
+                kcl_source+=$(cat /tmp/provider_content.k)
+                kcl_source+=$'\n\n'
+            fi
+        done
+
+        # Then add main.k, removing provider imports and transforming calls
+        main_content=$(cat "$main_k" | \
+            sed 's/import models\./import model./g' | \
+            sed '/^import \.providers\./d' | \
+            sed 's/aws\.generate/generate_aws/g' | \
+            sed 's/gcp\.generate/generate_gcp/g' | \
+            sed 's/k8s\.generate/generate_kubernetes/g' | \
+            sed 's/aws\.get_status/get_status_aws/g' | \
+            sed 's/gcp\.get_status/get_status_gcp/g' | \
+            sed 's/k8s\.get_status/get_status_kubernetes/g')
+        kcl_source+="# --- Main Orchestrator ---"$'\n'
+        kcl_source+="$main_content"
+    else
+        # No providers directory, use original simple approach
+        kcl_source=$(cat "$main_k" | sed 's/import models\./import model./g')
+    fi
 
     # Extract non-path dependencies from kcl.mod [dependencies] section
     # These are version-based deps like: crossplane-provider-upjet-aws = "1.23.0"

@@ -6,16 +6,16 @@ import schemas.network as network
 import schemas.xrd as xrd
 
 _config = xrd.XRDConfig {
-    name = network.XRD_NAME
-    group = network.XRD_GROUP
-    kind = network.XRD_KIND
-    plural = network.XRD_PLURAL
-    claimKind = network.XRD_CLAIM_KIND
-    claimPlural = network.XRD_CLAIM_PLURAL
-    compositionName = network.XRD_COMPOSITION
-    specProperties = network.SPEC_PROPERTIES
-    specRequired = network.SPEC_REQUIRED
-    statusProperties = network.STATUS_PROPERTIES
+    name = network.NETWORK_XRD_NAME
+    group = network.NETWORK_XRD_GROUP
+    kind = network.NETWORK_XRD_KIND
+    plural = network.NETWORK_XRD_PLURAL
+    claimKind = network.NETWORK_XRD_CLAIM_KIND
+    claimPlural = network.NETWORK_XRD_CLAIM_PLURAL
+    compositionName = network.NETWORK_XRD_COMPOSITION
+    specProperties = network.NETWORK_SPEC_PROPERTIES
+    specRequired = network.NETWORK_SPEC_REQUIRED
+    statusProperties = network.NETWORK_STATUS_PROPERTIES
 }
 
 [xrd.generate_xrd(_config)]

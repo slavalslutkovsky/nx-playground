@@ -470,9 +470,13 @@ platform-full-build:
     just platform-build
     @echo "Full platform build complete"
 
-# Run KCL tests for platform schemas
+# Run KCL tests for platform schemas (deprecated, use platform-test-unit)
 platform-test-schemas:
-    cd {{ platform_dir }}/schemas && kcl test .
+    cd {{ platform_dir }}/schemas && kcl test . || true
+
+# Run platform unit tests
+platform-test-unit:
+    cd {{ platform_dir }} && kcl test tests/unit/
 
 # Validate platform KCL syntax
 platform-lint:

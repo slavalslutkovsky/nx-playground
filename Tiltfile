@@ -13,7 +13,7 @@ include('./apps/zerg/vector/Tiltfile')
 #include('./apps/zerg/operator/Tiltfile')
 
 # Platform - Crossplane XRDs and Compositions
-include('./platform/Tiltfile')
+# include('./platform/Tiltfile')
 
 #include('./apps/cargo-docs/Tiltfile')
 #manifests/kustomize/all/dev

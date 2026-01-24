@@ -1,0 +1,33 @@
+[tools]
+kcl = "0.12.3"
+
+[tasks.gen-xrds]
+description = "Generate XRD definitions"
+run = """
+kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+"""
+
+[tasks.build]
+description = "Build Upbound project"
+run = "up project build"
+
+[tasks.full-build]
+description = "Generate XRDs and build"
+depends = ["gen-xrds", "build"]
+
+[tasks.test-unit]
+description = "Run KCL unit tests"
+dir = "schemas"
+run = "kcl test"
+
+[tasks.run]
+description = "Run Upbound project"
+run = "up project run"
+
+[tasks.lint]
+description = "Lint KCL schemas and render scripts"
+run = ["kcl lint schemas/", "kcl lint render/"]

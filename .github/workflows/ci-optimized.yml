@@ -43,6 +43,11 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -56,19 +61,7 @@ jobs:
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - run: bun install --no-cache
-
-#      # Free up disk space before linting
-#      - name: Clean up disk space
-#        run: |
-#          df -h
-#          rm -rf dist/target
-#          docker system prune -af || true
-#          df -h
 
       # Run lint
       - run: bun nx affected -t lint
@@ -111,6 +104,11 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -123,10 +121,6 @@ jobs:
       # Setup sccache for compiled artifacts (stored in GCS)
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
 
       - run: bun install --no-cache
 
@@ -179,6 +173,11 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -191,10 +190,6 @@ jobs:
       # Setup sccache for compiled artifacts (stored in GCS)
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
 
       - run: bun install --no-cache
 
@@ -232,9 +227,10 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - uses: oven-sh/setup-bun@v2
+      - name: Setup mise
+        uses: jdx/mise-action@v2
         with:
-          bun-version: latest
+          experimental: true
 
       - run: bun install --no-cache
 
