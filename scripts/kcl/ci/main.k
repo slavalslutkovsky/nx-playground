@@ -98,6 +98,8 @@ schema RepoConfig:
     languages: [str] = ["typescript"]
     main_branch: str = "main"
     use_mise: bool = True
+    use_sccache: bool = False
+    sccache_bucket: str = ""
 
 # This repo's config
 config = RepoConfig {
@@ -107,6 +109,8 @@ config = RepoConfig {
     package_manager = "bun"
     languages = ["typescript", "rust", "go", "kcl"]
     use_mise = True
+    use_sccache = True
+    sccache_bucket = "sccache-bucket"
 }
 
 # =============================================================================
@@ -160,6 +164,30 @@ nxAffectedStep = lambda target: str, pm: str = "bun" -> {str:} {
     }
 }
 
+rustupStep = lambda -> {str:} {
+    {
+        name = "Install Rust toolchain"
+        run = "rustup toolchain install stable --profile minimal"
+    }
+}
+
+gcpAuthStep = lambda -> {str:} {
+    {
+        name = "Authenticate to Google Cloud"
+        uses = "google-github-actions/auth@v3"
+        "with" = {
+            "credentials_json" = "\${{ secrets.GCP_SA_KEY }}"
+        }
+    }
+}
+
+sccacheStep = lambda -> {str:} {
+    {
+        name = "Setup sccache"
+        uses = "mozilla-actions/sccache-action@v0.0.9"
+    }
+}
+
 # =============================================================================
 # COMMON STEP SEQUENCES
 # =============================================================================
@@ -168,6 +196,10 @@ baseSteps = lambda cfg: RepoConfig -> [{str:}] {
     [
         checkoutStep(0)
         nxShasStep() if cfg.monorepo_tool == "nx" else None
+        # sccache must come BEFORE mise so cargo tools use it
+        rustupStep() if cfg.use_sccache else None
+        gcpAuthStep() if cfg.use_sccache else None
+        sccacheStep() if cfg.use_sccache else None
         miseStep() if cfg.use_mise else None
         installStep(cfg.package_manager)
     ]
@@ -187,7 +219,13 @@ githubWorkflow = gh.GithubWorkflow {
 
     env = {
         NX_CLOUD_ACCESS_TOKEN = "\${{ secrets.NX_CLOUD_ACCESS_TOKEN }}"
-    }
+    } | ({
+        CARGO_INCREMENTAL = "0"
+        RUSTC_WRAPPER = "sccache"
+        SCCACHE_GCS_BUCKET = "\${{ vars.SCCACHE_GCS_BUCKET }}"
+        SCCACHE_GCS_RW_MODE = "READ_WRITE"
+        SCCACHE_GCS_KEY_PREFIX = "sccache"
+    } if config.use_sccache else {})
 
     permissions = {
         actions = "read"

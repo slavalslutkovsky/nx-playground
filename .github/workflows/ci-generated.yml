@@ -6,6 +6,11 @@ name: CI
   pull_request: {}
 env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+  CARGO_INCREMENTAL: '0'
+  RUSTC_WRAPPER: sccache
+  SCCACHE_GCS_BUCKET: ${{ vars.SCCACHE_GCS_BUCKET }}
+  SCCACHE_GCS_RW_MODE: READ_WRITE
+  SCCACHE_GCS_KEY_PREFIX: sccache
 jobs:
   lint:
     name: Lint
@@ -17,6 +22,14 @@ jobs:
         fetch-depth: 0
     - name: Set NX SHAs
       uses: nrwl/nx-set-shas@v4
+    - name: Install Rust toolchain
+      run: rustup toolchain install stable --profile minimal
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v3
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
     - name: Setup mise
       uses: jdx/mise-action@v2
       with:
@@ -37,6 +50,14 @@ jobs:
         fetch-depth: 0
     - name: Set NX SHAs
       uses: nrwl/nx-set-shas@v4
+    - name: Install Rust toolchain
+      run: rustup toolchain install stable --profile minimal
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v3
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
     - name: Setup mise
       uses: jdx/mise-action@v2
       with:
@@ -60,6 +81,14 @@ jobs:
         fetch-depth: 0
     - name: Set NX SHAs
       uses: nrwl/nx-set-shas@v4
+    - name: Install Rust toolchain
+      run: rustup toolchain install stable --profile minimal
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v3
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
     - name: Setup mise
       uses: jdx/mise-action@v2
       with:

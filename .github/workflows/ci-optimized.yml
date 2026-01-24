@@ -43,13 +43,6 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
-
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -59,9 +52,17 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE mise so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
+
+      # Setup mise (cargo tools will now use sccache)
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}
 
       - run: bun install --no-cache
 
@@ -106,13 +107,6 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
-
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -122,9 +116,17 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE mise so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
+
+      # Setup mise (cargo tools will now use sccache)
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}
 
       - run: bun install --no-cache
 
@@ -177,13 +179,6 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
-
       - name: Install Rust toolchain
         run: rustup toolchain install stable --profile minimal
 
@@ -193,9 +188,17 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE mise so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
+
+      # Setup mise (cargo tools will now use sccache)
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}
 
       - run: bun install --no-cache
 
