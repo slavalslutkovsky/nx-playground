@@ -41,16 +41,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Lint schemas and render scripts
-        run: mise run lint
+        run: kcl lint schemas/ && kcl lint render/
 
   test-unit:
     name: Unit Tests
@@ -60,15 +58,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Run unit tests
+        working-directory: platform
         run: kcl test tests/unit/
 
   test-schemas:
@@ -79,16 +76,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Run KCL tests
-        run: mise run test-unit || true  # Tests may not exist yet
+        run: kcl test schemas/ || true  # Tests may not exist yet
 
   validate-xrds:
     name: Validate XRD Generation
@@ -98,13 +93,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Generate XRDs from schemas
         run: |
@@ -142,13 +135,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Determine version
         id: version
@@ -200,13 +191,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Determine schema version
         id: version
@@ -254,13 +243,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Install Upbound CLI
         run: |
@@ -280,7 +267,12 @@ jobs:
           done
 
       - name: Generate XRDs from schemas
-        run: mise run gen-xrds
+        run: |
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
 
       - name: Run composition tests
         run: up test run tests/composition/* || echo "No tests found or tests failed"
@@ -295,13 +287,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Install Upbound CLI
         run: |
@@ -309,7 +299,15 @@ jobs:
           sudo mv up /usr/local/bin/
 
       - name: Build platform
-        run: mise run full-build
+        run: |
+          # gen-xrds
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+          # build
+          up project build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -332,13 +330,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Install Upbound CLI
         run: |
@@ -346,7 +342,15 @@ jobs:
           sudo mv up /usr/local/bin/
 
       - name: Generate XRDs and build
-        run: mise run full-build
+        run: |
+          # gen-xrds
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+          # build
+          up project build
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -369,13 +373,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}-platform
-          working_directory: platform
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
 
       - name: Install Upbound CLI
         run: |
@@ -397,7 +399,12 @@ jobs:
 
       - name: Generate XRDs from schemas
         working-directory: platform
-        run: mise run gen-xrds
+        run: |
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
 
       - name: Run composition tests
         working-directory: platform

@@ -52,17 +52,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache BEFORE mise so cargo tools use it
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      # Setup mise (cargo tools will now use sccache)
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven/setup-bun@v2
 
       - run: bun install --no-cache
 
@@ -116,17 +112,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache BEFORE mise so cargo tools use it
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      # Setup mise (cargo tools will now use sccache)
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven/setup-bun@v2
 
       - run: bun install --no-cache
 
@@ -188,17 +180,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache BEFORE mise so cargo tools use it
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      # Setup mise (cargo tools will now use sccache)
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven/setup-bun@v2
 
       - run: bun install --no-cache
 
@@ -236,12 +224,9 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - name: Setup mise
-        uses: jdx/mise-action@v2
-        with:
-          experimental: true
-          cache: true
-          cache_key_prefix: mise-${{ runner.os }}
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven/setup-bun@v2
 
       - run: bun install --no-cache
 

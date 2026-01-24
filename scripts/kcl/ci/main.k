@@ -108,7 +108,7 @@ config = RepoConfig {
     monorepo_tool = "nx"
     package_manager = "bun"
     languages = ["typescript", "rust", "go", "kcl"]
-    use_mise = True
+    use_mise = False  # Disabled in CI - use targeted setup actions instead (saves ~360MB cache)
     use_sccache = True
     sccache_bucket = "sccache-bucket"
 }
@@ -134,6 +134,34 @@ miseStep = lambda working_dir: str = "", cache_prefix: str = "mise" -> {str:} {
             "cache" = "true"
             "cache_key_prefix" = "${cache_prefix}-\${{ runner.os }}"
         } | ({"working_directory" = working_dir} if working_dir else {})
+    }
+}
+
+bunStep = lambda -> {str:} {
+    {
+        name = "Setup Bun"
+        uses = "oven/setup-bun@v2"
+    }
+}
+
+nodeStep = lambda version: str = "24" -> {str:} {
+    {
+        name = "Setup Node.js"
+        uses = "actions/setup-node@v4"
+        "with" = {
+            "node-version" = version
+        }
+    }
+}
+
+goStep = lambda version: str = "1.23" -> {str:} {
+    {
+        name = "Setup Go"
+        uses = "actions/setup-go@v5"
+        "with" = {
+            "go-version" = version
+            "cache" = "true"
+        }
     }
 }
 
@@ -196,11 +224,15 @@ baseSteps = lambda cfg: RepoConfig -> [{str:}] {
     [
         checkoutStep(0)
         nxShasStep() if cfg.monorepo_tool == "nx" else None
-        # sccache must come BEFORE mise so cargo tools use it
+        # sccache must come BEFORE tool setup so cargo tools use it
         rustupStep() if cfg.use_sccache else None
         gcpAuthStep() if cfg.use_sccache else None
         sccacheStep() if cfg.use_sccache else None
+        # Use mise OR targeted setup actions (bun/node/go)
         miseStep() if cfg.use_mise else None
+        bunStep() if not cfg.use_mise and cfg.package_manager == "bun" else None
+        nodeStep() if not cfg.use_mise and "typescript" in cfg.languages else None
+        goStep() if not cfg.use_mise and "go" in cfg.languages else None
         installStep(cfg.package_manager)
     ]
 }
