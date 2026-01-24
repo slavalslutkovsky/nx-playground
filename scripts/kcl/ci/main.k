@@ -28,7 +28,7 @@ schema TektonTaskSpec:
 
 schema TektonParam:
     name: str
-    type?: str = "string"
+    $type?: str = "string"
     description?: str
     default?: str
 
