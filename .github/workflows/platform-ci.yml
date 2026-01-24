@@ -45,6 +45,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Lint schemas and render scripts
@@ -62,6 +64,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Run unit tests
@@ -79,6 +83,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Run KCL tests
@@ -96,6 +102,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Generate XRDs from schemas
@@ -138,6 +146,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Determine version
@@ -194,6 +204,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Determine schema version
@@ -246,6 +258,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Install Upbound CLI
@@ -285,6 +299,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Install Upbound CLI
@@ -320,6 +336,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Install Upbound CLI
@@ -355,6 +373,8 @@ jobs:
         uses: jdx/mise-action@v2
         with:
           experimental: true
+          cache: true
+          cache_key_prefix: mise-${{ runner.os }}-platform
           working_directory: platform
 
       - name: Install Upbound CLI

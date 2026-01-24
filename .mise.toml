@@ -30,7 +30,7 @@ tilt = "0.36.1"
 kcl = "0.12.3"
 buf = "1.64.0"
 
-# Cargo tools
+# Cargo tools (compiled from source - slow first install, cached after)
 "cargo:cargo-nextest" = "latest"
 "cargo:cargo-audit" = "latest"
 "cargo:cargo-deny" = "latest"
@@ -39,6 +39,9 @@ buf = "1.64.0"
 
 # Optional (nushell installed via homebrew)
 kompose = "1.35"
+
+# CI validation
+actionlint = "latest"
 
 # =============================================================================
 # Nx Tasks (monorepo-wide)
@@ -224,3 +227,16 @@ run = "kcl run main.k -S githubWorkflow"
 description = "Preview Tekton output"
 dir = "scripts/kcl/ci"
 run = "kcl run main.k -S tektonResources"
+
+[tasks.ci-lint]
+description = "Validate GitHub Actions workflows"
+run = "actionlint .github/workflows/*.yml"
+
+[tasks.ci-lint-generated]
+description = "Validate generated GitHub Actions workflow"
+run = "actionlint .github/workflows/ci-generated.yml"
+
+[tasks.ci-gen-and-validate]
+description = "Generate and validate CI"
+run = ["kcl run main.k -S githubWorkflow > ../../../.github/workflows/ci-generated.yml", "actionlint ../../../.github/workflows/ci-generated.yml"]
+dir = "scripts/kcl/ci"

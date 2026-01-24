@@ -121,11 +121,15 @@ checkoutStep = lambda fetch_depth: int = 0 -> {str:} {
     }
 }
 
-miseStep = lambda working_dir: str = "" -> {str:} {
+miseStep = lambda working_dir: str = "", cache_prefix: str = "mise" -> {str:} {
     {
         name = "Setup mise"
         uses = "jdx/mise-action@v2"
-        "with" = {"experimental" = "true"} | ({"working_directory" = working_dir} if working_dir else {})
+        "with" = {
+            "experimental" = "true"
+            "cache" = "true"
+            "cache_key_prefix" = "${cache_prefix}-\${{ runner.os }}"
+        } | ({"working_directory" = working_dir} if working_dir else {})
     }
 }
 
