@@ -127,7 +127,7 @@ _seed:
 sort-deps:
     cargo fmt
     cargo sort --workspace
-    biome check . --write
+#    biome check . --write
 
 #  cargo doc --workspace --no-deps --document-private-items --open
 #  bacon doc --open
