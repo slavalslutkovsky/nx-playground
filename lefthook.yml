@@ -25,6 +25,12 @@ pre-commit:
     schema-gen:
       glob: "libs/domains/*/src/entity.rs"
       run: cargo run --bin schema-gen && git add docs/schema.md docs/schema.dbml
+    doc-deg:
+      glob: "docs/schema.dbml"
+      run: cargo doc --workspace --no-deps --document-private-items
+    cargo-check:
+      glob: "*.rs"
+      run: cargo check
 
 # Pre-push: Thorough checks before pushing
 pre-push:
@@ -37,6 +43,9 @@ pre-push:
     # Nx affected checks
     nx-affected-lint:
       run: bun nx affected --target=lint --base=origin/main
+
+    nx-affected-test:
+      run: bun nx affected --target=test --base=origin/main
 
     nx-affected-build:
       run: bun nx affected --target=build --base=origin/main

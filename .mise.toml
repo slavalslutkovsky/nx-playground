@@ -15,7 +15,7 @@ PORT = "8080"
 
 [tools]
 # Core
-just = "latest"
+#just = "latest"
 #bun = "latest"
 #node = "24"
 #go = "1.23"
