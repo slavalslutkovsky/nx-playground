@@ -2,33 +2,44 @@
 // @generated from file apps/v1/terran.proto (package terran.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Message } from "@bufbuild/protobuf";
+import type { Message } from '@bufbuild/protobuf';
+import type {
+  GenFile,
+  GenMessage,
+  GenService,
+} from '@bufbuild/protobuf/codegenv2';
+import {
+  fileDesc,
+  messageDesc,
+  serviceDesc,
+} from '@bufbuild/protobuf/codegenv2';
 
 /**
  * Describes the file apps/v1/terran.proto.
  */
-export const file_apps_v1_terran: GenFile = /*@__PURE__*/
-  fileDesc("ChRhcHBzL3YxL3RlcnJhbi5wcm90bxIJdGVycmFuLnYxIhQKEkhlYWx0aGNoZWNrUmVxdWVzdCJJChNIZWFsdGhjaGVja1Jlc3BvbnNlEg4KBnN0YXR1cxgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEhEKCXRpbWVzdGFtcBgDIAEoAyJwCgdQcm9qZWN0EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDgoGc3RhdHVzGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAMSEgoKdXBkYXRlZF9hdBgGIAEoAyJGChNMaXN0UHJvamVjdHNSZXF1ZXN0EgwKBHBhZ2UYASABKAUSEQoJcGFnZV9zaXplGAIgASgFEg4KBmZpbHRlchgDIAEoCSJsChRMaXN0UHJvamVjdHNSZXNwb25zZRIkCghwcm9qZWN0cxgBIAMoCzISLnRlcnJhbi52MS5Qcm9qZWN0Eg0KBXRvdGFsGAIgASgFEgwKBHBhZ2UYAyABKAUSEQoJcGFnZV9zaXplGAQgASgFIh8KEUdldFByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIjkKEkdldFByb2plY3RSZXNwb25zZRIjCgdwcm9qZWN0GAEgASgLMhIudGVycmFuLnYxLlByb2plY3QiSQoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIOCgZzdGF0dXMYAyABKAkiPAoVQ3JlYXRlUHJvamVjdFJlc3BvbnNlEiMKB3Byb2plY3QYASABKAsyEi50ZXJyYW4udjEuUHJvamVjdCJVChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEg4KBnN0YXR1cxgEIAEoCSI8ChVVcGRhdGVQcm9qZWN0UmVzcG9uc2USIwoHcHJvamVjdBgBIAEoCzISLnRlcnJhbi52MS5Qcm9qZWN0IiIKFERlbGV0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIigKFURlbGV0ZVByb2plY3RSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIicKFVN0cmVhbVByb2plY3RzUmVxdWVzdBIOCgZmaWx0ZXIYASABKAkiPAoVUHJvamVjdFN0cmVhbVJlc3BvbnNlEiMKB3Byb2plY3QYASABKAsyEi50ZXJyYW4udjEuUHJvamVjdCISChBJbml0R3JhcGhSZXF1ZXN0IjUKEUluaXRHcmFwaFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSDwoHbWVzc2FnZRgCIAEoCSIuChRTY2FuV29ya3NwYWNlUmVxdWVzdBIWCg53b3Jrc3BhY2VfcGF0aBgBIAEoCSJWChRTY2FuUHJvZ3Jlc3NSZXNwb25zZRINCgVzdGFnZRgBIAEoCRIPCgdjdXJyZW50GAIgASgFEg0KBXRvdGFsGAMgASgFEg8KB21lc3NhZ2UYBCABKAkiEwoRQ2xlYXJHcmFwaFJlcXVlc3QiWwoSQ2xlYXJHcmFwaFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSFQoNbm9kZXNfZGVsZXRlZBgCIAEoBRIdChVyZWxhdGlvbnNoaXBzX2RlbGV0ZWQYAyABKAUiKQoRUXVlcnlHcmFwaFJlcXVlc3QSFAoMY3lwaGVyX3F1ZXJ5GAEgASgJIiQKElF1ZXJ5R3JhcGhSZXNwb25zZRIOCgZyZXN1bHQYASABKAkiFgoUR2V0R3JhcGhTdGF0c1JlcXVlc3QiigEKFUdldEdyYXBoU3RhdHNSZXNwb25zZRIWCg50b3RhbF9wcm9qZWN0cxgBIAEoBRITCgt0b3RhbF9maWxlcxgCIAEoBRIXCg90b3RhbF9mdW5jdGlvbnMYAyABKAUSFQoNdG90YWxfc3RydWN0cxgEIAEoBRIUCgx0b3RhbF90cmFpdHMYBSABKAUy2wQKDVRlcnJhblNlcnZpY2USTgoLSGVhbHRoY2hlY2sSHS50ZXJyYW4udjEuSGVhbHRoY2hlY2tSZXF1ZXN0Gh4udGVycmFuLnYxLkhlYWx0aGNoZWNrUmVzcG9uc2UiABJRCgxMaXN0UHJvamVjdHMSHi50ZXJyYW4udjEuTGlzdFByb2plY3RzUmVxdWVzdBofLnRlcnJhbi52MS5MaXN0UHJvamVjdHNSZXNwb25zZSIAEksKCkdldFByb2plY3QSHC50ZXJyYW4udjEuR2V0UHJvamVjdFJlcXVlc3QaHS50ZXJyYW4udjEuR2V0UHJvamVjdFJlc3BvbnNlIgASVAoNQ3JlYXRlUHJvamVjdBIfLnRlcnJhbi52MS5DcmVhdGVQcm9qZWN0UmVxdWVzdBogLnRlcnJhbi52MS5DcmVhdGVQcm9qZWN0UmVzcG9uc2UiABJUCg1VcGRhdGVQcm9qZWN0Eh8udGVycmFuLnYxLlVwZGF0ZVByb2plY3RSZXF1ZXN0GiAudGVycmFuLnYxLlVwZGF0ZVByb2plY3RSZXNwb25zZSIAElQKDURlbGV0ZVByb2plY3QSHy50ZXJyYW4udjEuRGVsZXRlUHJvamVjdFJlcXVlc3QaIC50ZXJyYW4udjEuRGVsZXRlUHJvamVjdFJlc3BvbnNlIgASWAoOU3RyZWFtUHJvamVjdHMSIC50ZXJyYW4udjEuU3RyZWFtUHJvamVjdHNSZXF1ZXN0GiAudGVycmFuLnYxLlByb2plY3RTdHJlYW1SZXNwb25zZSIAMAEyowMKEENvZGVHcmFwaFNlcnZpY2USSAoJSW5pdEdyYXBoEhsudGVycmFuLnYxLkluaXRHcmFwaFJlcXVlc3QaHC50ZXJyYW4udjEuSW5pdEdyYXBoUmVzcG9uc2UiABJVCg1TY2FuV29ya3NwYWNlEh8udGVycmFuLnYxLlNjYW5Xb3Jrc3BhY2VSZXF1ZXN0Gh8udGVycmFuLnYxLlNjYW5Qcm9ncmVzc1Jlc3BvbnNlIgAwARJLCgpDbGVhckdyYXBoEhwudGVycmFuLnYxLkNsZWFyR3JhcGhSZXF1ZXN0Gh0udGVycmFuLnYxLkNsZWFyR3JhcGhSZXNwb25zZSIAEksKClF1ZXJ5R3JhcGgSHC50ZXJyYW4udjEuUXVlcnlHcmFwaFJlcXVlc3QaHS50ZXJyYW4udjEuUXVlcnlHcmFwaFJlc3BvbnNlIgASVAoNR2V0R3JhcGhTdGF0cxIfLnRlcnJhbi52MS5HZXRHcmFwaFN0YXRzUmVxdWVzdBogLnRlcnJhbi52MS5HZXRHcmFwaFN0YXRzUmVzcG9uc2UiAEJxCg1jb20udGVycmFuLnYxQgtUZXJyYW5Qcm90b1ABWg5ncnBjL3RlcnJhbi92MaICA1RYWKoCCVRlcnJhbi5WMcoCCVRlcnJhblxWMeICFVRlcnJhblxWMVxHUEJNZXRhZGF0YeoCClRlcnJhbjo6VjFiBnByb3RvMw");
+export const file_apps_v1_terran: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    'ChRhcHBzL3YxL3RlcnJhbi5wcm90bxIJdGVycmFuLnYxIhQKEkhlYWx0aGNoZWNrUmVxdWVzdCJJChNIZWFsdGhjaGVja1Jlc3BvbnNlEg4KBnN0YXR1cxgBIAEoCRIPCgd2ZXJzaW9uGAIgASgJEhEKCXRpbWVzdGFtcBgDIAEoAyJwCgdQcm9qZWN0EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDgoGc3RhdHVzGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAMSEgoKdXBkYXRlZF9hdBgGIAEoAyJGChNMaXN0UHJvamVjdHNSZXF1ZXN0EgwKBHBhZ2UYASABKAUSEQoJcGFnZV9zaXplGAIgASgFEg4KBmZpbHRlchgDIAEoCSJsChRMaXN0UHJvamVjdHNSZXNwb25zZRIkCghwcm9qZWN0cxgBIAMoCzISLnRlcnJhbi52MS5Qcm9qZWN0Eg0KBXRvdGFsGAIgASgFEgwKBHBhZ2UYAyABKAUSEQoJcGFnZV9zaXplGAQgASgFIh8KEUdldFByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIjkKEkdldFByb2plY3RSZXNwb25zZRIjCgdwcm9qZWN0GAEgASgLMhIudGVycmFuLnYxLlByb2plY3QiSQoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIOCgZzdGF0dXMYAyABKAkiPAoVQ3JlYXRlUHJvamVjdFJlc3BvbnNlEiMKB3Byb2plY3QYASABKAsyEi50ZXJyYW4udjEuUHJvamVjdCJVChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEg4KBnN0YXR1cxgEIAEoCSI8ChVVcGRhdGVQcm9qZWN0UmVzcG9uc2USIwoHcHJvamVjdBgBIAEoCzISLnRlcnJhbi52MS5Qcm9qZWN0IiIKFERlbGV0ZVByb2plY3RSZXF1ZXN0EgoKAmlkGAEgASgJIigKFURlbGV0ZVByb2plY3RSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIicKFVN0cmVhbVByb2plY3RzUmVxdWVzdBIOCgZmaWx0ZXIYASABKAkiPAoVUHJvamVjdFN0cmVhbVJlc3BvbnNlEiMKB3Byb2plY3QYASABKAsyEi50ZXJyYW4udjEuUHJvamVjdCISChBJbml0R3JhcGhSZXF1ZXN0IjUKEUluaXRHcmFwaFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSDwoHbWVzc2FnZRgCIAEoCSIuChRTY2FuV29ya3NwYWNlUmVxdWVzdBIWCg53b3Jrc3BhY2VfcGF0aBgBIAEoCSJWChRTY2FuUHJvZ3Jlc3NSZXNwb25zZRINCgVzdGFnZRgBIAEoCRIPCgdjdXJyZW50GAIgASgFEg0KBXRvdGFsGAMgASgFEg8KB21lc3NhZ2UYBCABKAkiEwoRQ2xlYXJHcmFwaFJlcXVlc3QiWwoSQ2xlYXJHcmFwaFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSFQoNbm9kZXNfZGVsZXRlZBgCIAEoBRIdChVyZWxhdGlvbnNoaXBzX2RlbGV0ZWQYAyABKAUiKQoRUXVlcnlHcmFwaFJlcXVlc3QSFAoMY3lwaGVyX3F1ZXJ5GAEgASgJIiQKElF1ZXJ5R3JhcGhSZXNwb25zZRIOCgZyZXN1bHQYASABKAkiFgoUR2V0R3JhcGhTdGF0c1JlcXVlc3QiigEKFUdldEdyYXBoU3RhdHNSZXNwb25zZRIWCg50b3RhbF9wcm9qZWN0cxgBIAEoBRITCgt0b3RhbF9maWxlcxgCIAEoBRIXCg90b3RhbF9mdW5jdGlvbnMYAyABKAUSFQoNdG90YWxfc3RydWN0cxgEIAEoBRIUCgx0b3RhbF90cmFpdHMYBSABKAUy2wQKDVRlcnJhblNlcnZpY2USTgoLSGVhbHRoY2hlY2sSHS50ZXJyYW4udjEuSGVhbHRoY2hlY2tSZXF1ZXN0Gh4udGVycmFuLnYxLkhlYWx0aGNoZWNrUmVzcG9uc2UiABJRCgxMaXN0UHJvamVjdHMSHi50ZXJyYW4udjEuTGlzdFByb2plY3RzUmVxdWVzdBofLnRlcnJhbi52MS5MaXN0UHJvamVjdHNSZXNwb25zZSIAEksKCkdldFByb2plY3QSHC50ZXJyYW4udjEuR2V0UHJvamVjdFJlcXVlc3QaHS50ZXJyYW4udjEuR2V0UHJvamVjdFJlc3BvbnNlIgASVAoNQ3JlYXRlUHJvamVjdBIfLnRlcnJhbi52MS5DcmVhdGVQcm9qZWN0UmVxdWVzdBogLnRlcnJhbi52MS5DcmVhdGVQcm9qZWN0UmVzcG9uc2UiABJUCg1VcGRhdGVQcm9qZWN0Eh8udGVycmFuLnYxLlVwZGF0ZVByb2plY3RSZXF1ZXN0GiAudGVycmFuLnYxLlVwZGF0ZVByb2plY3RSZXNwb25zZSIAElQKDURlbGV0ZVByb2plY3QSHy50ZXJyYW4udjEuRGVsZXRlUHJvamVjdFJlcXVlc3QaIC50ZXJyYW4udjEuRGVsZXRlUHJvamVjdFJlc3BvbnNlIgASWAoOU3RyZWFtUHJvamVjdHMSIC50ZXJyYW4udjEuU3RyZWFtUHJvamVjdHNSZXF1ZXN0GiAudGVycmFuLnYxLlByb2plY3RTdHJlYW1SZXNwb25zZSIAMAEyowMKEENvZGVHcmFwaFNlcnZpY2USSAoJSW5pdEdyYXBoEhsudGVycmFuLnYxLkluaXRHcmFwaFJlcXVlc3QaHC50ZXJyYW4udjEuSW5pdEdyYXBoUmVzcG9uc2UiABJVCg1TY2FuV29ya3NwYWNlEh8udGVycmFuLnYxLlNjYW5Xb3Jrc3BhY2VSZXF1ZXN0Gh8udGVycmFuLnYxLlNjYW5Qcm9ncmVzc1Jlc3BvbnNlIgAwARJLCgpDbGVhckdyYXBoEhwudGVycmFuLnYxLkNsZWFyR3JhcGhSZXF1ZXN0Gh0udGVycmFuLnYxLkNsZWFyR3JhcGhSZXNwb25zZSIAEksKClF1ZXJ5R3JhcGgSHC50ZXJyYW4udjEuUXVlcnlHcmFwaFJlcXVlc3QaHS50ZXJyYW4udjEuUXVlcnlHcmFwaFJlc3BvbnNlIgASVAoNR2V0R3JhcGhTdGF0cxIfLnRlcnJhbi52MS5HZXRHcmFwaFN0YXRzUmVxdWVzdBogLnRlcnJhbi52MS5HZXRHcmFwaFN0YXRzUmVzcG9uc2UiAEJxCg1jb20udGVycmFuLnYxQgtUZXJyYW5Qcm90b1ABWg5ncnBjL3RlcnJhbi92MaICA1RYWKoCCVRlcnJhbi5WMcoCCVRlcnJhblxWMeICFVRlcnJhblxWMVxHUEJNZXRhZGF0YeoCClRlcnJhbjo6VjFiBnByb3RvMw',
+  );
 
 /**
  * @generated from message terran.v1.HealthcheckRequest
  */
-export type HealthcheckRequest = Message<"terran.v1.HealthcheckRequest"> & {
-};
+export type HealthcheckRequest = Message<'terran.v1.HealthcheckRequest'> & {};
 
 /**
  * Describes the message terran.v1.HealthcheckRequest.
  * Use `create(HealthcheckRequestSchema)` to create a new message.
  */
-export const HealthcheckRequestSchema: GenMessage<HealthcheckRequest> = /*@__PURE__*/
+export const HealthcheckRequestSchema: GenMessage<HealthcheckRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 0);
 
 /**
  * @generated from message terran.v1.HealthcheckResponse
  */
-export type HealthcheckResponse = Message<"terran.v1.HealthcheckResponse"> & {
+export type HealthcheckResponse = Message<'terran.v1.HealthcheckResponse'> & {
   /**
    * @generated from field: string status = 1;
    */
@@ -49,13 +60,14 @@ export type HealthcheckResponse = Message<"terran.v1.HealthcheckResponse"> & {
  * Describes the message terran.v1.HealthcheckResponse.
  * Use `create(HealthcheckResponseSchema)` to create a new message.
  */
-export const HealthcheckResponseSchema: GenMessage<HealthcheckResponse> = /*@__PURE__*/
+export const HealthcheckResponseSchema: GenMessage<HealthcheckResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 1);
 
 /**
  * @generated from message terran.v1.Project
  */
-export type Project = Message<"terran.v1.Project"> & {
+export type Project = Message<'terran.v1.Project'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -91,13 +103,14 @@ export type Project = Message<"terran.v1.Project"> & {
  * Describes the message terran.v1.Project.
  * Use `create(ProjectSchema)` to create a new message.
  */
-export const ProjectSchema: GenMessage<Project> = /*@__PURE__*/
+export const ProjectSchema: GenMessage<Project> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 2);
 
 /**
  * @generated from message terran.v1.ListProjectsRequest
  */
-export type ListProjectsRequest = Message<"terran.v1.ListProjectsRequest"> & {
+export type ListProjectsRequest = Message<'terran.v1.ListProjectsRequest'> & {
   /**
    * @generated from field: int32 page = 1;
    */
@@ -118,13 +131,14 @@ export type ListProjectsRequest = Message<"terran.v1.ListProjectsRequest"> & {
  * Describes the message terran.v1.ListProjectsRequest.
  * Use `create(ListProjectsRequestSchema)` to create a new message.
  */
-export const ListProjectsRequestSchema: GenMessage<ListProjectsRequest> = /*@__PURE__*/
+export const ListProjectsRequestSchema: GenMessage<ListProjectsRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 3);
 
 /**
  * @generated from message terran.v1.ListProjectsResponse
  */
-export type ListProjectsResponse = Message<"terran.v1.ListProjectsResponse"> & {
+export type ListProjectsResponse = Message<'terran.v1.ListProjectsResponse'> & {
   /**
    * @generated from field: repeated terran.v1.Project projects = 1;
    */
@@ -150,13 +164,14 @@ export type ListProjectsResponse = Message<"terran.v1.ListProjectsResponse"> & {
  * Describes the message terran.v1.ListProjectsResponse.
  * Use `create(ListProjectsResponseSchema)` to create a new message.
  */
-export const ListProjectsResponseSchema: GenMessage<ListProjectsResponse> = /*@__PURE__*/
+export const ListProjectsResponseSchema: GenMessage<ListProjectsResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 4);
 
 /**
  * @generated from message terran.v1.GetProjectRequest
  */
-export type GetProjectRequest = Message<"terran.v1.GetProjectRequest"> & {
+export type GetProjectRequest = Message<'terran.v1.GetProjectRequest'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -167,13 +182,14 @@ export type GetProjectRequest = Message<"terran.v1.GetProjectRequest"> & {
  * Describes the message terran.v1.GetProjectRequest.
  * Use `create(GetProjectRequestSchema)` to create a new message.
  */
-export const GetProjectRequestSchema: GenMessage<GetProjectRequest> = /*@__PURE__*/
+export const GetProjectRequestSchema: GenMessage<GetProjectRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 5);
 
 /**
  * @generated from message terran.v1.GetProjectResponse
  */
-export type GetProjectResponse = Message<"terran.v1.GetProjectResponse"> & {
+export type GetProjectResponse = Message<'terran.v1.GetProjectResponse'> & {
   /**
    * @generated from field: terran.v1.Project project = 1;
    */
@@ -184,13 +200,14 @@ export type GetProjectResponse = Message<"terran.v1.GetProjectResponse"> & {
  * Describes the message terran.v1.GetProjectResponse.
  * Use `create(GetProjectResponseSchema)` to create a new message.
  */
-export const GetProjectResponseSchema: GenMessage<GetProjectResponse> = /*@__PURE__*/
+export const GetProjectResponseSchema: GenMessage<GetProjectResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 6);
 
 /**
  * @generated from message terran.v1.CreateProjectRequest
  */
-export type CreateProjectRequest = Message<"terran.v1.CreateProjectRequest"> & {
+export type CreateProjectRequest = Message<'terran.v1.CreateProjectRequest'> & {
   /**
    * @generated from field: string name = 1;
    */
@@ -211,30 +228,33 @@ export type CreateProjectRequest = Message<"terran.v1.CreateProjectRequest"> & {
  * Describes the message terran.v1.CreateProjectRequest.
  * Use `create(CreateProjectRequestSchema)` to create a new message.
  */
-export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> = /*@__PURE__*/
+export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 7);
 
 /**
  * @generated from message terran.v1.CreateProjectResponse
  */
-export type CreateProjectResponse = Message<"terran.v1.CreateProjectResponse"> & {
-  /**
-   * @generated from field: terran.v1.Project project = 1;
-   */
-  project?: Project;
-};
+export type CreateProjectResponse =
+  Message<'terran.v1.CreateProjectResponse'> & {
+    /**
+     * @generated from field: terran.v1.Project project = 1;
+     */
+    project?: Project;
+  };
 
 /**
  * Describes the message terran.v1.CreateProjectResponse.
  * Use `create(CreateProjectResponseSchema)` to create a new message.
  */
-export const CreateProjectResponseSchema: GenMessage<CreateProjectResponse> = /*@__PURE__*/
+export const CreateProjectResponseSchema: GenMessage<CreateProjectResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 8);
 
 /**
  * @generated from message terran.v1.UpdateProjectRequest
  */
-export type UpdateProjectRequest = Message<"terran.v1.UpdateProjectRequest"> & {
+export type UpdateProjectRequest = Message<'terran.v1.UpdateProjectRequest'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -260,30 +280,33 @@ export type UpdateProjectRequest = Message<"terran.v1.UpdateProjectRequest"> & {
  * Describes the message terran.v1.UpdateProjectRequest.
  * Use `create(UpdateProjectRequestSchema)` to create a new message.
  */
-export const UpdateProjectRequestSchema: GenMessage<UpdateProjectRequest> = /*@__PURE__*/
+export const UpdateProjectRequestSchema: GenMessage<UpdateProjectRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 9);
 
 /**
  * @generated from message terran.v1.UpdateProjectResponse
  */
-export type UpdateProjectResponse = Message<"terran.v1.UpdateProjectResponse"> & {
-  /**
-   * @generated from field: terran.v1.Project project = 1;
-   */
-  project?: Project;
-};
+export type UpdateProjectResponse =
+  Message<'terran.v1.UpdateProjectResponse'> & {
+    /**
+     * @generated from field: terran.v1.Project project = 1;
+     */
+    project?: Project;
+  };
 
 /**
  * Describes the message terran.v1.UpdateProjectResponse.
  * Use `create(UpdateProjectResponseSchema)` to create a new message.
  */
-export const UpdateProjectResponseSchema: GenMessage<UpdateProjectResponse> = /*@__PURE__*/
+export const UpdateProjectResponseSchema: GenMessage<UpdateProjectResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 10);
 
 /**
  * @generated from message terran.v1.DeleteProjectRequest
  */
-export type DeleteProjectRequest = Message<"terran.v1.DeleteProjectRequest"> & {
+export type DeleteProjectRequest = Message<'terran.v1.DeleteProjectRequest'> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -294,77 +317,84 @@ export type DeleteProjectRequest = Message<"terran.v1.DeleteProjectRequest"> & {
  * Describes the message terran.v1.DeleteProjectRequest.
  * Use `create(DeleteProjectRequestSchema)` to create a new message.
  */
-export const DeleteProjectRequestSchema: GenMessage<DeleteProjectRequest> = /*@__PURE__*/
+export const DeleteProjectRequestSchema: GenMessage<DeleteProjectRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 11);
 
 /**
  * @generated from message terran.v1.DeleteProjectResponse
  */
-export type DeleteProjectResponse = Message<"terran.v1.DeleteProjectResponse"> & {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success: boolean;
-};
+export type DeleteProjectResponse =
+  Message<'terran.v1.DeleteProjectResponse'> & {
+    /**
+     * @generated from field: bool success = 1;
+     */
+    success: boolean;
+  };
 
 /**
  * Describes the message terran.v1.DeleteProjectResponse.
  * Use `create(DeleteProjectResponseSchema)` to create a new message.
  */
-export const DeleteProjectResponseSchema: GenMessage<DeleteProjectResponse> = /*@__PURE__*/
+export const DeleteProjectResponseSchema: GenMessage<DeleteProjectResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 12);
 
 /**
  * @generated from message terran.v1.StreamProjectsRequest
  */
-export type StreamProjectsRequest = Message<"terran.v1.StreamProjectsRequest"> & {
-  /**
-   * @generated from field: string filter = 1;
-   */
-  filter: string;
-};
+export type StreamProjectsRequest =
+  Message<'terran.v1.StreamProjectsRequest'> & {
+    /**
+     * @generated from field: string filter = 1;
+     */
+    filter: string;
+  };
 
 /**
  * Describes the message terran.v1.StreamProjectsRequest.
  * Use `create(StreamProjectsRequestSchema)` to create a new message.
  */
-export const StreamProjectsRequestSchema: GenMessage<StreamProjectsRequest> = /*@__PURE__*/
+export const StreamProjectsRequestSchema: GenMessage<StreamProjectsRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 13);
 
 /**
  * @generated from message terran.v1.ProjectStreamResponse
  */
-export type ProjectStreamResponse = Message<"terran.v1.ProjectStreamResponse"> & {
-  /**
-   * @generated from field: terran.v1.Project project = 1;
-   */
-  project?: Project;
-};
+export type ProjectStreamResponse =
+  Message<'terran.v1.ProjectStreamResponse'> & {
+    /**
+     * @generated from field: terran.v1.Project project = 1;
+     */
+    project?: Project;
+  };
 
 /**
  * Describes the message terran.v1.ProjectStreamResponse.
  * Use `create(ProjectStreamResponseSchema)` to create a new message.
  */
-export const ProjectStreamResponseSchema: GenMessage<ProjectStreamResponse> = /*@__PURE__*/
+export const ProjectStreamResponseSchema: GenMessage<ProjectStreamResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 14);
 
 /**
  * @generated from message terran.v1.InitGraphRequest
  */
-export type InitGraphRequest = Message<"terran.v1.InitGraphRequest"> & {
-};
+export type InitGraphRequest = Message<'terran.v1.InitGraphRequest'> & {};
 
 /**
  * Describes the message terran.v1.InitGraphRequest.
  * Use `create(InitGraphRequestSchema)` to create a new message.
  */
-export const InitGraphRequestSchema: GenMessage<InitGraphRequest> = /*@__PURE__*/
+export const InitGraphRequestSchema: GenMessage<InitGraphRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 15);
 
 /**
  * @generated from message terran.v1.InitGraphResponse
  */
-export type InitGraphResponse = Message<"terran.v1.InitGraphResponse"> & {
+export type InitGraphResponse = Message<'terran.v1.InitGraphResponse'> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -380,13 +410,14 @@ export type InitGraphResponse = Message<"terran.v1.InitGraphResponse"> & {
  * Describes the message terran.v1.InitGraphResponse.
  * Use `create(InitGraphResponseSchema)` to create a new message.
  */
-export const InitGraphResponseSchema: GenMessage<InitGraphResponse> = /*@__PURE__*/
+export const InitGraphResponseSchema: GenMessage<InitGraphResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 16);
 
 /**
  * @generated from message terran.v1.ScanWorkspaceRequest
  */
-export type ScanWorkspaceRequest = Message<"terran.v1.ScanWorkspaceRequest"> & {
+export type ScanWorkspaceRequest = Message<'terran.v1.ScanWorkspaceRequest'> & {
   /**
    * @generated from field: string workspace_path = 1;
    */
@@ -397,13 +428,14 @@ export type ScanWorkspaceRequest = Message<"terran.v1.ScanWorkspaceRequest"> & {
  * Describes the message terran.v1.ScanWorkspaceRequest.
  * Use `create(ScanWorkspaceRequestSchema)` to create a new message.
  */
-export const ScanWorkspaceRequestSchema: GenMessage<ScanWorkspaceRequest> = /*@__PURE__*/
+export const ScanWorkspaceRequestSchema: GenMessage<ScanWorkspaceRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 17);
 
 /**
  * @generated from message terran.v1.ScanProgressResponse
  */
-export type ScanProgressResponse = Message<"terran.v1.ScanProgressResponse"> & {
+export type ScanProgressResponse = Message<'terran.v1.ScanProgressResponse'> & {
   /**
    * @generated from field: string stage = 1;
    */
@@ -429,26 +461,27 @@ export type ScanProgressResponse = Message<"terran.v1.ScanProgressResponse"> & {
  * Describes the message terran.v1.ScanProgressResponse.
  * Use `create(ScanProgressResponseSchema)` to create a new message.
  */
-export const ScanProgressResponseSchema: GenMessage<ScanProgressResponse> = /*@__PURE__*/
+export const ScanProgressResponseSchema: GenMessage<ScanProgressResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 18);
 
 /**
  * @generated from message terran.v1.ClearGraphRequest
  */
-export type ClearGraphRequest = Message<"terran.v1.ClearGraphRequest"> & {
-};
+export type ClearGraphRequest = Message<'terran.v1.ClearGraphRequest'> & {};
 
 /**
  * Describes the message terran.v1.ClearGraphRequest.
  * Use `create(ClearGraphRequestSchema)` to create a new message.
  */
-export const ClearGraphRequestSchema: GenMessage<ClearGraphRequest> = /*@__PURE__*/
+export const ClearGraphRequestSchema: GenMessage<ClearGraphRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 19);
 
 /**
  * @generated from message terran.v1.ClearGraphResponse
  */
-export type ClearGraphResponse = Message<"terran.v1.ClearGraphResponse"> & {
+export type ClearGraphResponse = Message<'terran.v1.ClearGraphResponse'> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -469,13 +502,14 @@ export type ClearGraphResponse = Message<"terran.v1.ClearGraphResponse"> & {
  * Describes the message terran.v1.ClearGraphResponse.
  * Use `create(ClearGraphResponseSchema)` to create a new message.
  */
-export const ClearGraphResponseSchema: GenMessage<ClearGraphResponse> = /*@__PURE__*/
+export const ClearGraphResponseSchema: GenMessage<ClearGraphResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 20);
 
 /**
  * @generated from message terran.v1.QueryGraphRequest
  */
-export type QueryGraphRequest = Message<"terran.v1.QueryGraphRequest"> & {
+export type QueryGraphRequest = Message<'terran.v1.QueryGraphRequest'> & {
   /**
    * @generated from field: string cypher_query = 1;
    */
@@ -486,13 +520,14 @@ export type QueryGraphRequest = Message<"terran.v1.QueryGraphRequest"> & {
  * Describes the message terran.v1.QueryGraphRequest.
  * Use `create(QueryGraphRequestSchema)` to create a new message.
  */
-export const QueryGraphRequestSchema: GenMessage<QueryGraphRequest> = /*@__PURE__*/
+export const QueryGraphRequestSchema: GenMessage<QueryGraphRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 21);
 
 /**
  * @generated from message terran.v1.QueryGraphResponse
  */
-export type QueryGraphResponse = Message<"terran.v1.QueryGraphResponse"> & {
+export type QueryGraphResponse = Message<'terran.v1.QueryGraphResponse'> & {
   /**
    * @generated from field: string result = 1;
    */
@@ -503,57 +538,61 @@ export type QueryGraphResponse = Message<"terran.v1.QueryGraphResponse"> & {
  * Describes the message terran.v1.QueryGraphResponse.
  * Use `create(QueryGraphResponseSchema)` to create a new message.
  */
-export const QueryGraphResponseSchema: GenMessage<QueryGraphResponse> = /*@__PURE__*/
+export const QueryGraphResponseSchema: GenMessage<QueryGraphResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 22);
 
 /**
  * @generated from message terran.v1.GetGraphStatsRequest
  */
-export type GetGraphStatsRequest = Message<"terran.v1.GetGraphStatsRequest"> & {
-};
+export type GetGraphStatsRequest =
+  Message<'terran.v1.GetGraphStatsRequest'> & {};
 
 /**
  * Describes the message terran.v1.GetGraphStatsRequest.
  * Use `create(GetGraphStatsRequestSchema)` to create a new message.
  */
-export const GetGraphStatsRequestSchema: GenMessage<GetGraphStatsRequest> = /*@__PURE__*/
+export const GetGraphStatsRequestSchema: GenMessage<GetGraphStatsRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 23);
 
 /**
  * @generated from message terran.v1.GetGraphStatsResponse
  */
-export type GetGraphStatsResponse = Message<"terran.v1.GetGraphStatsResponse"> & {
-  /**
-   * @generated from field: int32 total_projects = 1;
-   */
-  totalProjects: number;
+export type GetGraphStatsResponse =
+  Message<'terran.v1.GetGraphStatsResponse'> & {
+    /**
+     * @generated from field: int32 total_projects = 1;
+     */
+    totalProjects: number;
 
-  /**
-   * @generated from field: int32 total_files = 2;
-   */
-  totalFiles: number;
+    /**
+     * @generated from field: int32 total_files = 2;
+     */
+    totalFiles: number;
 
-  /**
-   * @generated from field: int32 total_functions = 3;
-   */
-  totalFunctions: number;
+    /**
+     * @generated from field: int32 total_functions = 3;
+     */
+    totalFunctions: number;
 
-  /**
-   * @generated from field: int32 total_structs = 4;
-   */
-  totalStructs: number;
+    /**
+     * @generated from field: int32 total_structs = 4;
+     */
+    totalStructs: number;
 
-  /**
-   * @generated from field: int32 total_traits = 5;
-   */
-  totalTraits: number;
-};
+    /**
+     * @generated from field: int32 total_traits = 5;
+     */
+    totalTraits: number;
+  };
 
 /**
  * Describes the message terran.v1.GetGraphStatsResponse.
  * Use `create(GetGraphStatsResponseSchema)` to create a new message.
  */
-export const GetGraphStatsResponseSchema: GenMessage<GetGraphStatsResponse> = /*@__PURE__*/
+export const GetGraphStatsResponseSchema: GenMessage<GetGraphStatsResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_terran, 24);
 
 /**
@@ -564,60 +603,59 @@ export const TerranService: GenService<{
    * @generated from rpc terran.v1.TerranService.Healthcheck
    */
   healthcheck: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof HealthcheckRequestSchema;
     output: typeof HealthcheckResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.ListProjects
    */
   listProjects: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof ListProjectsRequestSchema;
     output: typeof ListProjectsResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.GetProject
    */
   getProject: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof GetProjectRequestSchema;
     output: typeof GetProjectResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.CreateProject
    */
   createProject: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof CreateProjectRequestSchema;
     output: typeof CreateProjectResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.UpdateProject
    */
   updateProject: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof UpdateProjectRequestSchema;
     output: typeof UpdateProjectResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.DeleteProject
    */
   deleteProject: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof DeleteProjectRequestSchema;
     output: typeof DeleteProjectResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.TerranService.StreamProjects
    */
   streamProjects: {
-    methodKind: "server_streaming";
+    methodKind: 'server_streaming';
     input: typeof StreamProjectsRequestSchema;
     output: typeof ProjectStreamResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_apps_v1_terran, 0);
+  };
+}> = /*@__PURE__*/ serviceDesc(file_apps_v1_terran, 0);
 
 /**
  * @generated from service terran.v1.CodeGraphService
@@ -627,42 +665,40 @@ export const CodeGraphService: GenService<{
    * @generated from rpc terran.v1.CodeGraphService.InitGraph
    */
   initGraph: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof InitGraphRequestSchema;
     output: typeof InitGraphResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.CodeGraphService.ScanWorkspace
    */
   scanWorkspace: {
-    methodKind: "server_streaming";
+    methodKind: 'server_streaming';
     input: typeof ScanWorkspaceRequestSchema;
     output: typeof ScanProgressResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.CodeGraphService.ClearGraph
    */
   clearGraph: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof ClearGraphRequestSchema;
     output: typeof ClearGraphResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.CodeGraphService.QueryGraph
    */
   queryGraph: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof QueryGraphRequestSchema;
     output: typeof QueryGraphResponseSchema;
-  },
+  };
   /**
    * @generated from rpc terran.v1.CodeGraphService.GetGraphStats
    */
   getGraphStats: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof GetGraphStatsRequestSchema;
     output: typeof GetGraphStatsResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_apps_v1_terran, 1);
-
+  };
+}> = /*@__PURE__*/ serviceDesc(file_apps_v1_terran, 1);

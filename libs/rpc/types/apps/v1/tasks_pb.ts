@@ -2,20 +2,33 @@
 // @generated from file apps/v1/tasks.proto (package tasks.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Message } from "@bufbuild/protobuf";
+import type { Message } from '@bufbuild/protobuf';
+import type {
+  GenEnum,
+  GenFile,
+  GenMessage,
+  GenService,
+} from '@bufbuild/protobuf/codegenv2';
+import {
+  enumDesc,
+  fileDesc,
+  messageDesc,
+  serviceDesc,
+} from '@bufbuild/protobuf/codegenv2';
 
 /**
  * Describes the file apps/v1/tasks.proto.
  */
-export const file_apps_v1_tasks: GenFile = /*@__PURE__*/
-  fileDesc("ChNhcHBzL3YxL3Rhc2tzLnByb3RvEgh0YXNrcy52MSLHAQoNQ3JlYXRlUmVxdWVzdBINCgV0aXRsZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIXCgpwcm9qZWN0X2lkGAMgASgMSACIAQESJAoIcHJpb3JpdHkYBCABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYBSABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYBiABKANIAYgBAUINCgtfcHJvamVjdF9pZEILCglfZHVlX2RhdGUijwIKDkNyZWF0ZVJlc3BvbnNlEgoKAmlkGAEgASgMEg0KBXRpdGxlGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhEKCWNvbXBsZXRlZBgEIAEoCBIXCgpwcm9qZWN0X2lkGAUgASgMSACIAQESJAoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYByABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYCCABKANIAYgBARISCgpjcmVhdGVkX2F0GAkgASgDEhIKCnVwZGF0ZWRfYXQYCiABKANCDQoLX3Byb2plY3RfaWRCCwoJX2R1ZV9kYXRlIhwKDkdldEJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMIpACCg9HZXRCeUlkUmVzcG9uc2USCgoCaWQYASABKAwSDQoFdGl0bGUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSEQoJY29tcGxldGVkGAQgASgIEhcKCnByb2plY3RfaWQYBSABKAxIAIgBARIkCghwcmlvcml0eRgGIAEoDjISLnRhc2tzLnYxLlByaW9yaXR5EiAKBnN0YXR1cxgHIAEoDjIQLnRhc2tzLnYxLlN0YXR1cxIVCghkdWVfZGF0ZRgIIAEoA0gBiAEBEhIKCmNyZWF0ZWRfYXQYCSABKAMSEgoKdXBkYXRlZF9hdBgKIAEoA0INCgtfcHJvamVjdF9pZEILCglfZHVlX2RhdGUiwwIKEVVwZGF0ZUJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMEhIKBXRpdGxlGAIgASgJSACIAQESGAoLZGVzY3JpcHRpb24YAyABKAlIAYgBARIWCgljb21wbGV0ZWQYBCABKAhIAogBARIXCgpwcm9qZWN0X2lkGAUgASgMSAOIAQESKQoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eUgEiAEBEiUKBnN0YXR1cxgHIAEoDjIQLnRhc2tzLnYxLlN0YXR1c0gFiAEBEhUKCGR1ZV9kYXRlGAggASgDSAaIAQFCCAoGX3RpdGxlQg4KDF9kZXNjcmlwdGlvbkIMCgpfY29tcGxldGVkQg0KC19wcm9qZWN0X2lkQgsKCV9wcmlvcml0eUIJCgdfc3RhdHVzQgsKCV9kdWVfZGF0ZSKTAgoSVXBkYXRlQnlJZFJlc3BvbnNlEgoKAmlkGAEgASgMEg0KBXRpdGxlGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhEKCWNvbXBsZXRlZBgEIAEoCBIXCgpwcm9qZWN0X2lkGAUgASgMSACIAQESJAoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYByABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYCCABKANIAYgBARISCgpjcmVhdGVkX2F0GAkgASgDEhIKCnVwZGF0ZWRfYXQYCiABKANCDQoLX3Byb2plY3RfaWRCCwoJX2R1ZV9kYXRlIh8KEURlbGV0ZUJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMIhQKEkRlbGV0ZUJ5SWRSZXNwb25zZSLkAQoLTGlzdFJlcXVlc3QSFwoKcHJvamVjdF9pZBgBIAEoDEgAiAEBEiUKBnN0YXR1cxgCIAEoDjIQLnRhc2tzLnYxLlN0YXR1c0gBiAEBEikKCHByaW9yaXR5GAMgASgOMhIudGFza3MudjEuUHJpb3JpdHlIAogBARIWCgljb21wbGV0ZWQYBCABKAhIA4gBARINCgVsaW1pdBgFIAEoBRIOCgZvZmZzZXQYBiABKAVCDQoLX3Byb2plY3RfaWRCCQoHX3N0YXR1c0ILCglfcHJpb3JpdHlCDAoKX2NvbXBsZXRlZCI2CgxMaXN0UmVzcG9uc2USJgoEZGF0YRgBIAMoCzIYLnRhc2tzLnYxLkNyZWF0ZVJlc3BvbnNlItoBChFMaXN0U3RyZWFtUmVxdWVzdBIXCgpwcm9qZWN0X2lkGAEgASgMSACIAQESJQoGc3RhdHVzGAIgASgOMhAudGFza3MudjEuU3RhdHVzSAGIAQESKQoIcHJpb3JpdHkYAyABKA4yEi50YXNrcy52MS5Qcmlvcml0eUgCiAEBEhYKCWNvbXBsZXRlZBgEIAEoCEgDiAEBEg0KBWxpbWl0GAUgASgFQg0KC19wcm9qZWN0X2lkQgkKB19zdGF0dXNCCwoJX3ByaW9yaXR5QgwKCl9jb21wbGV0ZWQikwIKEkxpc3RTdHJlYW1SZXNwb25zZRIKCgJpZBgBIAEoDBINCgV0aXRsZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCgljb21wbGV0ZWQYBCABKAgSFwoKcHJvamVjdF9pZBgFIAEoDEgAiAEBEiQKCHByaW9yaXR5GAYgASgOMhIudGFza3MudjEuUHJpb3JpdHkSIAoGc3RhdHVzGAcgASgOMhAudGFza3MudjEuU3RhdHVzEhUKCGR1ZV9kYXRlGAggASgDSAGIAQESEgoKY3JlYXRlZF9hdBgJIAEoAxISCgp1cGRhdGVkX2F0GAogASgDQg0KC19wcm9qZWN0X2lkQgsKCV9kdWVfZGF0ZSpzCghQcmlvcml0eRIYChRQUklPUklUWV9VTlNQRUNJRklFRBAAEhAKDFBSSU9SSVRZX0xPVxABEhMKD1BSSU9SSVRZX01FRElVTRACEhEKDVBSSU9SSVRZX0hJR0gQAxITCg9QUklPUklUWV9VUkdFTlQQBCpaCgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASDwoLU1RBVFVTX1RPRE8QARIWChJTVEFUVVNfSU5fUFJPR1JFU1MQAhIPCgtTVEFUVVNfRE9ORRADMqsDCgxUYXNrc1NlcnZpY2USPQoGQ3JlYXRlEhcudGFza3MudjEuQ3JlYXRlUmVxdWVzdBoYLnRhc2tzLnYxLkNyZWF0ZVJlc3BvbnNlIgASQAoHR2V0QnlJZBIYLnRhc2tzLnYxLkdldEJ5SWRSZXF1ZXN0GhkudGFza3MudjEuR2V0QnlJZFJlc3BvbnNlIgASSQoKRGVsZXRlQnlJZBIbLnRhc2tzLnYxLkRlbGV0ZUJ5SWRSZXF1ZXN0GhwudGFza3MudjEuRGVsZXRlQnlJZFJlc3BvbnNlIgASSQoKVXBkYXRlQnlJZBIbLnRhc2tzLnYxLlVwZGF0ZUJ5SWRSZXF1ZXN0GhwudGFza3MudjEuVXBkYXRlQnlJZFJlc3BvbnNlIgASNwoETGlzdBIVLnRhc2tzLnYxLkxpc3RSZXF1ZXN0GhYudGFza3MudjEuTGlzdFJlc3BvbnNlIgASSwoKTGlzdFN0cmVhbRIbLnRhc2tzLnYxLkxpc3RTdHJlYW1SZXF1ZXN0GhwudGFza3MudjEuTGlzdFN0cmVhbVJlc3BvbnNlIgAwAUJqCgxjb20udGFza3MudjFCClRhc2tzUHJvdG9QAVoNZ3JwYy90YXNrcy92MaICA1RYWKoCCFRhc2tzLlYxygIIVGFza3NcVjHiAhRUYXNrc1xWMVxHUEJNZXRhZGF0YeoCCVRhc2tzOjpWMWIGcHJvdG8z");
+export const file_apps_v1_tasks: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    'ChNhcHBzL3YxL3Rhc2tzLnByb3RvEgh0YXNrcy52MSLHAQoNQ3JlYXRlUmVxdWVzdBINCgV0aXRsZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIXCgpwcm9qZWN0X2lkGAMgASgMSACIAQESJAoIcHJpb3JpdHkYBCABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYBSABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYBiABKANIAYgBAUINCgtfcHJvamVjdF9pZEILCglfZHVlX2RhdGUijwIKDkNyZWF0ZVJlc3BvbnNlEgoKAmlkGAEgASgMEg0KBXRpdGxlGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhEKCWNvbXBsZXRlZBgEIAEoCBIXCgpwcm9qZWN0X2lkGAUgASgMSACIAQESJAoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYByABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYCCABKANIAYgBARISCgpjcmVhdGVkX2F0GAkgASgDEhIKCnVwZGF0ZWRfYXQYCiABKANCDQoLX3Byb2plY3RfaWRCCwoJX2R1ZV9kYXRlIhwKDkdldEJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMIpACCg9HZXRCeUlkUmVzcG9uc2USCgoCaWQYASABKAwSDQoFdGl0bGUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSEQoJY29tcGxldGVkGAQgASgIEhcKCnByb2plY3RfaWQYBSABKAxIAIgBARIkCghwcmlvcml0eRgGIAEoDjISLnRhc2tzLnYxLlByaW9yaXR5EiAKBnN0YXR1cxgHIAEoDjIQLnRhc2tzLnYxLlN0YXR1cxIVCghkdWVfZGF0ZRgIIAEoA0gBiAEBEhIKCmNyZWF0ZWRfYXQYCSABKAMSEgoKdXBkYXRlZF9hdBgKIAEoA0INCgtfcHJvamVjdF9pZEILCglfZHVlX2RhdGUiwwIKEVVwZGF0ZUJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMEhIKBXRpdGxlGAIgASgJSACIAQESGAoLZGVzY3JpcHRpb24YAyABKAlIAYgBARIWCgljb21wbGV0ZWQYBCABKAhIAogBARIXCgpwcm9qZWN0X2lkGAUgASgMSAOIAQESKQoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eUgEiAEBEiUKBnN0YXR1cxgHIAEoDjIQLnRhc2tzLnYxLlN0YXR1c0gFiAEBEhUKCGR1ZV9kYXRlGAggASgDSAaIAQFCCAoGX3RpdGxlQg4KDF9kZXNjcmlwdGlvbkIMCgpfY29tcGxldGVkQg0KC19wcm9qZWN0X2lkQgsKCV9wcmlvcml0eUIJCgdfc3RhdHVzQgsKCV9kdWVfZGF0ZSKTAgoSVXBkYXRlQnlJZFJlc3BvbnNlEgoKAmlkGAEgASgMEg0KBXRpdGxlGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEhEKCWNvbXBsZXRlZBgEIAEoCBIXCgpwcm9qZWN0X2lkGAUgASgMSACIAQESJAoIcHJpb3JpdHkYBiABKA4yEi50YXNrcy52MS5Qcmlvcml0eRIgCgZzdGF0dXMYByABKA4yEC50YXNrcy52MS5TdGF0dXMSFQoIZHVlX2RhdGUYCCABKANIAYgBARISCgpjcmVhdGVkX2F0GAkgASgDEhIKCnVwZGF0ZWRfYXQYCiABKANCDQoLX3Byb2plY3RfaWRCCwoJX2R1ZV9kYXRlIh8KEURlbGV0ZUJ5SWRSZXF1ZXN0EgoKAmlkGAEgASgMIhQKEkRlbGV0ZUJ5SWRSZXNwb25zZSLkAQoLTGlzdFJlcXVlc3QSFwoKcHJvamVjdF9pZBgBIAEoDEgAiAEBEiUKBnN0YXR1cxgCIAEoDjIQLnRhc2tzLnYxLlN0YXR1c0gBiAEBEikKCHByaW9yaXR5GAMgASgOMhIudGFza3MudjEuUHJpb3JpdHlIAogBARIWCgljb21wbGV0ZWQYBCABKAhIA4gBARINCgVsaW1pdBgFIAEoBRIOCgZvZmZzZXQYBiABKAVCDQoLX3Byb2plY3RfaWRCCQoHX3N0YXR1c0ILCglfcHJpb3JpdHlCDAoKX2NvbXBsZXRlZCI2CgxMaXN0UmVzcG9uc2USJgoEZGF0YRgBIAMoCzIYLnRhc2tzLnYxLkNyZWF0ZVJlc3BvbnNlItoBChFMaXN0U3RyZWFtUmVxdWVzdBIXCgpwcm9qZWN0X2lkGAEgASgMSACIAQESJQoGc3RhdHVzGAIgASgOMhAudGFza3MudjEuU3RhdHVzSAGIAQESKQoIcHJpb3JpdHkYAyABKA4yEi50YXNrcy52MS5Qcmlvcml0eUgCiAEBEhYKCWNvbXBsZXRlZBgEIAEoCEgDiAEBEg0KBWxpbWl0GAUgASgFQg0KC19wcm9qZWN0X2lkQgkKB19zdGF0dXNCCwoJX3ByaW9yaXR5QgwKCl9jb21wbGV0ZWQikwIKEkxpc3RTdHJlYW1SZXNwb25zZRIKCgJpZBgBIAEoDBINCgV0aXRsZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIRCgljb21wbGV0ZWQYBCABKAgSFwoKcHJvamVjdF9pZBgFIAEoDEgAiAEBEiQKCHByaW9yaXR5GAYgASgOMhIudGFza3MudjEuUHJpb3JpdHkSIAoGc3RhdHVzGAcgASgOMhAudGFza3MudjEuU3RhdHVzEhUKCGR1ZV9kYXRlGAggASgDSAGIAQESEgoKY3JlYXRlZF9hdBgJIAEoAxISCgp1cGRhdGVkX2F0GAogASgDQg0KC19wcm9qZWN0X2lkQgsKCV9kdWVfZGF0ZSpzCghQcmlvcml0eRIYChRQUklPUklUWV9VTlNQRUNJRklFRBAAEhAKDFBSSU9SSVRZX0xPVxABEhMKD1BSSU9SSVRZX01FRElVTRACEhEKDVBSSU9SSVRZX0hJR0gQAxITCg9QUklPUklUWV9VUkdFTlQQBCpaCgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASDwoLU1RBVFVTX1RPRE8QARIWChJTVEFUVVNfSU5fUFJPR1JFU1MQAhIPCgtTVEFUVVNfRE9ORRADMqsDCgxUYXNrc1NlcnZpY2USPQoGQ3JlYXRlEhcudGFza3MudjEuQ3JlYXRlUmVxdWVzdBoYLnRhc2tzLnYxLkNyZWF0ZVJlc3BvbnNlIgASQAoHR2V0QnlJZBIYLnRhc2tzLnYxLkdldEJ5SWRSZXF1ZXN0GhkudGFza3MudjEuR2V0QnlJZFJlc3BvbnNlIgASSQoKRGVsZXRlQnlJZBIbLnRhc2tzLnYxLkRlbGV0ZUJ5SWRSZXF1ZXN0GhwudGFza3MudjEuRGVsZXRlQnlJZFJlc3BvbnNlIgASSQoKVXBkYXRlQnlJZBIbLnRhc2tzLnYxLlVwZGF0ZUJ5SWRSZXF1ZXN0GhwudGFza3MudjEuVXBkYXRlQnlJZFJlc3BvbnNlIgASNwoETGlzdBIVLnRhc2tzLnYxLkxpc3RSZXF1ZXN0GhYudGFza3MudjEuTGlzdFJlc3BvbnNlIgASSwoKTGlzdFN0cmVhbRIbLnRhc2tzLnYxLkxpc3RTdHJlYW1SZXF1ZXN0GhwudGFza3MudjEuTGlzdFN0cmVhbVJlc3BvbnNlIgAwAUJqCgxjb20udGFza3MudjFCClRhc2tzUHJvdG9QAVoNZ3JwYy90YXNrcy92MaICA1RYWKoCCFRhc2tzLlYxygIIVGFza3NcVjHiAhRUYXNrc1xWMVxHUEJNZXRhZGF0YeoCCVRhc2tzOjpWMWIGcHJvdG8z',
+  );
 
 /**
  * @generated from message tasks.v1.CreateRequest
  */
-export type CreateRequest = Message<"tasks.v1.CreateRequest"> & {
+export type CreateRequest = Message<'tasks.v1.CreateRequest'> & {
   /**
    * @generated from field: string title = 1;
    */
@@ -59,13 +72,14 @@ export type CreateRequest = Message<"tasks.v1.CreateRequest"> & {
  * Describes the message tasks.v1.CreateRequest.
  * Use `create(CreateRequestSchema)` to create a new message.
  */
-export const CreateRequestSchema: GenMessage<CreateRequest> = /*@__PURE__*/
+export const CreateRequestSchema: GenMessage<CreateRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 0);
 
 /**
  * @generated from message tasks.v1.CreateResponse
  */
-export type CreateResponse = Message<"tasks.v1.CreateResponse"> & {
+export type CreateResponse = Message<'tasks.v1.CreateResponse'> & {
   /**
    * 16 bytes UUID
    *
@@ -125,13 +139,14 @@ export type CreateResponse = Message<"tasks.v1.CreateResponse"> & {
  * Describes the message tasks.v1.CreateResponse.
  * Use `create(CreateResponseSchema)` to create a new message.
  */
-export const CreateResponseSchema: GenMessage<CreateResponse> = /*@__PURE__*/
+export const CreateResponseSchema: GenMessage<CreateResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 1);
 
 /**
  * @generated from message tasks.v1.GetByIdRequest
  */
-export type GetByIdRequest = Message<"tasks.v1.GetByIdRequest"> & {
+export type GetByIdRequest = Message<'tasks.v1.GetByIdRequest'> & {
   /**
    * Binary UUID
    *
@@ -144,13 +159,14 @@ export type GetByIdRequest = Message<"tasks.v1.GetByIdRequest"> & {
  * Describes the message tasks.v1.GetByIdRequest.
  * Use `create(GetByIdRequestSchema)` to create a new message.
  */
-export const GetByIdRequestSchema: GenMessage<GetByIdRequest> = /*@__PURE__*/
+export const GetByIdRequestSchema: GenMessage<GetByIdRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 2);
 
 /**
  * @generated from message tasks.v1.GetByIdResponse
  */
-export type GetByIdResponse = Message<"tasks.v1.GetByIdResponse"> & {
+export type GetByIdResponse = Message<'tasks.v1.GetByIdResponse'> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -206,13 +222,14 @@ export type GetByIdResponse = Message<"tasks.v1.GetByIdResponse"> & {
  * Describes the message tasks.v1.GetByIdResponse.
  * Use `create(GetByIdResponseSchema)` to create a new message.
  */
-export const GetByIdResponseSchema: GenMessage<GetByIdResponse> = /*@__PURE__*/
+export const GetByIdResponseSchema: GenMessage<GetByIdResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 3);
 
 /**
  * @generated from message tasks.v1.UpdateByIdRequest
  */
-export type UpdateByIdRequest = Message<"tasks.v1.UpdateByIdRequest"> & {
+export type UpdateByIdRequest = Message<'tasks.v1.UpdateByIdRequest'> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -258,13 +275,14 @@ export type UpdateByIdRequest = Message<"tasks.v1.UpdateByIdRequest"> & {
  * Describes the message tasks.v1.UpdateByIdRequest.
  * Use `create(UpdateByIdRequestSchema)` to create a new message.
  */
-export const UpdateByIdRequestSchema: GenMessage<UpdateByIdRequest> = /*@__PURE__*/
+export const UpdateByIdRequestSchema: GenMessage<UpdateByIdRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 4);
 
 /**
  * @generated from message tasks.v1.UpdateByIdResponse
  */
-export type UpdateByIdResponse = Message<"tasks.v1.UpdateByIdResponse"> & {
+export type UpdateByIdResponse = Message<'tasks.v1.UpdateByIdResponse'> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -320,13 +338,14 @@ export type UpdateByIdResponse = Message<"tasks.v1.UpdateByIdResponse"> & {
  * Describes the message tasks.v1.UpdateByIdResponse.
  * Use `create(UpdateByIdResponseSchema)` to create a new message.
  */
-export const UpdateByIdResponseSchema: GenMessage<UpdateByIdResponse> = /*@__PURE__*/
+export const UpdateByIdResponseSchema: GenMessage<UpdateByIdResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 5);
 
 /**
  * @generated from message tasks.v1.DeleteByIdRequest
  */
-export type DeleteByIdRequest = Message<"tasks.v1.DeleteByIdRequest"> & {
+export type DeleteByIdRequest = Message<'tasks.v1.DeleteByIdRequest'> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -337,26 +356,27 @@ export type DeleteByIdRequest = Message<"tasks.v1.DeleteByIdRequest"> & {
  * Describes the message tasks.v1.DeleteByIdRequest.
  * Use `create(DeleteByIdRequestSchema)` to create a new message.
  */
-export const DeleteByIdRequestSchema: GenMessage<DeleteByIdRequest> = /*@__PURE__*/
+export const DeleteByIdRequestSchema: GenMessage<DeleteByIdRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 6);
 
 /**
  * @generated from message tasks.v1.DeleteByIdResponse
  */
-export type DeleteByIdResponse = Message<"tasks.v1.DeleteByIdResponse"> & {
-};
+export type DeleteByIdResponse = Message<'tasks.v1.DeleteByIdResponse'> & {};
 
 /**
  * Describes the message tasks.v1.DeleteByIdResponse.
  * Use `create(DeleteByIdResponseSchema)` to create a new message.
  */
-export const DeleteByIdResponseSchema: GenMessage<DeleteByIdResponse> = /*@__PURE__*/
+export const DeleteByIdResponseSchema: GenMessage<DeleteByIdResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 7);
 
 /**
  * @generated from message tasks.v1.ListRequest
  */
-export type ListRequest = Message<"tasks.v1.ListRequest"> & {
+export type ListRequest = Message<'tasks.v1.ListRequest'> & {
   /**
    * @generated from field: optional bytes project_id = 1;
    */
@@ -396,13 +416,14 @@ export type ListRequest = Message<"tasks.v1.ListRequest"> & {
  * Describes the message tasks.v1.ListRequest.
  * Use `create(ListRequestSchema)` to create a new message.
  */
-export const ListRequestSchema: GenMessage<ListRequest> = /*@__PURE__*/
+export const ListRequestSchema: GenMessage<ListRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 8);
 
 /**
  * @generated from message tasks.v1.ListResponse
  */
-export type ListResponse = Message<"tasks.v1.ListResponse"> & {
+export type ListResponse = Message<'tasks.v1.ListResponse'> & {
   /**
    * @generated from field: repeated tasks.v1.CreateResponse data = 1;
    */
@@ -413,13 +434,14 @@ export type ListResponse = Message<"tasks.v1.ListResponse"> & {
  * Describes the message tasks.v1.ListResponse.
  * Use `create(ListResponseSchema)` to create a new message.
  */
-export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
+export const ListResponseSchema: GenMessage<ListResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 9);
 
 /**
  * @generated from message tasks.v1.ListStreamRequest
  */
-export type ListStreamRequest = Message<"tasks.v1.ListStreamRequest"> & {
+export type ListStreamRequest = Message<'tasks.v1.ListStreamRequest'> & {
   /**
    * @generated from field: optional bytes project_id = 1;
    */
@@ -450,13 +472,14 @@ export type ListStreamRequest = Message<"tasks.v1.ListStreamRequest"> & {
  * Describes the message tasks.v1.ListStreamRequest.
  * Use `create(ListStreamRequestSchema)` to create a new message.
  */
-export const ListStreamRequestSchema: GenMessage<ListStreamRequest> = /*@__PURE__*/
+export const ListStreamRequestSchema: GenMessage<ListStreamRequest> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 10);
 
 /**
  * @generated from message tasks.v1.ListStreamResponse
  */
-export type ListStreamResponse = Message<"tasks.v1.ListStreamResponse"> & {
+export type ListStreamResponse = Message<'tasks.v1.ListStreamResponse'> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -512,7 +535,8 @@ export type ListStreamResponse = Message<"tasks.v1.ListStreamResponse"> & {
  * Describes the message tasks.v1.ListStreamResponse.
  * Use `create(ListStreamResponseSchema)` to create a new message.
  */
-export const ListStreamResponseSchema: GenMessage<ListStreamResponse> = /*@__PURE__*/
+export const ListStreamResponseSchema: GenMessage<ListStreamResponse> =
+  /*@__PURE__*/
   messageDesc(file_apps_v1_tasks, 11);
 
 /**
@@ -550,7 +574,8 @@ export enum Priority {
 /**
  * Describes the enum tasks.v1.Priority.
  */
-export const PrioritySchema: GenEnum<Priority> = /*@__PURE__*/
+export const PrioritySchema: GenEnum<Priority> =
+  /*@__PURE__*/
   enumDesc(file_apps_v1_tasks, 0);
 
 /**
@@ -581,7 +606,8 @@ export enum Status {
 /**
  * Describes the enum tasks.v1.Status.
  */
-export const StatusSchema: GenEnum<Status> = /*@__PURE__*/
+export const StatusSchema: GenEnum<Status> =
+  /*@__PURE__*/
   enumDesc(file_apps_v1_tasks, 1);
 
 /**
@@ -594,50 +620,48 @@ export const TasksService: GenService<{
    * @generated from rpc tasks.v1.TasksService.Create
    */
   create: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof CreateRequestSchema;
     output: typeof CreateResponseSchema;
-  },
+  };
   /**
    * @generated from rpc tasks.v1.TasksService.GetById
    */
   getById: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof GetByIdRequestSchema;
     output: typeof GetByIdResponseSchema;
-  },
+  };
   /**
    * @generated from rpc tasks.v1.TasksService.DeleteById
    */
   deleteById: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof DeleteByIdRequestSchema;
     output: typeof DeleteByIdResponseSchema;
-  },
+  };
   /**
    * @generated from rpc tasks.v1.TasksService.UpdateById
    */
   updateById: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof UpdateByIdRequestSchema;
     output: typeof UpdateByIdResponseSchema;
-  },
+  };
   /**
    * @generated from rpc tasks.v1.TasksService.List
    */
   list: {
-    methodKind: "unary";
+    methodKind: 'unary';
     input: typeof ListRequestSchema;
     output: typeof ListResponseSchema;
-  },
+  };
   /**
    * @generated from rpc tasks.v1.TasksService.ListStream
    */
   listStream: {
-    methodKind: "server_streaming";
+    methodKind: 'server_streaming';
     input: typeof ListStreamRequestSchema;
     output: typeof ListStreamResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_apps_v1_tasks, 0);
-
+  };
+}> = /*@__PURE__*/ serviceDesc(file_apps_v1_tasks, 0);

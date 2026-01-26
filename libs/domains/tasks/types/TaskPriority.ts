@@ -3,4 +3,4 @@
 /**
  * Task priority levels
  */
-export type TaskPriority = "low" | "medium" | "high" | "urgent";
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';

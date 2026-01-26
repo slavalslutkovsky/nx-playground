@@ -125,6 +125,38 @@ description = "Rust security audit"
 run = ["cargo audit --ignore RUSTSEC-2023-0071", "cargo deny check --config .cargo/deny.toml"]
 
 # =============================================================================
+# Dependency Updates
+# =============================================================================
+
+[tasks.update]
+description = "Update all lockfiles (Cargo.lock + bun.lock)"
+run = ["cargo update", "bun update"]
+
+[tasks.upgrade]
+description = "Upgrade all deps to latest versions"
+run = ["cargo upgrade --workspace --incompatible", "cargo update", "bun update --latest"]
+
+[tasks.cargo-update]
+description = "Update Cargo.lock"
+run = "cargo update"
+
+[tasks.cargo-upgrade]
+description = "Upgrade Cargo.toml to latest (requires cargo-edit)"
+run = ["cargo upgrade --incompatible", "cargo update"]
+
+[tasks.bun-update]
+description = "Update bun.lock"
+run = "bun update"
+
+[tasks.bun-upgrade]
+description = "Upgrade bun packages to latest"
+run = "bun update --latest"
+
+[tasks.outdated]
+description = "Show outdated dependencies"
+run = ["cargo outdated --workspace || true", "bun outdated || true"]
+
+# =============================================================================
 # Combined Tasks
 # =============================================================================
 

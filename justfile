@@ -58,18 +58,45 @@ check-quick: fmt-check
     cargo check --workspace
     cargo clippy --workspace --all-targets -- -D warnings
 
-# Show outdated dependencies
-outdated:
-    cargo outdated --workspace
+# ============================================================================
+# Dependency Updates
+# ============================================================================
 
-# Update Cargo.lock to latest compatible versions
+# Show outdated dependencies (cargo + bun)
+outdated:
+    @echo "=== Cargo Outdated ==="
+    cargo outdated --workspace || true
+    @echo ""
+    @echo "=== Bun Outdated ==="
+    bun outdated || true
+
+# Update all lockfiles (Cargo.lock + bun.lock)
 update:
     cargo update
+    bun update
 
-# Upgrade Cargo.toml versions to latest (requires cargo-edit)
+# Upgrade all dependencies to latest versions
 upgrade:
+    cargo upgrade --incompatible
+    cargo update
+    bun update --latest
+
+# Update Cargo only
+cargo-update:
+    cargo update
+
+# Upgrade Cargo.toml to latest versions (requires cargo-edit)
+cargo-upgrade:
     cargo upgrade --workspace --incompatible
     cargo update
+
+# Update bun packages only
+bun-update:
+    bun update
+
+# Upgrade bun packages to latest (ignores semver)
+bun-upgrade:
+    bun update --latest
 
 _docker-up:
     docker compose -f manifests/dockers/compose.yaml up -d
@@ -100,6 +127,7 @@ _seed:
 sort-deps:
     cargo fmt
     cargo sort --workspace
+    biome check . --write
 
 #  cargo doc --workspace --no-deps --document-private-items --open
 #  bacon doc --open

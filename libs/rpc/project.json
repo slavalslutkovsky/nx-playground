@@ -7,10 +7,7 @@
     "generate": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{projectRoot}/src/generated",
-        "{projectRoot}/types"
-      ],
+      "outputs": ["{projectRoot}/src/generated", "{projectRoot}/types"],
       "inputs": [
         "{workspaceRoot}/manifests/grpc/proto/**/*.proto",
         "{workspaceRoot}/manifests/grpc/buf.gen.yaml"
@@ -24,9 +21,7 @@
       "cache": true,
       "dependsOn": ["generate"],
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
+      "outputs": ["{workspaceRoot}/dist/target"],
       "options": {
         "command": "cargo check --package rpc",
         "cwd": "{workspaceRoot}"
@@ -35,9 +30,7 @@
     "test": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
+      "outputs": ["{workspaceRoot}/dist/target"],
       "options": {
         "command": "cargo test --package rpc",
         "cwd": "{workspaceRoot}"
