@@ -2,35 +2,22 @@
 // @generated from file apps/v1/vector.proto (package vector.v1, syntax proto3)
 /* eslint-disable */
 
-import type { Message } from '@bufbuild/protobuf';
-import type {
-  GenEnum,
-  GenFile,
-  GenMessage,
-  GenService,
-} from '@bufbuild/protobuf/codegenv2';
-import {
-  enumDesc,
-  fileDesc,
-  messageDesc,
-  serviceDesc,
-} from '@bufbuild/protobuf/codegenv2';
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file apps/v1/vector.proto.
  */
-export const file_apps_v1_vector: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'ChRhcHBzL3YxL3ZlY3Rvci5wcm90bxIJdmVjdG9yLnYxImsKDVRlbmFudENvbnRleHQSEgoKcHJvamVjdF9pZBgBIAEoDBIWCgluYW1lc3BhY2UYAiABKAlIAIgBARIUCgd1c2VyX2lkGAMgASgMSAGIAQFCDAoKX25hbWVzcGFjZUIKCghfdXNlcl9pZCKBAQoMVmVjdG9yQ29uZmlnEhEKCWRpbWVuc2lvbhgBIAEoDRIrCghkaXN0YW5jZRgCIAEoDjIZLnZlY3Rvci52MS5EaXN0YW5jZU1ldHJpYxIoCgRobnN3GAMgASgLMhUudmVjdG9yLnYxLkhuc3dDb25maWdIAIgBAUIHCgVfaG5zdyKIAQoKSG5zd0NvbmZpZxIOCgFtGAEgASgNSACIAQESGQoMZWZfY29uc3RydWN0GAIgASgNSAGIAQESIAoTZnVsbF9zY2FuX3RocmVzaG9sZBgDIAEoDUgCiAEBQgQKAl9tQg8KDV9lZl9jb25zdHJ1Y3RCFgoUX2Z1bGxfc2Nhbl90aHJlc2hvbGQihQEKF0NyZWF0ZUNvbGxlY3Rpb25SZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRInCgZjb25maWcYAyABKAsyFy52ZWN0b3IudjEuVmVjdG9yQ29uZmlnIkkKGENyZWF0ZUNvbGxlY3Rpb25SZXNwb25zZRIcChRmdWxsX2NvbGxlY3Rpb25fbmFtZRgBIAEoCRIPCgdjcmVhdGVkGAIgASgIIlwKF0RlbGV0ZUNvbGxlY3Rpb25SZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCSIrChhEZWxldGVDb2xsZWN0aW9uUmVzcG9uc2USDwoHZGVsZXRlZBgBIAEoCCJZChRHZXRDb2xsZWN0aW9uUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkirgEKDkNvbGxlY3Rpb25JbmZvEhcKD2NvbGxlY3Rpb25fbmFtZRgBIAEoCRIVCg12ZWN0b3JzX2NvdW50GAIgASgEEh0KFWluZGV4ZWRfdmVjdG9yc19jb3VudBgDIAEoBBIUCgxwb2ludHNfY291bnQYBCABKAQSJwoGY29uZmlnGAUgASgLMhcudmVjdG9yLnYxLlZlY3RvckNvbmZpZxIOCgZzdGF0dXMYBiABKAkiQAoVR2V0Q29sbGVjdGlvblJlc3BvbnNlEicKBGluZm8YASABKAsyGS52ZWN0b3IudjEuQ29sbGVjdGlvbkluZm8iQgoWTGlzdENvbGxlY3Rpb25zUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dCJJChdMaXN0Q29sbGVjdGlvbnNSZXNwb25zZRIuCgtjb2xsZWN0aW9ucxgBIAMoCzIZLnZlY3Rvci52MS5Db2xsZWN0aW9uSW5mbyIXCgdQYXlsb2FkEgwKBGpzb24YASABKAwiLwoMU3BhcnNlVmVjdG9yEg8KB2luZGljZXMYASADKA0SDgoGdmFsdWVzGAIgAygCIpMBCgZWZWN0b3ISCgoCaWQYASABKAwSDgoGdmFsdWVzGAIgAygCEigKB3BheWxvYWQYAyABKAsyEi52ZWN0b3IudjEuUGF5bG9hZEgAiAEBEiwKBnNwYXJzZRgEIAEoCzIXLnZlY3Rvci52MS5TcGFyc2VWZWN0b3JIAYgBAUIKCghfcGF5bG9hZEIJCgdfc3BhcnNlIoMBCg1VcHNlcnRSZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRIhCgZ2ZWN0b3IYAyABKAsyES52ZWN0b3IudjEuVmVjdG9yEgwKBHdhaXQYBCABKAgiLAoOVXBzZXJ0UmVzcG9uc2USCgoCaWQYASABKAwSDgoGc3RhdHVzGAIgASgJIokBChJVcHNlcnRCYXRjaFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEiIKB3ZlY3RvcnMYAyADKAsyES52ZWN0b3IudjEuVmVjdG9yEgwKBHdhaXQYBCABKAgiSgoTVXBzZXJ0QmF0Y2hSZXNwb25zZRILCgNpZHMYASADKAwSDgoGc3RhdHVzGAIgASgJEhYKDnVwc2VydGVkX2NvdW50GAMgASgNIqQBCgZGaWx0ZXISGQoMbXVzdF9oYXZlX2lkGAEgASgMSACIAQESKwoKbXVzdF9tYXRjaBgCIAEoCzISLnZlY3Rvci52MS5QYXlsb2FkSAGIAQESHQoQbmFtZXNwYWNlX2ZpbHRlchgDIAEoCUgCiAEBQg8KDV9tdXN0X2hhdmVfaWRCDQoLX211c3RfbWF0Y2hCEwoRX25hbWVzcGFjZV9maWx0ZXIiiQIKDVNlYXJjaFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEhQKDHF1ZXJ5X3ZlY3RvchgDIAMoAhINCgVsaW1pdBgEIAEoDRIcCg9zY29yZV90aHJlc2hvbGQYBSABKAJIAIgBARImCgZmaWx0ZXIYBiABKAsyES52ZWN0b3IudjEuRmlsdGVySAGIAQESFAoMd2l0aF92ZWN0b3JzGAcgASgIEhUKDXdpdGhfcGF5bG9hZHMYCCABKAhCEgoQX3Njb3JlX3RocmVzaG9sZEIJCgdfZmlsdGVyIpIBCgxTZWFyY2hSZXN1bHQSCgoCaWQYASABKAwSDQoFc2NvcmUYAiABKAISKAoHcGF5bG9hZBgDIAEoCzISLnZlY3Rvci52MS5QYXlsb2FkSACIAQESJgoGdmVjdG9yGAQgASgLMhEudmVjdG9yLnYxLlZlY3RvckgBiAEBQgoKCF9wYXlsb2FkQgkKB192ZWN0b3IiUgoOU2VhcmNoUmVzcG9uc2USKAoHcmVzdWx0cxgBIAMoCzIXLnZlY3Rvci52MS5TZWFyY2hSZXN1bHQSFgoOc2VhcmNoX3RpbWVfbXMYAiABKAQiiQEKCkdldFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEgsKA2lkcxgDIAMoDBIUCgx3aXRoX3ZlY3RvcnMYBCABKAgSFQoNd2l0aF9wYXlsb2FkcxgFIAEoCCIxCgtHZXRSZXNwb25zZRIiCgd2ZWN0b3JzGAEgAygLMhEudmVjdG9yLnYxLlZlY3RvciKgAQoNRGVsZXRlUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSCwoDaWRzGAMgAygMEiYKBmZpbHRlchgEIAEoCzIRLnZlY3Rvci52MS5GaWx0ZXJIAIgBARIMCgR3YWl0GAUgASgIQgkKB19maWx0ZXIiNwoORGVsZXRlUmVzcG9uc2USFQoNZGVsZXRlZF9jb3VudBgBIAEoDRIOCgZzdGF0dXMYAiABKAkiqgEKDEVtYmVkUmVxdWVzdBIMCgR0ZXh0GAEgASgJEi4KCHByb3ZpZGVyGAIgASgOMhwudmVjdG9yLnYxLkVtYmVkZGluZ1Byb3ZpZGVyEigKBW1vZGVsGAMgASgOMhkudmVjdG9yLnYxLkVtYmVkZGluZ01vZGVsEh0KEGN1c3RvbV9kaW1lbnNpb24YBCABKA1IAIgBAUITChFfY3VzdG9tX2RpbWVuc2lvbiJKCg1FbWJlZFJlc3BvbnNlEhEKCWVtYmVkZGluZxgBIAMoAhIRCglkaW1lbnNpb24YAiABKA0SEwoLdG9rZW5zX3VzZWQYAyABKA0isAEKEUVtYmVkQmF0Y2hSZXF1ZXN0Eg0KBXRleHRzGAEgAygJEi4KCHByb3ZpZGVyGAIgASgOMhwudmVjdG9yLnYxLkVtYmVkZGluZ1Byb3ZpZGVyEigKBW1vZGVsGAMgASgOMhkudmVjdG9yLnYxLkVtYmVkZGluZ01vZGVsEh0KEGN1c3RvbV9kaW1lbnNpb24YBCABKA1IAIgBAUITChFfY3VzdG9tX2RpbWVuc2lvbiJaChJFbWJlZEJhdGNoUmVzcG9uc2USLgoKZW1iZWRkaW5ncxgBIAMoCzIaLnZlY3Rvci52MS5FbWJlZGRpbmdSZXN1bHQSFAoMdG90YWxfdG9rZW5zGAIgASgNIjQKD0VtYmVkZGluZ1Jlc3VsdBIOCgZ2YWx1ZXMYASADKAISEQoJZGltZW5zaW9uGAIgASgNIpcCChpVcHNlcnRXaXRoRW1iZWRkaW5nUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSCgoCaWQYAyABKAwSDAoEdGV4dBgEIAEoCRIoCgdwYXlsb2FkGAUgASgLMhIudmVjdG9yLnYxLlBheWxvYWRIAIgBARIuCghwcm92aWRlchgGIAEoDjIcLnZlY3Rvci52MS5FbWJlZGRpbmdQcm92aWRlchIoCgVtb2RlbBgHIAEoDjIZLnZlY3Rvci52MS5FbWJlZGRpbmdNb2RlbBIMCgR3YWl0GAggASgIQgoKCF9wYXlsb2FkIugCChpTZWFyY2hXaXRoRW1iZWRkaW5nUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSDAoEdGV4dBgDIAEoCRINCgVsaW1pdBgEIAEoDRIcCg9zY29yZV90aHJlc2hvbGQYBSABKAJIAIgBARImCgZmaWx0ZXIYBiABKAsyES52ZWN0b3IudjEuRmlsdGVySAGIAQESFAoMd2l0aF92ZWN0b3JzGAcgASgIEhUKDXdpdGhfcGF5bG9hZHMYCCABKAgSLgoIcHJvdmlkZXIYCSABKA4yHC52ZWN0b3IudjEuRW1iZWRkaW5nUHJvdmlkZXISKAoFbW9kZWwYCiABKA4yGS52ZWN0b3IudjEuRW1iZWRkaW5nTW9kZWxCEgoQX3Njb3JlX3RocmVzaG9sZEIJCgdfZmlsdGVyIqICChBSZWNvbW1lbmRSZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRIUCgxwb3NpdGl2ZV9pZHMYAyADKAwSFAoMbmVnYXRpdmVfaWRzGAQgAygMEg0KBWxpbWl0GAUgASgNEhwKD3Njb3JlX3RocmVzaG9sZBgGIAEoAkgAiAEBEiYKBmZpbHRlchgHIAEoCzIRLnZlY3Rvci52MS5GaWx0ZXJIAYgBARIUCgx3aXRoX3ZlY3RvcnMYCCABKAgSFQoNd2l0aF9wYXlsb2FkcxgJIAEoCEISChBfc2NvcmVfdGhyZXNob2xkQgkKB19maWx0ZXIiVQoRUmVjb21tZW5kUmVzcG9uc2USKAoHcmVzdWx0cxgBIAMoCzIXLnZlY3Rvci52MS5TZWFyY2hSZXN1bHQSFgoOc2VhcmNoX3RpbWVfbXMYAiABKAQqtgEKEUVtYmVkZGluZ1Byb3ZpZGVyEhkKFUVNQkVERElOR19VTlNQRUNJRklFRBAAEhQKEEVNQkVERElOR19PUEVOQUkQARIXChNFTUJFRERJTkdfQU5USFJPUElDEAISEwoPRU1CRURESU5HX0xPQ0FMEAMSFgoSRU1CRURESU5HX1ZFUlRFWEFJEAQSFAoQRU1CRURESU5HX0NPSEVSRRAFEhQKEEVNQkVERElOR19WT1lBR0UQBirFBAoORW1iZWRkaW5nTW9kZWwSHwobRU1CRURESU5HX01PREVMX1VOU1BFQ0lGSUVEEAASJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR18zX1NNQUxMEAESJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR18zX0xBUkdFEAISJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR19BREFfMDAyEAMSGQoVRU1CRURESU5HX01PREVMX0dFQ0tPEAoSJgoiRU1CRURESU5HX01PREVMX0dFQ0tPX01VTFRJTElOR1VBTBALEiYKIkVNQkVERElOR19NT0RFTF9URVhUX0VNQkVERElOR18wMDQQDBImCiJFTUJFRERJTkdfTU9ERUxfVEVYVF9FTUJFRERJTkdfMDA1EA0SMwovRU1CRURESU5HX01PREVMX1RFWFRfTVVMVElMSU5HVUFMX0VNQkVERElOR18wMDIQDhIjCh9FTUJFRERJTkdfTU9ERUxfQ09IRVJFX0VNQkVEX1YzEBQSMAosRU1CRURESU5HX01PREVMX0NPSEVSRV9FTUJFRF9NVUxUSUxJTkdVQUxfVjMQFRIcChhFTUJFRERJTkdfTU9ERUxfVk9ZQUdFXzMQHhIhCh1FTUJFRERJTkdfTU9ERUxfVk9ZQUdFXzNfTElURRAfEiEKHUVNQkVERElOR19NT0RFTF9WT1lBR0VfQ09ERV8zECASGgoWRU1CRURESU5HX01PREVMX0NVU1RPTRBkKqwBCg5EaXN0YW5jZU1ldHJpYxIfChtESVNUQU5DRV9NRVRSSUNfVU5TUEVDSUZJRUQQABIaChZESVNUQU5DRV9NRVRSSUNfQ09TSU5FEAESHQoZRElTVEFOQ0VfTUVUUklDX0VVQ0xJREVBThACEh8KG0RJU1RBTkNFX01FVFJJQ19ET1RfUFJPRFVDVBADEh0KGURJU1RBTkNFX01FVFJJQ19NQU5IQVRUQU4QBDLVCAoNVmVjdG9yU2VydmljZRJdChBDcmVhdGVDb2xsZWN0aW9uEiIudmVjdG9yLnYxLkNyZWF0ZUNvbGxlY3Rpb25SZXF1ZXN0GiMudmVjdG9yLnYxLkNyZWF0ZUNvbGxlY3Rpb25SZXNwb25zZSIAEl0KEERlbGV0ZUNvbGxlY3Rpb24SIi52ZWN0b3IudjEuRGVsZXRlQ29sbGVjdGlvblJlcXVlc3QaIy52ZWN0b3IudjEuRGVsZXRlQ29sbGVjdGlvblJlc3BvbnNlIgASVAoNR2V0Q29sbGVjdGlvbhIfLnZlY3Rvci52MS5HZXRDb2xsZWN0aW9uUmVxdWVzdBogLnZlY3Rvci52MS5HZXRDb2xsZWN0aW9uUmVzcG9uc2UiABJaCg9MaXN0Q29sbGVjdGlvbnMSIS52ZWN0b3IudjEuTGlzdENvbGxlY3Rpb25zUmVxdWVzdBoiLnZlY3Rvci52MS5MaXN0Q29sbGVjdGlvbnNSZXNwb25zZSIAEj8KBlVwc2VydBIYLnZlY3Rvci52MS5VcHNlcnRSZXF1ZXN0GhkudmVjdG9yLnYxLlVwc2VydFJlc3BvbnNlIgASTgoLVXBzZXJ0QmF0Y2gSHS52ZWN0b3IudjEuVXBzZXJ0QmF0Y2hSZXF1ZXN0Gh4udmVjdG9yLnYxLlVwc2VydEJhdGNoUmVzcG9uc2UiABI/CgZTZWFyY2gSGC52ZWN0b3IudjEuU2VhcmNoUmVxdWVzdBoZLnZlY3Rvci52MS5TZWFyY2hSZXNwb25zZSIAEjYKA0dldBIVLnZlY3Rvci52MS5HZXRSZXF1ZXN0GhYudmVjdG9yLnYxLkdldFJlc3BvbnNlIgASPwoGRGVsZXRlEhgudmVjdG9yLnYxLkRlbGV0ZVJlcXVlc3QaGS52ZWN0b3IudjEuRGVsZXRlUmVzcG9uc2UiABI8CgVFbWJlZBIXLnZlY3Rvci52MS5FbWJlZFJlcXVlc3QaGC52ZWN0b3IudjEuRW1iZWRSZXNwb25zZSIAEksKCkVtYmVkQmF0Y2gSHC52ZWN0b3IudjEuRW1iZWRCYXRjaFJlcXVlc3QaHS52ZWN0b3IudjEuRW1iZWRCYXRjaFJlc3BvbnNlIgASWQoTVXBzZXJ0V2l0aEVtYmVkZGluZxIlLnZlY3Rvci52MS5VcHNlcnRXaXRoRW1iZWRkaW5nUmVxdWVzdBoZLnZlY3Rvci52MS5VcHNlcnRSZXNwb25zZSIAElkKE1NlYXJjaFdpdGhFbWJlZGRpbmcSJS52ZWN0b3IudjEuU2VhcmNoV2l0aEVtYmVkZGluZ1JlcXVlc3QaGS52ZWN0b3IudjEuU2VhcmNoUmVzcG9uc2UiABJICglSZWNvbW1lbmQSGy52ZWN0b3IudjEuUmVjb21tZW5kUmVxdWVzdBocLnZlY3Rvci52MS5SZWNvbW1lbmRSZXNwb25zZSIAQnEKDWNvbS52ZWN0b3IudjFCC1ZlY3RvclByb3RvUAFaDmdycGMvdmVjdG9yL3YxogIDVlhYqgIJVmVjdG9yLlYxygIJVmVjdG9yXFYx4gIVVmVjdG9yXFYxXEdQQk1ldGFkYXRh6gIKVmVjdG9yOjpWMWIGcHJvdG8z',
-  );
+export const file_apps_v1_vector: GenFile = /*@__PURE__*/
+  fileDesc("ChRhcHBzL3YxL3ZlY3Rvci5wcm90bxIJdmVjdG9yLnYxImsKDVRlbmFudENvbnRleHQSEgoKcHJvamVjdF9pZBgBIAEoDBIWCgluYW1lc3BhY2UYAiABKAlIAIgBARIUCgd1c2VyX2lkGAMgASgMSAGIAQFCDAoKX25hbWVzcGFjZUIKCghfdXNlcl9pZCKBAQoMVmVjdG9yQ29uZmlnEhEKCWRpbWVuc2lvbhgBIAEoDRIrCghkaXN0YW5jZRgCIAEoDjIZLnZlY3Rvci52MS5EaXN0YW5jZU1ldHJpYxIoCgRobnN3GAMgASgLMhUudmVjdG9yLnYxLkhuc3dDb25maWdIAIgBAUIHCgVfaG5zdyKIAQoKSG5zd0NvbmZpZxIOCgFtGAEgASgNSACIAQESGQoMZWZfY29uc3RydWN0GAIgASgNSAGIAQESIAoTZnVsbF9zY2FuX3RocmVzaG9sZBgDIAEoDUgCiAEBQgQKAl9tQg8KDV9lZl9jb25zdHJ1Y3RCFgoUX2Z1bGxfc2Nhbl90aHJlc2hvbGQihQEKF0NyZWF0ZUNvbGxlY3Rpb25SZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRInCgZjb25maWcYAyABKAsyFy52ZWN0b3IudjEuVmVjdG9yQ29uZmlnIkkKGENyZWF0ZUNvbGxlY3Rpb25SZXNwb25zZRIcChRmdWxsX2NvbGxlY3Rpb25fbmFtZRgBIAEoCRIPCgdjcmVhdGVkGAIgASgIIlwKF0RlbGV0ZUNvbGxlY3Rpb25SZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCSIrChhEZWxldGVDb2xsZWN0aW9uUmVzcG9uc2USDwoHZGVsZXRlZBgBIAEoCCJZChRHZXRDb2xsZWN0aW9uUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkirgEKDkNvbGxlY3Rpb25JbmZvEhcKD2NvbGxlY3Rpb25fbmFtZRgBIAEoCRIVCg12ZWN0b3JzX2NvdW50GAIgASgEEh0KFWluZGV4ZWRfdmVjdG9yc19jb3VudBgDIAEoBBIUCgxwb2ludHNfY291bnQYBCABKAQSJwoGY29uZmlnGAUgASgLMhcudmVjdG9yLnYxLlZlY3RvckNvbmZpZxIOCgZzdGF0dXMYBiABKAkiQAoVR2V0Q29sbGVjdGlvblJlc3BvbnNlEicKBGluZm8YASABKAsyGS52ZWN0b3IudjEuQ29sbGVjdGlvbkluZm8iQgoWTGlzdENvbGxlY3Rpb25zUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dCJJChdMaXN0Q29sbGVjdGlvbnNSZXNwb25zZRIuCgtjb2xsZWN0aW9ucxgBIAMoCzIZLnZlY3Rvci52MS5Db2xsZWN0aW9uSW5mbyIXCgdQYXlsb2FkEgwKBGpzb24YASABKAwiLwoMU3BhcnNlVmVjdG9yEg8KB2luZGljZXMYASADKA0SDgoGdmFsdWVzGAIgAygCIpMBCgZWZWN0b3ISCgoCaWQYASABKAwSDgoGdmFsdWVzGAIgAygCEigKB3BheWxvYWQYAyABKAsyEi52ZWN0b3IudjEuUGF5bG9hZEgAiAEBEiwKBnNwYXJzZRgEIAEoCzIXLnZlY3Rvci52MS5TcGFyc2VWZWN0b3JIAYgBAUIKCghfcGF5bG9hZEIJCgdfc3BhcnNlIoMBCg1VcHNlcnRSZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRIhCgZ2ZWN0b3IYAyABKAsyES52ZWN0b3IudjEuVmVjdG9yEgwKBHdhaXQYBCABKAgiLAoOVXBzZXJ0UmVzcG9uc2USCgoCaWQYASABKAwSDgoGc3RhdHVzGAIgASgJIokBChJVcHNlcnRCYXRjaFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEiIKB3ZlY3RvcnMYAyADKAsyES52ZWN0b3IudjEuVmVjdG9yEgwKBHdhaXQYBCABKAgiSgoTVXBzZXJ0QmF0Y2hSZXNwb25zZRILCgNpZHMYASADKAwSDgoGc3RhdHVzGAIgASgJEhYKDnVwc2VydGVkX2NvdW50GAMgASgNIqQBCgZGaWx0ZXISGQoMbXVzdF9oYXZlX2lkGAEgASgMSACIAQESKwoKbXVzdF9tYXRjaBgCIAEoCzISLnZlY3Rvci52MS5QYXlsb2FkSAGIAQESHQoQbmFtZXNwYWNlX2ZpbHRlchgDIAEoCUgCiAEBQg8KDV9tdXN0X2hhdmVfaWRCDQoLX211c3RfbWF0Y2hCEwoRX25hbWVzcGFjZV9maWx0ZXIiiQIKDVNlYXJjaFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEhQKDHF1ZXJ5X3ZlY3RvchgDIAMoAhINCgVsaW1pdBgEIAEoDRIcCg9zY29yZV90aHJlc2hvbGQYBSABKAJIAIgBARImCgZmaWx0ZXIYBiABKAsyES52ZWN0b3IudjEuRmlsdGVySAGIAQESFAoMd2l0aF92ZWN0b3JzGAcgASgIEhUKDXdpdGhfcGF5bG9hZHMYCCABKAhCEgoQX3Njb3JlX3RocmVzaG9sZEIJCgdfZmlsdGVyIpIBCgxTZWFyY2hSZXN1bHQSCgoCaWQYASABKAwSDQoFc2NvcmUYAiABKAISKAoHcGF5bG9hZBgDIAEoCzISLnZlY3Rvci52MS5QYXlsb2FkSACIAQESJgoGdmVjdG9yGAQgASgLMhEudmVjdG9yLnYxLlZlY3RvckgBiAEBQgoKCF9wYXlsb2FkQgkKB192ZWN0b3IiUgoOU2VhcmNoUmVzcG9uc2USKAoHcmVzdWx0cxgBIAMoCzIXLnZlY3Rvci52MS5TZWFyY2hSZXN1bHQSFgoOc2VhcmNoX3RpbWVfbXMYAiABKAQiiQEKCkdldFJlcXVlc3QSKAoGdGVuYW50GAEgASgLMhgudmVjdG9yLnYxLlRlbmFudENvbnRleHQSFwoPY29sbGVjdGlvbl9uYW1lGAIgASgJEgsKA2lkcxgDIAMoDBIUCgx3aXRoX3ZlY3RvcnMYBCABKAgSFQoNd2l0aF9wYXlsb2FkcxgFIAEoCCIxCgtHZXRSZXNwb25zZRIiCgd2ZWN0b3JzGAEgAygLMhEudmVjdG9yLnYxLlZlY3RvciKgAQoNRGVsZXRlUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSCwoDaWRzGAMgAygMEiYKBmZpbHRlchgEIAEoCzIRLnZlY3Rvci52MS5GaWx0ZXJIAIgBARIMCgR3YWl0GAUgASgIQgkKB19maWx0ZXIiNwoORGVsZXRlUmVzcG9uc2USFQoNZGVsZXRlZF9jb3VudBgBIAEoDRIOCgZzdGF0dXMYAiABKAkiqgEKDEVtYmVkUmVxdWVzdBIMCgR0ZXh0GAEgASgJEi4KCHByb3ZpZGVyGAIgASgOMhwudmVjdG9yLnYxLkVtYmVkZGluZ1Byb3ZpZGVyEigKBW1vZGVsGAMgASgOMhkudmVjdG9yLnYxLkVtYmVkZGluZ01vZGVsEh0KEGN1c3RvbV9kaW1lbnNpb24YBCABKA1IAIgBAUITChFfY3VzdG9tX2RpbWVuc2lvbiJKCg1FbWJlZFJlc3BvbnNlEhEKCWVtYmVkZGluZxgBIAMoAhIRCglkaW1lbnNpb24YAiABKA0SEwoLdG9rZW5zX3VzZWQYAyABKA0isAEKEUVtYmVkQmF0Y2hSZXF1ZXN0Eg0KBXRleHRzGAEgAygJEi4KCHByb3ZpZGVyGAIgASgOMhwudmVjdG9yLnYxLkVtYmVkZGluZ1Byb3ZpZGVyEigKBW1vZGVsGAMgASgOMhkudmVjdG9yLnYxLkVtYmVkZGluZ01vZGVsEh0KEGN1c3RvbV9kaW1lbnNpb24YBCABKA1IAIgBAUITChFfY3VzdG9tX2RpbWVuc2lvbiJaChJFbWJlZEJhdGNoUmVzcG9uc2USLgoKZW1iZWRkaW5ncxgBIAMoCzIaLnZlY3Rvci52MS5FbWJlZGRpbmdSZXN1bHQSFAoMdG90YWxfdG9rZW5zGAIgASgNIjQKD0VtYmVkZGluZ1Jlc3VsdBIOCgZ2YWx1ZXMYASADKAISEQoJZGltZW5zaW9uGAIgASgNIpcCChpVcHNlcnRXaXRoRW1iZWRkaW5nUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSCgoCaWQYAyABKAwSDAoEdGV4dBgEIAEoCRIoCgdwYXlsb2FkGAUgASgLMhIudmVjdG9yLnYxLlBheWxvYWRIAIgBARIuCghwcm92aWRlchgGIAEoDjIcLnZlY3Rvci52MS5FbWJlZGRpbmdQcm92aWRlchIoCgVtb2RlbBgHIAEoDjIZLnZlY3Rvci52MS5FbWJlZGRpbmdNb2RlbBIMCgR3YWl0GAggASgIQgoKCF9wYXlsb2FkIugCChpTZWFyY2hXaXRoRW1iZWRkaW5nUmVxdWVzdBIoCgZ0ZW5hbnQYASABKAsyGC52ZWN0b3IudjEuVGVuYW50Q29udGV4dBIXCg9jb2xsZWN0aW9uX25hbWUYAiABKAkSDAoEdGV4dBgDIAEoCRINCgVsaW1pdBgEIAEoDRIcCg9zY29yZV90aHJlc2hvbGQYBSABKAJIAIgBARImCgZmaWx0ZXIYBiABKAsyES52ZWN0b3IudjEuRmlsdGVySAGIAQESFAoMd2l0aF92ZWN0b3JzGAcgASgIEhUKDXdpdGhfcGF5bG9hZHMYCCABKAgSLgoIcHJvdmlkZXIYCSABKA4yHC52ZWN0b3IudjEuRW1iZWRkaW5nUHJvdmlkZXISKAoFbW9kZWwYCiABKA4yGS52ZWN0b3IudjEuRW1iZWRkaW5nTW9kZWxCEgoQX3Njb3JlX3RocmVzaG9sZEIJCgdfZmlsdGVyIqICChBSZWNvbW1lbmRSZXF1ZXN0EigKBnRlbmFudBgBIAEoCzIYLnZlY3Rvci52MS5UZW5hbnRDb250ZXh0EhcKD2NvbGxlY3Rpb25fbmFtZRgCIAEoCRIUCgxwb3NpdGl2ZV9pZHMYAyADKAwSFAoMbmVnYXRpdmVfaWRzGAQgAygMEg0KBWxpbWl0GAUgASgNEhwKD3Njb3JlX3RocmVzaG9sZBgGIAEoAkgAiAEBEiYKBmZpbHRlchgHIAEoCzIRLnZlY3Rvci52MS5GaWx0ZXJIAYgBARIUCgx3aXRoX3ZlY3RvcnMYCCABKAgSFQoNd2l0aF9wYXlsb2FkcxgJIAEoCEISChBfc2NvcmVfdGhyZXNob2xkQgkKB19maWx0ZXIiVQoRUmVjb21tZW5kUmVzcG9uc2USKAoHcmVzdWx0cxgBIAMoCzIXLnZlY3Rvci52MS5TZWFyY2hSZXN1bHQSFgoOc2VhcmNoX3RpbWVfbXMYAiABKAQqtgEKEUVtYmVkZGluZ1Byb3ZpZGVyEhkKFUVNQkVERElOR19VTlNQRUNJRklFRBAAEhQKEEVNQkVERElOR19PUEVOQUkQARIXChNFTUJFRERJTkdfQU5USFJPUElDEAISEwoPRU1CRURESU5HX0xPQ0FMEAMSFgoSRU1CRURESU5HX1ZFUlRFWEFJEAQSFAoQRU1CRURESU5HX0NPSEVSRRAFEhQKEEVNQkVERElOR19WT1lBR0UQBirFBAoORW1iZWRkaW5nTW9kZWwSHwobRU1CRURESU5HX01PREVMX1VOU1BFQ0lGSUVEEAASJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR18zX1NNQUxMEAESJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR18zX0xBUkdFEAISJQohRU1CRURESU5HX01PREVMX0VNQkVERElOR19BREFfMDAyEAMSGQoVRU1CRURESU5HX01PREVMX0dFQ0tPEAoSJgoiRU1CRURESU5HX01PREVMX0dFQ0tPX01VTFRJTElOR1VBTBALEiYKIkVNQkVERElOR19NT0RFTF9URVhUX0VNQkVERElOR18wMDQQDBImCiJFTUJFRERJTkdfTU9ERUxfVEVYVF9FTUJFRERJTkdfMDA1EA0SMwovRU1CRURESU5HX01PREVMX1RFWFRfTVVMVElMSU5HVUFMX0VNQkVERElOR18wMDIQDhIjCh9FTUJFRERJTkdfTU9ERUxfQ09IRVJFX0VNQkVEX1YzEBQSMAosRU1CRURESU5HX01PREVMX0NPSEVSRV9FTUJFRF9NVUxUSUxJTkdVQUxfVjMQFRIcChhFTUJFRERJTkdfTU9ERUxfVk9ZQUdFXzMQHhIhCh1FTUJFRERJTkdfTU9ERUxfVk9ZQUdFXzNfTElURRAfEiEKHUVNQkVERElOR19NT0RFTF9WT1lBR0VfQ09ERV8zECASGgoWRU1CRURESU5HX01PREVMX0NVU1RPTRBkKqwBCg5EaXN0YW5jZU1ldHJpYxIfChtESVNUQU5DRV9NRVRSSUNfVU5TUEVDSUZJRUQQABIaChZESVNUQU5DRV9NRVRSSUNfQ09TSU5FEAESHQoZRElTVEFOQ0VfTUVUUklDX0VVQ0xJREVBThACEh8KG0RJU1RBTkNFX01FVFJJQ19ET1RfUFJPRFVDVBADEh0KGURJU1RBTkNFX01FVFJJQ19NQU5IQVRUQU4QBDLVCAoNVmVjdG9yU2VydmljZRJdChBDcmVhdGVDb2xsZWN0aW9uEiIudmVjdG9yLnYxLkNyZWF0ZUNvbGxlY3Rpb25SZXF1ZXN0GiMudmVjdG9yLnYxLkNyZWF0ZUNvbGxlY3Rpb25SZXNwb25zZSIAEl0KEERlbGV0ZUNvbGxlY3Rpb24SIi52ZWN0b3IudjEuRGVsZXRlQ29sbGVjdGlvblJlcXVlc3QaIy52ZWN0b3IudjEuRGVsZXRlQ29sbGVjdGlvblJlc3BvbnNlIgASVAoNR2V0Q29sbGVjdGlvbhIfLnZlY3Rvci52MS5HZXRDb2xsZWN0aW9uUmVxdWVzdBogLnZlY3Rvci52MS5HZXRDb2xsZWN0aW9uUmVzcG9uc2UiABJaCg9MaXN0Q29sbGVjdGlvbnMSIS52ZWN0b3IudjEuTGlzdENvbGxlY3Rpb25zUmVxdWVzdBoiLnZlY3Rvci52MS5MaXN0Q29sbGVjdGlvbnNSZXNwb25zZSIAEj8KBlVwc2VydBIYLnZlY3Rvci52MS5VcHNlcnRSZXF1ZXN0GhkudmVjdG9yLnYxLlVwc2VydFJlc3BvbnNlIgASTgoLVXBzZXJ0QmF0Y2gSHS52ZWN0b3IudjEuVXBzZXJ0QmF0Y2hSZXF1ZXN0Gh4udmVjdG9yLnYxLlVwc2VydEJhdGNoUmVzcG9uc2UiABI/CgZTZWFyY2gSGC52ZWN0b3IudjEuU2VhcmNoUmVxdWVzdBoZLnZlY3Rvci52MS5TZWFyY2hSZXNwb25zZSIAEjYKA0dldBIVLnZlY3Rvci52MS5HZXRSZXF1ZXN0GhYudmVjdG9yLnYxLkdldFJlc3BvbnNlIgASPwoGRGVsZXRlEhgudmVjdG9yLnYxLkRlbGV0ZVJlcXVlc3QaGS52ZWN0b3IudjEuRGVsZXRlUmVzcG9uc2UiABI8CgVFbWJlZBIXLnZlY3Rvci52MS5FbWJlZFJlcXVlc3QaGC52ZWN0b3IudjEuRW1iZWRSZXNwb25zZSIAEksKCkVtYmVkQmF0Y2gSHC52ZWN0b3IudjEuRW1iZWRCYXRjaFJlcXVlc3QaHS52ZWN0b3IudjEuRW1iZWRCYXRjaFJlc3BvbnNlIgASWQoTVXBzZXJ0V2l0aEVtYmVkZGluZxIlLnZlY3Rvci52MS5VcHNlcnRXaXRoRW1iZWRkaW5nUmVxdWVzdBoZLnZlY3Rvci52MS5VcHNlcnRSZXNwb25zZSIAElkKE1NlYXJjaFdpdGhFbWJlZGRpbmcSJS52ZWN0b3IudjEuU2VhcmNoV2l0aEVtYmVkZGluZ1JlcXVlc3QaGS52ZWN0b3IudjEuU2VhcmNoUmVzcG9uc2UiABJICglSZWNvbW1lbmQSGy52ZWN0b3IudjEuUmVjb21tZW5kUmVxdWVzdBocLnZlY3Rvci52MS5SZWNvbW1lbmRSZXNwb25zZSIAQnEKDWNvbS52ZWN0b3IudjFCC1ZlY3RvclByb3RvUAFaDmdycGMvdmVjdG9yL3YxogIDVlhYqgIJVmVjdG9yLlYxygIJVmVjdG9yXFYx4gIVVmVjdG9yXFYxXEdQQk1ldGFkYXRh6gIKVmVjdG9yOjpWMWIGcHJvdG8z");
 
 /**
  * Tenant context for all operations
  *
  * @generated from message vector.v1.TenantContext
  */
-export type TenantContext = Message<'vector.v1.TenantContext'> & {
+export type TenantContext = Message<"vector.v1.TenantContext"> & {
   /**
    * UUID as bytes (16 bytes)
    *
@@ -57,14 +44,13 @@ export type TenantContext = Message<'vector.v1.TenantContext'> & {
  * Describes the message vector.v1.TenantContext.
  * Use `create(TenantContextSchema)` to create a new message.
  */
-export const TenantContextSchema: GenMessage<TenantContext> =
-  /*@__PURE__*/
+export const TenantContextSchema: GenMessage<TenantContext> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 0);
 
 /**
  * @generated from message vector.v1.VectorConfig
  */
-export type VectorConfig = Message<'vector.v1.VectorConfig'> & {
+export type VectorConfig = Message<"vector.v1.VectorConfig"> & {
   /**
    * Vector dimension (1536, 3072, etc.)
    *
@@ -91,14 +77,13 @@ export type VectorConfig = Message<'vector.v1.VectorConfig'> & {
  * Describes the message vector.v1.VectorConfig.
  * Use `create(VectorConfigSchema)` to create a new message.
  */
-export const VectorConfigSchema: GenMessage<VectorConfig> =
-  /*@__PURE__*/
+export const VectorConfigSchema: GenMessage<VectorConfig> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 1);
 
 /**
  * @generated from message vector.v1.HnswConfig
  */
-export type HnswConfig = Message<'vector.v1.HnswConfig'> & {
+export type HnswConfig = Message<"vector.v1.HnswConfig"> & {
   /**
    * Max connections per layer (default: 16)
    *
@@ -125,112 +110,103 @@ export type HnswConfig = Message<'vector.v1.HnswConfig'> & {
  * Describes the message vector.v1.HnswConfig.
  * Use `create(HnswConfigSchema)` to create a new message.
  */
-export const HnswConfigSchema: GenMessage<HnswConfig> =
-  /*@__PURE__*/
+export const HnswConfigSchema: GenMessage<HnswConfig> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 2);
 
 /**
  * @generated from message vector.v1.CreateCollectionRequest
  */
-export type CreateCollectionRequest =
-  Message<'vector.v1.CreateCollectionRequest'> & {
-    /**
-     * @generated from field: vector.v1.TenantContext tenant = 1;
-     */
-    tenant?: TenantContext;
+export type CreateCollectionRequest = Message<"vector.v1.CreateCollectionRequest"> & {
+  /**
+   * @generated from field: vector.v1.TenantContext tenant = 1;
+   */
+  tenant?: TenantContext;
 
-    /**
-     * @generated from field: string collection_name = 2;
-     */
-    collectionName: string;
+  /**
+   * @generated from field: string collection_name = 2;
+   */
+  collectionName: string;
 
-    /**
-     * @generated from field: vector.v1.VectorConfig config = 3;
-     */
-    config?: VectorConfig;
-  };
+  /**
+   * @generated from field: vector.v1.VectorConfig config = 3;
+   */
+  config?: VectorConfig;
+};
 
 /**
  * Describes the message vector.v1.CreateCollectionRequest.
  * Use `create(CreateCollectionRequestSchema)` to create a new message.
  */
-export const CreateCollectionRequestSchema: GenMessage<CreateCollectionRequest> =
-  /*@__PURE__*/
+export const CreateCollectionRequestSchema: GenMessage<CreateCollectionRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 3);
 
 /**
  * @generated from message vector.v1.CreateCollectionResponse
  */
-export type CreateCollectionResponse =
-  Message<'vector.v1.CreateCollectionResponse'> & {
-    /**
-     * Tenant-prefixed collection name
-     *
-     * @generated from field: string full_collection_name = 1;
-     */
-    fullCollectionName: string;
+export type CreateCollectionResponse = Message<"vector.v1.CreateCollectionResponse"> & {
+  /**
+   * Tenant-prefixed collection name
+   *
+   * @generated from field: string full_collection_name = 1;
+   */
+  fullCollectionName: string;
 
-    /**
-     * @generated from field: bool created = 2;
-     */
-    created: boolean;
-  };
+  /**
+   * @generated from field: bool created = 2;
+   */
+  created: boolean;
+};
 
 /**
  * Describes the message vector.v1.CreateCollectionResponse.
  * Use `create(CreateCollectionResponseSchema)` to create a new message.
  */
-export const CreateCollectionResponseSchema: GenMessage<CreateCollectionResponse> =
-  /*@__PURE__*/
+export const CreateCollectionResponseSchema: GenMessage<CreateCollectionResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 4);
 
 /**
  * @generated from message vector.v1.DeleteCollectionRequest
  */
-export type DeleteCollectionRequest =
-  Message<'vector.v1.DeleteCollectionRequest'> & {
-    /**
-     * @generated from field: vector.v1.TenantContext tenant = 1;
-     */
-    tenant?: TenantContext;
+export type DeleteCollectionRequest = Message<"vector.v1.DeleteCollectionRequest"> & {
+  /**
+   * @generated from field: vector.v1.TenantContext tenant = 1;
+   */
+  tenant?: TenantContext;
 
-    /**
-     * @generated from field: string collection_name = 2;
-     */
-    collectionName: string;
-  };
+  /**
+   * @generated from field: string collection_name = 2;
+   */
+  collectionName: string;
+};
 
 /**
  * Describes the message vector.v1.DeleteCollectionRequest.
  * Use `create(DeleteCollectionRequestSchema)` to create a new message.
  */
-export const DeleteCollectionRequestSchema: GenMessage<DeleteCollectionRequest> =
-  /*@__PURE__*/
+export const DeleteCollectionRequestSchema: GenMessage<DeleteCollectionRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 5);
 
 /**
  * @generated from message vector.v1.DeleteCollectionResponse
  */
-export type DeleteCollectionResponse =
-  Message<'vector.v1.DeleteCollectionResponse'> & {
-    /**
-     * @generated from field: bool deleted = 1;
-     */
-    deleted: boolean;
-  };
+export type DeleteCollectionResponse = Message<"vector.v1.DeleteCollectionResponse"> & {
+  /**
+   * @generated from field: bool deleted = 1;
+   */
+  deleted: boolean;
+};
 
 /**
  * Describes the message vector.v1.DeleteCollectionResponse.
  * Use `create(DeleteCollectionResponseSchema)` to create a new message.
  */
-export const DeleteCollectionResponseSchema: GenMessage<DeleteCollectionResponse> =
-  /*@__PURE__*/
+export const DeleteCollectionResponseSchema: GenMessage<DeleteCollectionResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 6);
 
 /**
  * @generated from message vector.v1.GetCollectionRequest
  */
-export type GetCollectionRequest = Message<'vector.v1.GetCollectionRequest'> & {
+export type GetCollectionRequest = Message<"vector.v1.GetCollectionRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -246,14 +222,13 @@ export type GetCollectionRequest = Message<'vector.v1.GetCollectionRequest'> & {
  * Describes the message vector.v1.GetCollectionRequest.
  * Use `create(GetCollectionRequestSchema)` to create a new message.
  */
-export const GetCollectionRequestSchema: GenMessage<GetCollectionRequest> =
-  /*@__PURE__*/
+export const GetCollectionRequestSchema: GenMessage<GetCollectionRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 7);
 
 /**
  * @generated from message vector.v1.CollectionInfo
  */
-export type CollectionInfo = Message<'vector.v1.CollectionInfo'> & {
+export type CollectionInfo = Message<"vector.v1.CollectionInfo"> & {
   /**
    * @generated from field: string collection_name = 1;
    */
@@ -291,65 +266,58 @@ export type CollectionInfo = Message<'vector.v1.CollectionInfo'> & {
  * Describes the message vector.v1.CollectionInfo.
  * Use `create(CollectionInfoSchema)` to create a new message.
  */
-export const CollectionInfoSchema: GenMessage<CollectionInfo> =
-  /*@__PURE__*/
+export const CollectionInfoSchema: GenMessage<CollectionInfo> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 8);
 
 /**
  * @generated from message vector.v1.GetCollectionResponse
  */
-export type GetCollectionResponse =
-  Message<'vector.v1.GetCollectionResponse'> & {
-    /**
-     * @generated from field: vector.v1.CollectionInfo info = 1;
-     */
-    info?: CollectionInfo;
-  };
+export type GetCollectionResponse = Message<"vector.v1.GetCollectionResponse"> & {
+  /**
+   * @generated from field: vector.v1.CollectionInfo info = 1;
+   */
+  info?: CollectionInfo;
+};
 
 /**
  * Describes the message vector.v1.GetCollectionResponse.
  * Use `create(GetCollectionResponseSchema)` to create a new message.
  */
-export const GetCollectionResponseSchema: GenMessage<GetCollectionResponse> =
-  /*@__PURE__*/
+export const GetCollectionResponseSchema: GenMessage<GetCollectionResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 9);
 
 /**
  * @generated from message vector.v1.ListCollectionsRequest
  */
-export type ListCollectionsRequest =
-  Message<'vector.v1.ListCollectionsRequest'> & {
-    /**
-     * @generated from field: vector.v1.TenantContext tenant = 1;
-     */
-    tenant?: TenantContext;
-  };
+export type ListCollectionsRequest = Message<"vector.v1.ListCollectionsRequest"> & {
+  /**
+   * @generated from field: vector.v1.TenantContext tenant = 1;
+   */
+  tenant?: TenantContext;
+};
 
 /**
  * Describes the message vector.v1.ListCollectionsRequest.
  * Use `create(ListCollectionsRequestSchema)` to create a new message.
  */
-export const ListCollectionsRequestSchema: GenMessage<ListCollectionsRequest> =
-  /*@__PURE__*/
+export const ListCollectionsRequestSchema: GenMessage<ListCollectionsRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 10);
 
 /**
  * @generated from message vector.v1.ListCollectionsResponse
  */
-export type ListCollectionsResponse =
-  Message<'vector.v1.ListCollectionsResponse'> & {
-    /**
-     * @generated from field: repeated vector.v1.CollectionInfo collections = 1;
-     */
-    collections: CollectionInfo[];
-  };
+export type ListCollectionsResponse = Message<"vector.v1.ListCollectionsResponse"> & {
+  /**
+   * @generated from field: repeated vector.v1.CollectionInfo collections = 1;
+   */
+  collections: CollectionInfo[];
+};
 
 /**
  * Describes the message vector.v1.ListCollectionsResponse.
  * Use `create(ListCollectionsResponseSchema)` to create a new message.
  */
-export const ListCollectionsResponseSchema: GenMessage<ListCollectionsResponse> =
-  /*@__PURE__*/
+export const ListCollectionsResponseSchema: GenMessage<ListCollectionsResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 11);
 
 /**
@@ -357,7 +325,7 @@ export const ListCollectionsResponseSchema: GenMessage<ListCollectionsResponse> 
  *
  * @generated from message vector.v1.Payload
  */
-export type Payload = Message<'vector.v1.Payload'> & {
+export type Payload = Message<"vector.v1.Payload"> & {
   /**
    * JSON serialized payload
    *
@@ -370,8 +338,7 @@ export type Payload = Message<'vector.v1.Payload'> & {
  * Describes the message vector.v1.Payload.
  * Use `create(PayloadSchema)` to create a new message.
  */
-export const PayloadSchema: GenMessage<Payload> =
-  /*@__PURE__*/
+export const PayloadSchema: GenMessage<Payload> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 12);
 
 /**
@@ -379,7 +346,7 @@ export const PayloadSchema: GenMessage<Payload> =
  *
  * @generated from message vector.v1.SparseVector
  */
-export type SparseVector = Message<'vector.v1.SparseVector'> & {
+export type SparseVector = Message<"vector.v1.SparseVector"> & {
   /**
    * @generated from field: repeated uint32 indices = 1;
    */
@@ -395,8 +362,7 @@ export type SparseVector = Message<'vector.v1.SparseVector'> & {
  * Describes the message vector.v1.SparseVector.
  * Use `create(SparseVectorSchema)` to create a new message.
  */
-export const SparseVectorSchema: GenMessage<SparseVector> =
-  /*@__PURE__*/
+export const SparseVectorSchema: GenMessage<SparseVector> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 13);
 
 /**
@@ -404,7 +370,7 @@ export const SparseVectorSchema: GenMessage<SparseVector> =
  *
  * @generated from message vector.v1.Vector
  */
-export type Vector = Message<'vector.v1.Vector'> & {
+export type Vector = Message<"vector.v1.Vector"> & {
   /**
    * UUID as bytes
    *
@@ -438,14 +404,13 @@ export type Vector = Message<'vector.v1.Vector'> & {
  * Describes the message vector.v1.Vector.
  * Use `create(VectorSchema)` to create a new message.
  */
-export const VectorSchema: GenMessage<Vector> =
-  /*@__PURE__*/
+export const VectorSchema: GenMessage<Vector> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 14);
 
 /**
  * @generated from message vector.v1.UpsertRequest
  */
-export type UpsertRequest = Message<'vector.v1.UpsertRequest'> & {
+export type UpsertRequest = Message<"vector.v1.UpsertRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -473,14 +438,13 @@ export type UpsertRequest = Message<'vector.v1.UpsertRequest'> & {
  * Describes the message vector.v1.UpsertRequest.
  * Use `create(UpsertRequestSchema)` to create a new message.
  */
-export const UpsertRequestSchema: GenMessage<UpsertRequest> =
-  /*@__PURE__*/
+export const UpsertRequestSchema: GenMessage<UpsertRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 15);
 
 /**
  * @generated from message vector.v1.UpsertResponse
  */
-export type UpsertResponse = Message<'vector.v1.UpsertResponse'> & {
+export type UpsertResponse = Message<"vector.v1.UpsertResponse"> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -498,14 +462,13 @@ export type UpsertResponse = Message<'vector.v1.UpsertResponse'> & {
  * Describes the message vector.v1.UpsertResponse.
  * Use `create(UpsertResponseSchema)` to create a new message.
  */
-export const UpsertResponseSchema: GenMessage<UpsertResponse> =
-  /*@__PURE__*/
+export const UpsertResponseSchema: GenMessage<UpsertResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 16);
 
 /**
  * @generated from message vector.v1.UpsertBatchRequest
  */
-export type UpsertBatchRequest = Message<'vector.v1.UpsertBatchRequest'> & {
+export type UpsertBatchRequest = Message<"vector.v1.UpsertBatchRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -531,14 +494,13 @@ export type UpsertBatchRequest = Message<'vector.v1.UpsertBatchRequest'> & {
  * Describes the message vector.v1.UpsertBatchRequest.
  * Use `create(UpsertBatchRequestSchema)` to create a new message.
  */
-export const UpsertBatchRequestSchema: GenMessage<UpsertBatchRequest> =
-  /*@__PURE__*/
+export const UpsertBatchRequestSchema: GenMessage<UpsertBatchRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 17);
 
 /**
  * @generated from message vector.v1.UpsertBatchResponse
  */
-export type UpsertBatchResponse = Message<'vector.v1.UpsertBatchResponse'> & {
+export type UpsertBatchResponse = Message<"vector.v1.UpsertBatchResponse"> & {
   /**
    * @generated from field: repeated bytes ids = 1;
    */
@@ -559,8 +521,7 @@ export type UpsertBatchResponse = Message<'vector.v1.UpsertBatchResponse'> & {
  * Describes the message vector.v1.UpsertBatchResponse.
  * Use `create(UpsertBatchResponseSchema)` to create a new message.
  */
-export const UpsertBatchResponseSchema: GenMessage<UpsertBatchResponse> =
-  /*@__PURE__*/
+export const UpsertBatchResponseSchema: GenMessage<UpsertBatchResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 18);
 
 /**
@@ -568,7 +529,7 @@ export const UpsertBatchResponseSchema: GenMessage<UpsertBatchResponse> =
  *
  * @generated from message vector.v1.Filter
  */
-export type Filter = Message<'vector.v1.Filter'> & {
+export type Filter = Message<"vector.v1.Filter"> & {
   /**
    * Filter by specific ID
    *
@@ -595,14 +556,13 @@ export type Filter = Message<'vector.v1.Filter'> & {
  * Describes the message vector.v1.Filter.
  * Use `create(FilterSchema)` to create a new message.
  */
-export const FilterSchema: GenMessage<Filter> =
-  /*@__PURE__*/
+export const FilterSchema: GenMessage<Filter> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 19);
 
 /**
  * @generated from message vector.v1.SearchRequest
  */
-export type SearchRequest = Message<'vector.v1.SearchRequest'> & {
+export type SearchRequest = Message<"vector.v1.SearchRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -660,14 +620,13 @@ export type SearchRequest = Message<'vector.v1.SearchRequest'> & {
  * Describes the message vector.v1.SearchRequest.
  * Use `create(SearchRequestSchema)` to create a new message.
  */
-export const SearchRequestSchema: GenMessage<SearchRequest> =
-  /*@__PURE__*/
+export const SearchRequestSchema: GenMessage<SearchRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 20);
 
 /**
  * @generated from message vector.v1.SearchResult
  */
-export type SearchResult = Message<'vector.v1.SearchResult'> & {
+export type SearchResult = Message<"vector.v1.SearchResult"> & {
   /**
    * @generated from field: bytes id = 1;
    */
@@ -693,14 +652,13 @@ export type SearchResult = Message<'vector.v1.SearchResult'> & {
  * Describes the message vector.v1.SearchResult.
  * Use `create(SearchResultSchema)` to create a new message.
  */
-export const SearchResultSchema: GenMessage<SearchResult> =
-  /*@__PURE__*/
+export const SearchResultSchema: GenMessage<SearchResult> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 21);
 
 /**
  * @generated from message vector.v1.SearchResponse
  */
-export type SearchResponse = Message<'vector.v1.SearchResponse'> & {
+export type SearchResponse = Message<"vector.v1.SearchResponse"> & {
   /**
    * @generated from field: repeated vector.v1.SearchResult results = 1;
    */
@@ -718,14 +676,13 @@ export type SearchResponse = Message<'vector.v1.SearchResponse'> & {
  * Describes the message vector.v1.SearchResponse.
  * Use `create(SearchResponseSchema)` to create a new message.
  */
-export const SearchResponseSchema: GenMessage<SearchResponse> =
-  /*@__PURE__*/
+export const SearchResponseSchema: GenMessage<SearchResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 22);
 
 /**
  * @generated from message vector.v1.GetRequest
  */
-export type GetRequest = Message<'vector.v1.GetRequest'> & {
+export type GetRequest = Message<"vector.v1.GetRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -758,14 +715,13 @@ export type GetRequest = Message<'vector.v1.GetRequest'> & {
  * Describes the message vector.v1.GetRequest.
  * Use `create(GetRequestSchema)` to create a new message.
  */
-export const GetRequestSchema: GenMessage<GetRequest> =
-  /*@__PURE__*/
+export const GetRequestSchema: GenMessage<GetRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 23);
 
 /**
  * @generated from message vector.v1.GetResponse
  */
-export type GetResponse = Message<'vector.v1.GetResponse'> & {
+export type GetResponse = Message<"vector.v1.GetResponse"> & {
   /**
    * @generated from field: repeated vector.v1.Vector vectors = 1;
    */
@@ -776,14 +732,13 @@ export type GetResponse = Message<'vector.v1.GetResponse'> & {
  * Describes the message vector.v1.GetResponse.
  * Use `create(GetResponseSchema)` to create a new message.
  */
-export const GetResponseSchema: GenMessage<GetResponse> =
-  /*@__PURE__*/
+export const GetResponseSchema: GenMessage<GetResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 24);
 
 /**
  * @generated from message vector.v1.DeleteRequest
  */
-export type DeleteRequest = Message<'vector.v1.DeleteRequest'> & {
+export type DeleteRequest = Message<"vector.v1.DeleteRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -818,14 +773,13 @@ export type DeleteRequest = Message<'vector.v1.DeleteRequest'> & {
  * Describes the message vector.v1.DeleteRequest.
  * Use `create(DeleteRequestSchema)` to create a new message.
  */
-export const DeleteRequestSchema: GenMessage<DeleteRequest> =
-  /*@__PURE__*/
+export const DeleteRequestSchema: GenMessage<DeleteRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 25);
 
 /**
  * @generated from message vector.v1.DeleteResponse
  */
-export type DeleteResponse = Message<'vector.v1.DeleteResponse'> & {
+export type DeleteResponse = Message<"vector.v1.DeleteResponse"> & {
   /**
    * @generated from field: uint32 deleted_count = 1;
    */
@@ -841,14 +795,13 @@ export type DeleteResponse = Message<'vector.v1.DeleteResponse'> & {
  * Describes the message vector.v1.DeleteResponse.
  * Use `create(DeleteResponseSchema)` to create a new message.
  */
-export const DeleteResponseSchema: GenMessage<DeleteResponse> =
-  /*@__PURE__*/
+export const DeleteResponseSchema: GenMessage<DeleteResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 26);
 
 /**
  * @generated from message vector.v1.EmbedRequest
  */
-export type EmbedRequest = Message<'vector.v1.EmbedRequest'> & {
+export type EmbedRequest = Message<"vector.v1.EmbedRequest"> & {
   /**
    * @generated from field: string text = 1;
    */
@@ -876,14 +829,13 @@ export type EmbedRequest = Message<'vector.v1.EmbedRequest'> & {
  * Describes the message vector.v1.EmbedRequest.
  * Use `create(EmbedRequestSchema)` to create a new message.
  */
-export const EmbedRequestSchema: GenMessage<EmbedRequest> =
-  /*@__PURE__*/
+export const EmbedRequestSchema: GenMessage<EmbedRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 27);
 
 /**
  * @generated from message vector.v1.EmbedResponse
  */
-export type EmbedResponse = Message<'vector.v1.EmbedResponse'> & {
+export type EmbedResponse = Message<"vector.v1.EmbedResponse"> & {
   /**
    * @generated from field: repeated float embedding = 1;
    */
@@ -904,14 +856,13 @@ export type EmbedResponse = Message<'vector.v1.EmbedResponse'> & {
  * Describes the message vector.v1.EmbedResponse.
  * Use `create(EmbedResponseSchema)` to create a new message.
  */
-export const EmbedResponseSchema: GenMessage<EmbedResponse> =
-  /*@__PURE__*/
+export const EmbedResponseSchema: GenMessage<EmbedResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 28);
 
 /**
  * @generated from message vector.v1.EmbedBatchRequest
  */
-export type EmbedBatchRequest = Message<'vector.v1.EmbedBatchRequest'> & {
+export type EmbedBatchRequest = Message<"vector.v1.EmbedBatchRequest"> & {
   /**
    * @generated from field: repeated string texts = 1;
    */
@@ -937,14 +888,13 @@ export type EmbedBatchRequest = Message<'vector.v1.EmbedBatchRequest'> & {
  * Describes the message vector.v1.EmbedBatchRequest.
  * Use `create(EmbedBatchRequestSchema)` to create a new message.
  */
-export const EmbedBatchRequestSchema: GenMessage<EmbedBatchRequest> =
-  /*@__PURE__*/
+export const EmbedBatchRequestSchema: GenMessage<EmbedBatchRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 29);
 
 /**
  * @generated from message vector.v1.EmbedBatchResponse
  */
-export type EmbedBatchResponse = Message<'vector.v1.EmbedBatchResponse'> & {
+export type EmbedBatchResponse = Message<"vector.v1.EmbedBatchResponse"> & {
   /**
    * @generated from field: repeated vector.v1.EmbeddingResult embeddings = 1;
    */
@@ -960,14 +910,13 @@ export type EmbedBatchResponse = Message<'vector.v1.EmbedBatchResponse'> & {
  * Describes the message vector.v1.EmbedBatchResponse.
  * Use `create(EmbedBatchResponseSchema)` to create a new message.
  */
-export const EmbedBatchResponseSchema: GenMessage<EmbedBatchResponse> =
-  /*@__PURE__*/
+export const EmbedBatchResponseSchema: GenMessage<EmbedBatchResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 30);
 
 /**
  * @generated from message vector.v1.EmbeddingResult
  */
-export type EmbeddingResult = Message<'vector.v1.EmbeddingResult'> & {
+export type EmbeddingResult = Message<"vector.v1.EmbeddingResult"> & {
   /**
    * @generated from field: repeated float values = 1;
    */
@@ -983,140 +932,135 @@ export type EmbeddingResult = Message<'vector.v1.EmbeddingResult'> & {
  * Describes the message vector.v1.EmbeddingResult.
  * Use `create(EmbeddingResultSchema)` to create a new message.
  */
-export const EmbeddingResultSchema: GenMessage<EmbeddingResult> =
-  /*@__PURE__*/
+export const EmbeddingResultSchema: GenMessage<EmbeddingResult> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 31);
 
 /**
  * @generated from message vector.v1.UpsertWithEmbeddingRequest
  */
-export type UpsertWithEmbeddingRequest =
-  Message<'vector.v1.UpsertWithEmbeddingRequest'> & {
-    /**
-     * @generated from field: vector.v1.TenantContext tenant = 1;
-     */
-    tenant?: TenantContext;
+export type UpsertWithEmbeddingRequest = Message<"vector.v1.UpsertWithEmbeddingRequest"> & {
+  /**
+   * @generated from field: vector.v1.TenantContext tenant = 1;
+   */
+  tenant?: TenantContext;
 
-    /**
-     * @generated from field: string collection_name = 2;
-     */
-    collectionName: string;
+  /**
+   * @generated from field: string collection_name = 2;
+   */
+  collectionName: string;
 
-    /**
-     * Vector ID
-     *
-     * @generated from field: bytes id = 3;
-     */
-    id: Uint8Array;
+  /**
+   * Vector ID
+   *
+   * @generated from field: bytes id = 3;
+   */
+  id: Uint8Array;
 
-    /**
-     * Text to embed
-     *
-     * @generated from field: string text = 4;
-     */
-    text: string;
+  /**
+   * Text to embed
+   *
+   * @generated from field: string text = 4;
+   */
+  text: string;
 
-    /**
-     * Metadata
-     *
-     * @generated from field: optional vector.v1.Payload payload = 5;
-     */
-    payload?: Payload;
+  /**
+   * Metadata
+   *
+   * @generated from field: optional vector.v1.Payload payload = 5;
+   */
+  payload?: Payload;
 
-    /**
-     * @generated from field: vector.v1.EmbeddingProvider provider = 6;
-     */
-    provider: EmbeddingProvider;
+  /**
+   * @generated from field: vector.v1.EmbeddingProvider provider = 6;
+   */
+  provider: EmbeddingProvider;
 
-    /**
-     * @generated from field: vector.v1.EmbeddingModel model = 7;
-     */
-    model: EmbeddingModel;
+  /**
+   * @generated from field: vector.v1.EmbeddingModel model = 7;
+   */
+  model: EmbeddingModel;
 
-    /**
-     * @generated from field: bool wait = 8;
-     */
-    wait: boolean;
-  };
+  /**
+   * @generated from field: bool wait = 8;
+   */
+  wait: boolean;
+};
 
 /**
  * Describes the message vector.v1.UpsertWithEmbeddingRequest.
  * Use `create(UpsertWithEmbeddingRequestSchema)` to create a new message.
  */
-export const UpsertWithEmbeddingRequestSchema: GenMessage<UpsertWithEmbeddingRequest> =
-  /*@__PURE__*/
+export const UpsertWithEmbeddingRequestSchema: GenMessage<UpsertWithEmbeddingRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 32);
 
 /**
  * @generated from message vector.v1.SearchWithEmbeddingRequest
  */
-export type SearchWithEmbeddingRequest =
-  Message<'vector.v1.SearchWithEmbeddingRequest'> & {
-    /**
-     * @generated from field: vector.v1.TenantContext tenant = 1;
-     */
-    tenant?: TenantContext;
+export type SearchWithEmbeddingRequest = Message<"vector.v1.SearchWithEmbeddingRequest"> & {
+  /**
+   * @generated from field: vector.v1.TenantContext tenant = 1;
+   */
+  tenant?: TenantContext;
 
-    /**
-     * @generated from field: string collection_name = 2;
-     */
-    collectionName: string;
+  /**
+   * @generated from field: string collection_name = 2;
+   */
+  collectionName: string;
 
-    /**
-     * Query text to embed
-     *
-     * @generated from field: string text = 3;
-     */
-    text: string;
+  /**
+   * Query text to embed
+   *
+   * @generated from field: string text = 3;
+   */
+  text: string;
 
-    /**
-     * @generated from field: uint32 limit = 4;
-     */
-    limit: number;
+  /**
+   * @generated from field: uint32 limit = 4;
+   */
+  limit: number;
 
-    /**
-     * @generated from field: optional float score_threshold = 5;
-     */
-    scoreThreshold?: number;
+  /**
+   * @generated from field: optional float score_threshold = 5;
+   */
+  scoreThreshold?: number;
 
-    /**
-     * @generated from field: optional vector.v1.Filter filter = 6;
-     */
-    filter?: Filter;
+  /**
+   * @generated from field: optional vector.v1.Filter filter = 6;
+   */
+  filter?: Filter;
 
-    /**
-     * @generated from field: bool with_vectors = 7;
-     */
-    withVectors: boolean;
+  /**
+   * @generated from field: bool with_vectors = 7;
+   */
+  withVectors: boolean;
 
-    /**
-     * @generated from field: bool with_payloads = 8;
-     */
-    withPayloads: boolean;
+  /**
+   * @generated from field: bool with_payloads = 8;
+   */
+  withPayloads: boolean;
 
-    /**
-     * @generated from field: vector.v1.EmbeddingProvider provider = 9;
-     */
-    provider: EmbeddingProvider;
+  /**
+   * @generated from field: vector.v1.EmbeddingProvider provider = 9;
+   */
+  provider: EmbeddingProvider;
 
-    /**
-     * @generated from field: vector.v1.EmbeddingModel model = 10;
-     */
-    model: EmbeddingModel;
-  };
+  /**
+   * @generated from field: vector.v1.EmbeddingModel model = 10;
+   */
+  model: EmbeddingModel;
+};
 
 /**
  * Describes the message vector.v1.SearchWithEmbeddingRequest.
  * Use `create(SearchWithEmbeddingRequestSchema)` to create a new message.
  */
-export const SearchWithEmbeddingRequestSchema: GenMessage<SearchWithEmbeddingRequest> =
-  /*@__PURE__*/
+export const SearchWithEmbeddingRequestSchema: GenMessage<SearchWithEmbeddingRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 33);
 
 /**
  * @generated from message vector.v1.RecommendRequest
  */
-export type RecommendRequest = Message<'vector.v1.RecommendRequest'> & {
+export type RecommendRequest = Message<"vector.v1.RecommendRequest"> & {
   /**
    * @generated from field: vector.v1.TenantContext tenant = 1;
    */
@@ -1171,14 +1115,13 @@ export type RecommendRequest = Message<'vector.v1.RecommendRequest'> & {
  * Describes the message vector.v1.RecommendRequest.
  * Use `create(RecommendRequestSchema)` to create a new message.
  */
-export const RecommendRequestSchema: GenMessage<RecommendRequest> =
-  /*@__PURE__*/
+export const RecommendRequestSchema: GenMessage<RecommendRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 34);
 
 /**
  * @generated from message vector.v1.RecommendResponse
  */
-export type RecommendResponse = Message<'vector.v1.RecommendResponse'> & {
+export type RecommendResponse = Message<"vector.v1.RecommendResponse"> & {
   /**
    * @generated from field: repeated vector.v1.SearchResult results = 1;
    */
@@ -1194,8 +1137,7 @@ export type RecommendResponse = Message<'vector.v1.RecommendResponse'> & {
  * Describes the message vector.v1.RecommendResponse.
  * Use `create(RecommendResponseSchema)` to create a new message.
  */
-export const RecommendResponseSchema: GenMessage<RecommendResponse> =
-  /*@__PURE__*/
+export const RecommendResponseSchema: GenMessage<RecommendResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_vector, 35);
 
 /**
@@ -1251,8 +1193,7 @@ export enum EmbeddingProvider {
 /**
  * Describes the enum vector.v1.EmbeddingProvider.
  */
-export const EmbeddingProviderSchema: GenEnum<EmbeddingProvider> =
-  /*@__PURE__*/
+export const EmbeddingProviderSchema: GenEnum<EmbeddingProvider> = /*@__PURE__*/
   enumDesc(file_apps_v1_vector, 0);
 
 /**
@@ -1378,8 +1319,7 @@ export enum EmbeddingModel {
 /**
  * Describes the enum vector.v1.EmbeddingModel.
  */
-export const EmbeddingModelSchema: GenEnum<EmbeddingModel> =
-  /*@__PURE__*/
+export const EmbeddingModelSchema: GenEnum<EmbeddingModel> = /*@__PURE__*/
   enumDesc(file_apps_v1_vector, 1);
 
 /**
@@ -1417,8 +1357,7 @@ export enum DistanceMetric {
 /**
  * Describes the enum vector.v1.DistanceMetric.
  */
-export const DistanceMetricSchema: GenEnum<DistanceMetric> =
-  /*@__PURE__*/
+export const DistanceMetricSchema: GenEnum<DistanceMetric> = /*@__PURE__*/
   enumDesc(file_apps_v1_vector, 2);
 
 /**
@@ -1434,120 +1373,122 @@ export const VectorService: GenService<{
    * @generated from rpc vector.v1.VectorService.CreateCollection
    */
   createCollection: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CreateCollectionRequestSchema;
     output: typeof CreateCollectionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.DeleteCollection
    */
   deleteCollection: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteCollectionRequestSchema;
     output: typeof DeleteCollectionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.GetCollection
    */
   getCollection: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetCollectionRequestSchema;
     output: typeof GetCollectionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.ListCollections
    */
   listCollections: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof ListCollectionsRequestSchema;
     output: typeof ListCollectionsResponseSchema;
-  };
+  },
   /**
    * Vector Operations
    *
    * @generated from rpc vector.v1.VectorService.Upsert
    */
   upsert: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpsertRequestSchema;
     output: typeof UpsertResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.UpsertBatch
    */
   upsertBatch: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpsertBatchRequestSchema;
     output: typeof UpsertBatchResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.Search
    */
   search: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof SearchRequestSchema;
     output: typeof SearchResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.Get
    */
   get: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetRequestSchema;
     output: typeof GetResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.Delete
    */
   delete: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof DeleteRequestSchema;
     output: typeof DeleteResponseSchema;
-  };
+  },
   /**
    * Embedding Generation (text -> vectors)
    *
    * @generated from rpc vector.v1.VectorService.Embed
    */
   embed: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof EmbedRequestSchema;
     output: typeof EmbedResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.EmbedBatch
    */
   embedBatch: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof EmbedBatchRequestSchema;
     output: typeof EmbedBatchResponseSchema;
-  };
+  },
   /**
    * Combined Operations (Embed + Store/Search)
    *
    * @generated from rpc vector.v1.VectorService.UpsertWithEmbedding
    */
   upsertWithEmbedding: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpsertWithEmbeddingRequestSchema;
     output: typeof UpsertResponseSchema;
-  };
+  },
   /**
    * @generated from rpc vector.v1.VectorService.SearchWithEmbedding
    */
   searchWithEmbedding: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof SearchWithEmbeddingRequestSchema;
     output: typeof SearchResponseSchema;
-  };
+  },
   /**
    * Recommendations
    *
    * @generated from rpc vector.v1.VectorService.Recommend
    */
   recommend: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof RecommendRequestSchema;
     output: typeof RecommendResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_apps_v1_vector, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_apps_v1_vector, 0);
+

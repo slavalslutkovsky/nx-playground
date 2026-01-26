@@ -2,33 +2,20 @@
 // @generated from file apps/v1/agent.proto (package agent.v1, syntax proto3)
 /* eslint-disable */
 
-import type { Message as Message$1 } from '@bufbuild/protobuf';
-import type {
-  GenEnum,
-  GenFile,
-  GenMessage,
-  GenService,
-} from '@bufbuild/protobuf/codegenv2';
-import {
-  enumDesc,
-  fileDesc,
-  messageDesc,
-  serviceDesc,
-} from '@bufbuild/protobuf/codegenv2';
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message as Message$1 } from "@bufbuild/protobuf";
 
 /**
  * Describes the file apps/v1/agent.proto.
  */
-export const file_apps_v1_agent: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'ChNhcHBzL3YxL2FnZW50LnByb3RvEghhZ2VudC52MSKHAQoHTWVzc2FnZRIjCgRyb2xlGAEgASgOMhUuYWdlbnQudjEuTWVzc2FnZVJvbGUSDwoHY29udGVudBgCIAEoCRIRCgRuYW1lGAMgASgJSACIAQESGQoMdG9vbF9jYWxsX2lkGAQgASgJSAGIAQFCBwoFX25hbWVCDwoNX3Rvb2xfY2FsbF9pZCK3AQoNSW52b2tlUmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJEiMKCG1lc3NhZ2VzGAIgAygLMhEuYWdlbnQudjEuTWVzc2FnZRIqCgZjb25maWcYAyABKAsyFS5hZ2VudC52MS5BZ2VudENvbmZpZ0gAiAEBEikKCG1ldGFkYXRhGAQgASgLMhIuYWdlbnQudjEuTWV0YWRhdGFIAYgBAUIJCgdfY29uZmlnQgsKCV9tZXRhZGF0YSLrAgoLQWdlbnRDb25maWcSFAoHdXNlcl9pZBgBIAEoCUgAiAEBEhcKCnNlc3Npb25faWQYAiABKAlIAYgBARIfChJyZXRyaWV2ZXJfcHJvdmlkZXIYCiABKAlIAogBARIcCg9lbWJlZGRpbmdfbW9kZWwYCyABKAlIA4gBARIbCg5yZXNwb25zZV9tb2RlbBgMIAEoCUgEiAEBEhgKC3RlbXBlcmF0dXJlGBQgASgCSAWIAQESFwoKbWF4X3Rva2VucxgVIAEoBUgGiAEBEhcKCmV4dHJhX2pzb24YHiABKAlIB4gBAUIKCghfdXNlcl9pZEINCgtfc2Vzc2lvbl9pZEIVChNfcmV0cmlldmVyX3Byb3ZpZGVyQhIKEF9lbWJlZGRpbmdfbW9kZWxCEQoPX3Jlc3BvbnNlX21vZGVsQg4KDF90ZW1wZXJhdHVyZUINCgtfbWF4X3Rva2Vuc0INCgtfZXh0cmFfanNvbiLHAQoITWV0YWRhdGESEAoIdHJhY2VfaWQYASABKAkSFAoHc3Bhbl9pZBgCIAEoCUgAiAEBEhsKDnBhcmVudF9zcGFuX2lkGAMgASgJSAGIAQESKgoEdGFncxgEIAMoCzIcLmFnZW50LnYxLk1ldGFkYXRhLlRhZ3NFbnRyeRorCglUYWdzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUIKCghfc3Bhbl9pZEIRCg9fcGFyZW50X3NwYW5faWQirwEKDkludm9rZVJlc3BvbnNlEhIKCnJlcXVlc3RfaWQYASABKAkSEgoKYWdlbnRfbmFtZRgCIAEoCRIjCghtZXNzYWdlcxgDIAMoCzIRLmFnZW50LnYxLk1lc3NhZ2USOgoRcmVzcG9uc2VfbWV0YWRhdGEYBCABKAsyGi5hZ2VudC52MS5SZXNwb25zZU1ldGFkYXRhSACIAQFCFAoSX3Jlc3BvbnNlX21ldGFkYXRhIp0BChBSZXNwb25zZU1ldGFkYXRhEhIKCmxhdGVuY3lfbXMYASABKAMSGAoLdG9rZW5zX3VzZWQYAiABKAVIAIgBARIhChRyZXRyaWV2ZWRfZG9jc19jb3VudBgDIAEoBUgBiAEBEg8KB3F1ZXJpZXMYBCADKAlCDgoMX3Rva2Vuc191c2VkQhcKFV9yZXRyaWV2ZWRfZG9jc19jb3VudCKIAQoLU3RyZWFtQ2h1bmsSEQoHY29udGVudBgBIAEoCUgAEicKCXRvb2xfY2FsbBgCIAEoCzISLmFnZW50LnYxLlRvb2xDYWxsSAASJgoFZXZlbnQYAyABKAsyFS5hZ2VudC52MS5TdHJlYW1FdmVudEgAEgwKBGRvbmUYCiABKAhCBwoFY2h1bmsiNwoIVG9vbENhbGwSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIRCglhcmd1bWVudHMYAyABKAkiTQoLU3RyZWFtRXZlbnQSEgoKZXZlbnRfdHlwZRgBIAEoCRIZCgxwYXlsb2FkX2pzb24YAiABKAlIAIgBAUIPCg1fcGF5bG9hZF9qc29uIjsKEUxpc3RBZ2VudHNSZXF1ZXN0EhcKCnRhZ19maWx0ZXIYASABKAlIAIgBAUINCgtfdGFnX2ZpbHRlciI5ChJMaXN0QWdlbnRzUmVzcG9uc2USIwoGYWdlbnRzGAEgAygLMhMuYWdlbnQudjEuQWdlbnRJbmZvIiUKD0dldEFnZW50UmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJIooBCglBZ2VudEluZm8SDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIPCgd2ZXJzaW9uGAMgASgJEgwKBHRhZ3MYBCADKAkSFAoMY2FwYWJpbGl0aWVzGAUgAygJEiUKBmhlYWx0aBgGIAEoCzIVLmFnZW50LnYxLkFnZW50SGVhbHRoIigKEkNoZWNrSGVhbHRoUmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJIjcKDkhlYWx0aFJlc3BvbnNlEiUKBmhlYWx0aBgBIAEoCzIVLmFnZW50LnYxLkFnZW50SGVhbHRoIm4KC0FnZW50SGVhbHRoEiYKBnN0YXR1cxgBIAEoDjIWLmFnZW50LnYxLkhlYWx0aFN0YXR1cxIUCgdtZXNzYWdlGAIgASgJSACIAQESFQoNbGFzdF9jaGVja19tcxgDIAEoA0IKCghfbWVzc2FnZSqOAQoLTWVzc2FnZVJvbGUSHAoYTUVTU0FHRV9ST0xFX1VOU1BFQ0lGSUVEEAASFQoRTUVTU0FHRV9ST0xFX1VTRVIQARIaChZNRVNTQUdFX1JPTEVfQVNTSVNUQU5UEAISFwoTTUVTU0FHRV9ST0xFX1NZU1RFTRADEhUKEU1FU1NBR0VfUk9MRV9UT09MEAQqgAEKDEhlYWx0aFN0YXR1cxIdChlIRUFMVEhfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGQoVSEVBTFRIX1NUQVRVU19IRUFMVEhZEAESGwoXSEVBTFRIX1NUQVRVU19VTkhFQUxUSFkQAhIZChVIRUFMVEhfU1RBVFVTX1VOS05PV04QAzKVAwoMQWdlbnRTZXJ2aWNlEj0KBkludm9rZRIXLmFnZW50LnYxLkludm9rZVJlcXVlc3QaGC5hZ2VudC52MS5JbnZva2VSZXNwb25zZSIAEjwKBlN0cmVhbRIXLmFnZW50LnYxLkludm9rZVJlcXVlc3QaFS5hZ2VudC52MS5TdHJlYW1DaHVuayIAMAESNgoIQ29udmVyc2USES5hZ2VudC52MS5NZXNzYWdlGhEuYWdlbnQudjEuTWVzc2FnZSIAKAEwARJJCgpMaXN0QWdlbnRzEhsuYWdlbnQudjEuTGlzdEFnZW50c1JlcXVlc3QaHC5hZ2VudC52MS5MaXN0QWdlbnRzUmVzcG9uc2UiABI8CghHZXRBZ2VudBIZLmFnZW50LnYxLkdldEFnZW50UmVxdWVzdBoTLmFnZW50LnYxLkFnZW50SW5mbyIAEkcKC0NoZWNrSGVhbHRoEhwuYWdlbnQudjEuQ2hlY2tIZWFsdGhSZXF1ZXN0GhguYWdlbnQudjEuSGVhbHRoUmVzcG9uc2UiAEJqCgxjb20uYWdlbnQudjFCCkFnZW50UHJvdG9QAVoNZ3JwYy9hZ2VudC92MaICA0FYWKoCCEFnZW50LlYxygIIQWdlbnRcVjHiAhRBZ2VudFxWMVxHUEJNZXRhZGF0YeoCCUFnZW50OjpWMWIGcHJvdG8z',
-  );
+export const file_apps_v1_agent: GenFile = /*@__PURE__*/
+  fileDesc("ChNhcHBzL3YxL2FnZW50LnByb3RvEghhZ2VudC52MSKHAQoHTWVzc2FnZRIjCgRyb2xlGAEgASgOMhUuYWdlbnQudjEuTWVzc2FnZVJvbGUSDwoHY29udGVudBgCIAEoCRIRCgRuYW1lGAMgASgJSACIAQESGQoMdG9vbF9jYWxsX2lkGAQgASgJSAGIAQFCBwoFX25hbWVCDwoNX3Rvb2xfY2FsbF9pZCK3AQoNSW52b2tlUmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJEiMKCG1lc3NhZ2VzGAIgAygLMhEuYWdlbnQudjEuTWVzc2FnZRIqCgZjb25maWcYAyABKAsyFS5hZ2VudC52MS5BZ2VudENvbmZpZ0gAiAEBEikKCG1ldGFkYXRhGAQgASgLMhIuYWdlbnQudjEuTWV0YWRhdGFIAYgBAUIJCgdfY29uZmlnQgsKCV9tZXRhZGF0YSLrAgoLQWdlbnRDb25maWcSFAoHdXNlcl9pZBgBIAEoCUgAiAEBEhcKCnNlc3Npb25faWQYAiABKAlIAYgBARIfChJyZXRyaWV2ZXJfcHJvdmlkZXIYCiABKAlIAogBARIcCg9lbWJlZGRpbmdfbW9kZWwYCyABKAlIA4gBARIbCg5yZXNwb25zZV9tb2RlbBgMIAEoCUgEiAEBEhgKC3RlbXBlcmF0dXJlGBQgASgCSAWIAQESFwoKbWF4X3Rva2VucxgVIAEoBUgGiAEBEhcKCmV4dHJhX2pzb24YHiABKAlIB4gBAUIKCghfdXNlcl9pZEINCgtfc2Vzc2lvbl9pZEIVChNfcmV0cmlldmVyX3Byb3ZpZGVyQhIKEF9lbWJlZGRpbmdfbW9kZWxCEQoPX3Jlc3BvbnNlX21vZGVsQg4KDF90ZW1wZXJhdHVyZUINCgtfbWF4X3Rva2Vuc0INCgtfZXh0cmFfanNvbiLHAQoITWV0YWRhdGESEAoIdHJhY2VfaWQYASABKAkSFAoHc3Bhbl9pZBgCIAEoCUgAiAEBEhsKDnBhcmVudF9zcGFuX2lkGAMgASgJSAGIAQESKgoEdGFncxgEIAMoCzIcLmFnZW50LnYxLk1ldGFkYXRhLlRhZ3NFbnRyeRorCglUYWdzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUIKCghfc3Bhbl9pZEIRCg9fcGFyZW50X3NwYW5faWQirwEKDkludm9rZVJlc3BvbnNlEhIKCnJlcXVlc3RfaWQYASABKAkSEgoKYWdlbnRfbmFtZRgCIAEoCRIjCghtZXNzYWdlcxgDIAMoCzIRLmFnZW50LnYxLk1lc3NhZ2USOgoRcmVzcG9uc2VfbWV0YWRhdGEYBCABKAsyGi5hZ2VudC52MS5SZXNwb25zZU1ldGFkYXRhSACIAQFCFAoSX3Jlc3BvbnNlX21ldGFkYXRhIp0BChBSZXNwb25zZU1ldGFkYXRhEhIKCmxhdGVuY3lfbXMYASABKAMSGAoLdG9rZW5zX3VzZWQYAiABKAVIAIgBARIhChRyZXRyaWV2ZWRfZG9jc19jb3VudBgDIAEoBUgBiAEBEg8KB3F1ZXJpZXMYBCADKAlCDgoMX3Rva2Vuc191c2VkQhcKFV9yZXRyaWV2ZWRfZG9jc19jb3VudCKIAQoLU3RyZWFtQ2h1bmsSEQoHY29udGVudBgBIAEoCUgAEicKCXRvb2xfY2FsbBgCIAEoCzISLmFnZW50LnYxLlRvb2xDYWxsSAASJgoFZXZlbnQYAyABKAsyFS5hZ2VudC52MS5TdHJlYW1FdmVudEgAEgwKBGRvbmUYCiABKAhCBwoFY2h1bmsiNwoIVG9vbENhbGwSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIRCglhcmd1bWVudHMYAyABKAkiTQoLU3RyZWFtRXZlbnQSEgoKZXZlbnRfdHlwZRgBIAEoCRIZCgxwYXlsb2FkX2pzb24YAiABKAlIAIgBAUIPCg1fcGF5bG9hZF9qc29uIjsKEUxpc3RBZ2VudHNSZXF1ZXN0EhcKCnRhZ19maWx0ZXIYASABKAlIAIgBAUINCgtfdGFnX2ZpbHRlciI5ChJMaXN0QWdlbnRzUmVzcG9uc2USIwoGYWdlbnRzGAEgAygLMhMuYWdlbnQudjEuQWdlbnRJbmZvIiUKD0dldEFnZW50UmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJIooBCglBZ2VudEluZm8SDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIPCgd2ZXJzaW9uGAMgASgJEgwKBHRhZ3MYBCADKAkSFAoMY2FwYWJpbGl0aWVzGAUgAygJEiUKBmhlYWx0aBgGIAEoCzIVLmFnZW50LnYxLkFnZW50SGVhbHRoIigKEkNoZWNrSGVhbHRoUmVxdWVzdBISCgphZ2VudF9uYW1lGAEgASgJIjcKDkhlYWx0aFJlc3BvbnNlEiUKBmhlYWx0aBgBIAEoCzIVLmFnZW50LnYxLkFnZW50SGVhbHRoIm4KC0FnZW50SGVhbHRoEiYKBnN0YXR1cxgBIAEoDjIWLmFnZW50LnYxLkhlYWx0aFN0YXR1cxIUCgdtZXNzYWdlGAIgASgJSACIAQESFQoNbGFzdF9jaGVja19tcxgDIAEoA0IKCghfbWVzc2FnZSqOAQoLTWVzc2FnZVJvbGUSHAoYTUVTU0FHRV9ST0xFX1VOU1BFQ0lGSUVEEAASFQoRTUVTU0FHRV9ST0xFX1VTRVIQARIaChZNRVNTQUdFX1JPTEVfQVNTSVNUQU5UEAISFwoTTUVTU0FHRV9ST0xFX1NZU1RFTRADEhUKEU1FU1NBR0VfUk9MRV9UT09MEAQqgAEKDEhlYWx0aFN0YXR1cxIdChlIRUFMVEhfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGQoVSEVBTFRIX1NUQVRVU19IRUFMVEhZEAESGwoXSEVBTFRIX1NUQVRVU19VTkhFQUxUSFkQAhIZChVIRUFMVEhfU1RBVFVTX1VOS05PV04QAzKVAwoMQWdlbnRTZXJ2aWNlEj0KBkludm9rZRIXLmFnZW50LnYxLkludm9rZVJlcXVlc3QaGC5hZ2VudC52MS5JbnZva2VSZXNwb25zZSIAEjwKBlN0cmVhbRIXLmFnZW50LnYxLkludm9rZVJlcXVlc3QaFS5hZ2VudC52MS5TdHJlYW1DaHVuayIAMAESNgoIQ29udmVyc2USES5hZ2VudC52MS5NZXNzYWdlGhEuYWdlbnQudjEuTWVzc2FnZSIAKAEwARJJCgpMaXN0QWdlbnRzEhsuYWdlbnQudjEuTGlzdEFnZW50c1JlcXVlc3QaHC5hZ2VudC52MS5MaXN0QWdlbnRzUmVzcG9uc2UiABI8CghHZXRBZ2VudBIZLmFnZW50LnYxLkdldEFnZW50UmVxdWVzdBoTLmFnZW50LnYxLkFnZW50SW5mbyIAEkcKC0NoZWNrSGVhbHRoEhwuYWdlbnQudjEuQ2hlY2tIZWFsdGhSZXF1ZXN0GhguYWdlbnQudjEuSGVhbHRoUmVzcG9uc2UiAEJqCgxjb20uYWdlbnQudjFCCkFnZW50UHJvdG9QAVoNZ3JwYy9hZ2VudC92MaICA0FYWKoCCEFnZW50LlYxygIIQWdlbnRcVjHiAhRBZ2VudFxWMVxHUEJNZXRhZGF0YeoCCUFnZW50OjpWMWIGcHJvdG8z");
 
 /**
  * @generated from message agent.v1.Message
  */
-export type Message = Message$1<'agent.v1.Message'> & {
+export type Message = Message$1<"agent.v1.Message"> & {
   /**
    * @generated from field: agent.v1.MessageRole role = 1;
    */
@@ -58,14 +45,13 @@ export type Message = Message$1<'agent.v1.Message'> & {
  * Describes the message agent.v1.Message.
  * Use `create(MessageSchema)` to create a new message.
  */
-export const MessageSchema: GenMessage<Message> =
-  /*@__PURE__*/
+export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 0);
 
 /**
  * @generated from message agent.v1.InvokeRequest
  */
-export type InvokeRequest = Message$1<'agent.v1.InvokeRequest'> & {
+export type InvokeRequest = Message$1<"agent.v1.InvokeRequest"> & {
   /**
    * Agent to invoke (e.g., "rag-agent")
    *
@@ -99,14 +85,13 @@ export type InvokeRequest = Message$1<'agent.v1.InvokeRequest'> & {
  * Describes the message agent.v1.InvokeRequest.
  * Use `create(InvokeRequestSchema)` to create a new message.
  */
-export const InvokeRequestSchema: GenMessage<InvokeRequest> =
-  /*@__PURE__*/
+export const InvokeRequestSchema: GenMessage<InvokeRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 1);
 
 /**
  * @generated from message agent.v1.AgentConfig
  */
-export type AgentConfig = Message$1<'agent.v1.AgentConfig'> & {
+export type AgentConfig = Message$1<"agent.v1.AgentConfig"> & {
   /**
    * Common configuration
    *
@@ -170,14 +155,13 @@ export type AgentConfig = Message$1<'agent.v1.AgentConfig'> & {
  * Describes the message agent.v1.AgentConfig.
  * Use `create(AgentConfigSchema)` to create a new message.
  */
-export const AgentConfigSchema: GenMessage<AgentConfig> =
-  /*@__PURE__*/
+export const AgentConfigSchema: GenMessage<AgentConfig> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 2);
 
 /**
  * @generated from message agent.v1.Metadata
  */
-export type Metadata = Message$1<'agent.v1.Metadata'> & {
+export type Metadata = Message$1<"agent.v1.Metadata"> & {
   /**
    * @generated from field: string trace_id = 1;
    */
@@ -203,14 +187,13 @@ export type Metadata = Message$1<'agent.v1.Metadata'> & {
  * Describes the message agent.v1.Metadata.
  * Use `create(MetadataSchema)` to create a new message.
  */
-export const MetadataSchema: GenMessage<Metadata> =
-  /*@__PURE__*/
+export const MetadataSchema: GenMessage<Metadata> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 3);
 
 /**
  * @generated from message agent.v1.InvokeResponse
  */
-export type InvokeResponse = Message$1<'agent.v1.InvokeResponse'> & {
+export type InvokeResponse = Message$1<"agent.v1.InvokeResponse"> & {
   /**
    * @generated from field: string request_id = 1;
    */
@@ -238,14 +221,13 @@ export type InvokeResponse = Message$1<'agent.v1.InvokeResponse'> & {
  * Describes the message agent.v1.InvokeResponse.
  * Use `create(InvokeResponseSchema)` to create a new message.
  */
-export const InvokeResponseSchema: GenMessage<InvokeResponse> =
-  /*@__PURE__*/
+export const InvokeResponseSchema: GenMessage<InvokeResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 4);
 
 /**
  * @generated from message agent.v1.ResponseMetadata
  */
-export type ResponseMetadata = Message$1<'agent.v1.ResponseMetadata'> & {
+export type ResponseMetadata = Message$1<"agent.v1.ResponseMetadata"> & {
   /**
    * @generated from field: int64 latency_ms = 1;
    */
@@ -273,46 +255,41 @@ export type ResponseMetadata = Message$1<'agent.v1.ResponseMetadata'> & {
  * Describes the message agent.v1.ResponseMetadata.
  * Use `create(ResponseMetadataSchema)` to create a new message.
  */
-export const ResponseMetadataSchema: GenMessage<ResponseMetadata> =
-  /*@__PURE__*/
+export const ResponseMetadataSchema: GenMessage<ResponseMetadata> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 5);
 
 /**
  * @generated from message agent.v1.StreamChunk
  */
-export type StreamChunk = Message$1<'agent.v1.StreamChunk'> & {
+export type StreamChunk = Message$1<"agent.v1.StreamChunk"> & {
   /**
    * @generated from oneof agent.v1.StreamChunk.chunk
    */
-  chunk:
-    | {
-        /**
-         * Text content chunk
-         *
-         * @generated from field: string content = 1;
-         */
-        value: string;
-        case: 'content';
-      }
-    | {
-        /**
-         * Tool invocation
-         *
-         * @generated from field: agent.v1.ToolCall tool_call = 2;
-         */
-        value: ToolCall;
-        case: 'toolCall';
-      }
-    | {
-        /**
-         * Lifecycle event
-         *
-         * @generated from field: agent.v1.StreamEvent event = 3;
-         */
-        value: StreamEvent;
-        case: 'event';
-      }
-    | { case: undefined; value?: undefined };
+  chunk: {
+    /**
+     * Text content chunk
+     *
+     * @generated from field: string content = 1;
+     */
+    value: string;
+    case: "content";
+  } | {
+    /**
+     * Tool invocation
+     *
+     * @generated from field: agent.v1.ToolCall tool_call = 2;
+     */
+    value: ToolCall;
+    case: "toolCall";
+  } | {
+    /**
+     * Lifecycle event
+     *
+     * @generated from field: agent.v1.StreamEvent event = 3;
+     */
+    value: StreamEvent;
+    case: "event";
+  } | { case: undefined; value?: undefined };
 
   /**
    * Final chunk indicator
@@ -326,14 +303,13 @@ export type StreamChunk = Message$1<'agent.v1.StreamChunk'> & {
  * Describes the message agent.v1.StreamChunk.
  * Use `create(StreamChunkSchema)` to create a new message.
  */
-export const StreamChunkSchema: GenMessage<StreamChunk> =
-  /*@__PURE__*/
+export const StreamChunkSchema: GenMessage<StreamChunk> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 6);
 
 /**
  * @generated from message agent.v1.ToolCall
  */
-export type ToolCall = Message$1<'agent.v1.ToolCall'> & {
+export type ToolCall = Message$1<"agent.v1.ToolCall"> & {
   /**
    * @generated from field: string id = 1;
    */
@@ -356,14 +332,13 @@ export type ToolCall = Message$1<'agent.v1.ToolCall'> & {
  * Describes the message agent.v1.ToolCall.
  * Use `create(ToolCallSchema)` to create a new message.
  */
-export const ToolCallSchema: GenMessage<ToolCall> =
-  /*@__PURE__*/
+export const ToolCallSchema: GenMessage<ToolCall> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 7);
 
 /**
  * @generated from message agent.v1.StreamEvent
  */
-export type StreamEvent = Message$1<'agent.v1.StreamEvent'> & {
+export type StreamEvent = Message$1<"agent.v1.StreamEvent"> & {
   /**
    * "chain_start", "chain_end", "retrieval", etc.
    *
@@ -383,14 +358,13 @@ export type StreamEvent = Message$1<'agent.v1.StreamEvent'> & {
  * Describes the message agent.v1.StreamEvent.
  * Use `create(StreamEventSchema)` to create a new message.
  */
-export const StreamEventSchema: GenMessage<StreamEvent> =
-  /*@__PURE__*/
+export const StreamEventSchema: GenMessage<StreamEvent> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 8);
 
 /**
  * @generated from message agent.v1.ListAgentsRequest
  */
-export type ListAgentsRequest = Message$1<'agent.v1.ListAgentsRequest'> & {
+export type ListAgentsRequest = Message$1<"agent.v1.ListAgentsRequest"> & {
   /**
    * Filter by tag
    *
@@ -403,14 +377,13 @@ export type ListAgentsRequest = Message$1<'agent.v1.ListAgentsRequest'> & {
  * Describes the message agent.v1.ListAgentsRequest.
  * Use `create(ListAgentsRequestSchema)` to create a new message.
  */
-export const ListAgentsRequestSchema: GenMessage<ListAgentsRequest> =
-  /*@__PURE__*/
+export const ListAgentsRequestSchema: GenMessage<ListAgentsRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 9);
 
 /**
  * @generated from message agent.v1.ListAgentsResponse
  */
-export type ListAgentsResponse = Message$1<'agent.v1.ListAgentsResponse'> & {
+export type ListAgentsResponse = Message$1<"agent.v1.ListAgentsResponse"> & {
   /**
    * @generated from field: repeated agent.v1.AgentInfo agents = 1;
    */
@@ -421,14 +394,13 @@ export type ListAgentsResponse = Message$1<'agent.v1.ListAgentsResponse'> & {
  * Describes the message agent.v1.ListAgentsResponse.
  * Use `create(ListAgentsResponseSchema)` to create a new message.
  */
-export const ListAgentsResponseSchema: GenMessage<ListAgentsResponse> =
-  /*@__PURE__*/
+export const ListAgentsResponseSchema: GenMessage<ListAgentsResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 10);
 
 /**
  * @generated from message agent.v1.GetAgentRequest
  */
-export type GetAgentRequest = Message$1<'agent.v1.GetAgentRequest'> & {
+export type GetAgentRequest = Message$1<"agent.v1.GetAgentRequest"> & {
   /**
    * @generated from field: string agent_name = 1;
    */
@@ -439,14 +411,13 @@ export type GetAgentRequest = Message$1<'agent.v1.GetAgentRequest'> & {
  * Describes the message agent.v1.GetAgentRequest.
  * Use `create(GetAgentRequestSchema)` to create a new message.
  */
-export const GetAgentRequestSchema: GenMessage<GetAgentRequest> =
-  /*@__PURE__*/
+export const GetAgentRequestSchema: GenMessage<GetAgentRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 11);
 
 /**
  * @generated from message agent.v1.AgentInfo
  */
-export type AgentInfo = Message$1<'agent.v1.AgentInfo'> & {
+export type AgentInfo = Message$1<"agent.v1.AgentInfo"> & {
   /**
    * @generated from field: string name = 1;
    */
@@ -484,14 +455,13 @@ export type AgentInfo = Message$1<'agent.v1.AgentInfo'> & {
  * Describes the message agent.v1.AgentInfo.
  * Use `create(AgentInfoSchema)` to create a new message.
  */
-export const AgentInfoSchema: GenMessage<AgentInfo> =
-  /*@__PURE__*/
+export const AgentInfoSchema: GenMessage<AgentInfo> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 12);
 
 /**
  * @generated from message agent.v1.CheckHealthRequest
  */
-export type CheckHealthRequest = Message$1<'agent.v1.CheckHealthRequest'> & {
+export type CheckHealthRequest = Message$1<"agent.v1.CheckHealthRequest"> & {
   /**
    * @generated from field: string agent_name = 1;
    */
@@ -502,14 +472,13 @@ export type CheckHealthRequest = Message$1<'agent.v1.CheckHealthRequest'> & {
  * Describes the message agent.v1.CheckHealthRequest.
  * Use `create(CheckHealthRequestSchema)` to create a new message.
  */
-export const CheckHealthRequestSchema: GenMessage<CheckHealthRequest> =
-  /*@__PURE__*/
+export const CheckHealthRequestSchema: GenMessage<CheckHealthRequest> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 13);
 
 /**
  * @generated from message agent.v1.HealthResponse
  */
-export type HealthResponse = Message$1<'agent.v1.HealthResponse'> & {
+export type HealthResponse = Message$1<"agent.v1.HealthResponse"> & {
   /**
    * @generated from field: agent.v1.AgentHealth health = 1;
    */
@@ -520,14 +489,13 @@ export type HealthResponse = Message$1<'agent.v1.HealthResponse'> & {
  * Describes the message agent.v1.HealthResponse.
  * Use `create(HealthResponseSchema)` to create a new message.
  */
-export const HealthResponseSchema: GenMessage<HealthResponse> =
-  /*@__PURE__*/
+export const HealthResponseSchema: GenMessage<HealthResponse> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 14);
 
 /**
  * @generated from message agent.v1.AgentHealth
  */
-export type AgentHealth = Message$1<'agent.v1.AgentHealth'> & {
+export type AgentHealth = Message$1<"agent.v1.AgentHealth"> & {
   /**
    * @generated from field: agent.v1.HealthStatus status = 1;
    */
@@ -548,8 +516,7 @@ export type AgentHealth = Message$1<'agent.v1.AgentHealth'> & {
  * Describes the message agent.v1.AgentHealth.
  * Use `create(AgentHealthSchema)` to create a new message.
  */
-export const AgentHealthSchema: GenMessage<AgentHealth> =
-  /*@__PURE__*/
+export const AgentHealthSchema: GenMessage<AgentHealth> = /*@__PURE__*/
   messageDesc(file_apps_v1_agent, 15);
 
 /**
@@ -585,8 +552,7 @@ export enum MessageRole {
 /**
  * Describes the enum agent.v1.MessageRole.
  */
-export const MessageRoleSchema: GenEnum<MessageRole> =
-  /*@__PURE__*/
+export const MessageRoleSchema: GenEnum<MessageRole> = /*@__PURE__*/
   enumDesc(file_apps_v1_agent, 0);
 
 /**
@@ -617,8 +583,7 @@ export enum HealthStatus {
 /**
  * Describes the enum agent.v1.HealthStatus.
  */
-export const HealthStatusSchema: GenEnum<HealthStatus> =
-  /*@__PURE__*/
+export const HealthStatusSchema: GenEnum<HealthStatus> = /*@__PURE__*/
   enumDesc(file_apps_v1_agent, 1);
 
 /**
@@ -634,58 +599,60 @@ export const AgentService: GenService<{
    * @generated from rpc agent.v1.AgentService.Invoke
    */
   invoke: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof InvokeRequestSchema;
     output: typeof InvokeResponseSchema;
-  };
+  },
   /**
    * Stream responses from an agent (Server-Side Events style)
    *
    * @generated from rpc agent.v1.AgentService.Stream
    */
   stream: {
-    methodKind: 'server_streaming';
+    methodKind: "server_streaming";
     input: typeof InvokeRequestSchema;
     output: typeof StreamChunkSchema;
-  };
+  },
   /**
    * Bidirectional conversation with an agent
    *
    * @generated from rpc agent.v1.AgentService.Converse
    */
   converse: {
-    methodKind: 'bidi_streaming';
+    methodKind: "bidi_streaming";
     input: typeof MessageSchema;
     output: typeof MessageSchema;
-  };
+  },
   /**
    * List available agents
    *
    * @generated from rpc agent.v1.AgentService.ListAgents
    */
   listAgents: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof ListAgentsRequestSchema;
     output: typeof ListAgentsResponseSchema;
-  };
+  },
   /**
    * Get agent info
    *
    * @generated from rpc agent.v1.AgentService.GetAgent
    */
   getAgent: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetAgentRequestSchema;
     output: typeof AgentInfoSchema;
-  };
+  },
   /**
    * Health check for a specific agent
    *
    * @generated from rpc agent.v1.AgentService.CheckHealth
    */
   checkHealth: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CheckHealthRequestSchema;
     output: typeof HealthResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_apps_v1_agent, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_apps_v1_agent, 0);
+
