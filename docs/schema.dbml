@@ -1,5 +1,5 @@
 // Database Schema
-// Auto-generated from SeaORM entities on 2026-01-05 01:56:26 UTC
+// Auto-generated from SeaORM entities on 2026-01-26 19:49:49 UTC
 
 Table tasks {
   id uuid [pk]
