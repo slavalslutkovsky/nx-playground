@@ -1,0 +1,93 @@
+# CloudNativePG PostgreSQL Cluster
+# Docs: https://cloudnative-pg.io/documentation/
+#
+# Prerequisites:
+#   kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.24/releases/cnpg-1.24.0.yaml
+#
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: zerg-db
+  namespace: zerg
+spec:
+  # Number of instances (1 for dev, 3 for prod HA)
+  instances: 1
+
+  # PostgreSQL version
+  imageName: ghcr.io/cloudnative-pg/postgresql:18
+
+  # Primary update strategy
+  primaryUpdateStrategy: unsupervised
+
+  # Storage configuration
+  storage:
+    size: 10Gi
+    # storageClass: standard  # Uncomment and set for your cluster
+
+  # Bootstrap configuration - initialize the database
+  bootstrap:
+    initdb:
+      database: zerg
+      owner: zerg
+      secret:
+        name: zerg-db-credentials
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS "pgcrypto"
+        - CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      # Performance tuning (adjust for production)
+      shared_buffers: "256MB"
+      effective_cache_size: "768MB"
+      work_mem: "16MB"
+      maintenance_work_mem: "64MB"
+      max_connections: "100"
+      # Logging
+      log_statement: "ddl"
+      log_min_duration_statement: "1000"
+    pg_hba:
+      - host all all 10.0.0.0/8 scram-sha-256
+      - host all all 172.16.0.0/12 scram-sha-256
+      - host all all 192.168.0.0/16 scram-sha-256
+
+  # Resource limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+  # Monitoring with Prometheus
+  monitoring:
+    enablePodMonitor: true
+
+  # Backup configuration (requires object storage)
+  # Uncomment and configure for production
+  # backup:
+  #   barmanObjectStore:
+  #     destinationPath: s3://your-bucket/cnpg/zerg-db
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: s3-creds
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: s3-creds
+  #         key: ACCESS_SECRET_KEY
+  #   retentionPolicy: "30d"
+
+---
+# Database credentials secret
+# In production, use external-secrets or sealed-secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zerg-db-credentials
+  namespace: zerg
+type: kubernetes.io/basic-auth
+stringData:
+  username: zerg
+  password: changeme-in-production  # CHANGE THIS!

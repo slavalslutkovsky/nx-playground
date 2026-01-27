@@ -2,7 +2,51 @@
 #k8s_yaml(kustomize('./manifests/kustomize/domains/zerg/overlays/dev'))
 #k8s_yaml(kustomize('./manifests/kustomize/all/dev'))
 k8s_yaml('./manifests/security/base/secrets.yaml')
+k8s_yaml(kustomize('./manifests/atlas/overlays/dev'))
 #k8s_yaml(kustomize('./manifests/kustomize/all/overlays/dev'))
+
+# =============================================================================
+# Database Schema Management (Atlas + CNPG)
+# =============================================================================
+
+# Generate Atlas HCL schema from SeaORM entities
+local_resource(
+    'schema-gen',
+    cmd='cargo run -p schema-gen -- --format atlas',
+    deps=[
+        'libs/domains/tasks/src/entity.rs',
+        'libs/domains/projects/src/entity.rs',
+        'libs/domains/cloud_resources/src/entity.rs',
+    ],
+    labels=['database'],
+    allow_parallel=True,
+)
+
+# Sync schema.hcl to Kubernetes ConfigMap
+local_resource(
+    'atlas-sync',
+    cmd='mise run atlas-sync-schema',
+    deps=['docs/schema.hcl'],
+    resource_deps=['schema-gen'],
+    labels=['database'],
+)
+
+# Run Sea-ORM migrations (against port-forwarded postgres on 5433)
+local_resource(
+    'db-migrate',
+    cmd='DATABASE_URL=postgres://myuser:mypassword@localhost:5433/mydatabase cargo run -p migration -- up',
+    resource_deps=['postgres-port-forward'],
+    labels=['database'],
+    trigger_mode=TRIGGER_MODE_MANUAL,  # Manual trigger - run when needed
+)
+
+# Optional: Deploy Atlas schema to cluster (requires Atlas Operator)
+# Uncomment when Atlas Operator is installed
+# k8s_yaml(kustomize('./manifests/atlas/overlays/dev'))
+
+# Optional: Deploy CNPG cluster
+# Uncomment when CNPG Operator is installed
+# k8s_yaml(kustomize('./manifests/cnpg/overlays/dev'))
 
 include('./apps/zerg/api/Tiltfile')
 include('./apps/zerg/tasks/Tiltfile')

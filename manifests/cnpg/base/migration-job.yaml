@@ -1,0 +1,113 @@
+# Database Migration Job
+# Runs Sea-ORM migrations against the CNPG cluster
+#
+# Usage:
+#   kubectl apply -f migration-job.yaml
+#   kubectl logs -f job/zerg-migrate -n zerg
+#
+# For ArgoCD:
+#   Add annotation: argocd.argoproj.io/hook: PreSync
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zerg-migrate
+  namespace: zerg
+  labels:
+    app.kubernetes.io/name: zerg-migrate
+    app.kubernetes.io/component: migration
+  annotations:
+    # ArgoCD hook - runs before deployment sync
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  # Don't retry indefinitely
+  backoffLimit: 3
+  # Clean up after completion
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zerg-migrate
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+
+      # Wait for database to be ready
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until pg_isready -h $PGHOST -p 5432 -U $PGUSER; do
+                echo "PostgreSQL not ready, waiting..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+          env:
+            - name: PGHOST
+              value: zerg-db-rw  # CNPG read-write service
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: zerg-db-app
+                  key: username
+
+      containers:
+        - name: migrate
+          image: ghcr.io/your-org/zerg-migration:latest  # Update with your registry
+          args: ["up"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: zerg-db-app
+                  key: uri
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
+      # Don't schedule on same node as DB if possible
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    cnpg.io/cluster: zerg-db
+                topologyKey: kubernetes.io/hostname
+
+---
+# Alternative: CronJob for scheduled migrations (useful for feature branches)
+# Uncomment if you want periodic migration runs
+# apiVersion: batch/v1
+# kind: CronJob
+# metadata:
+#   name: zerg-migrate-scheduled
+#   namespace: zerg
+# spec:
+#   schedule: "0 * * * *"  # Every hour
+#   concurrencyPolicy: Forbid
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           restartPolicy: OnFailure
+#           containers:
+#             - name: migrate
+#               image: ghcr.io/your-org/zerg-migration:latest
+#               args: ["up"]
+#               env:
+#                 - name: DATABASE_URL
+#                   valueFrom:
+#                     secretKeyRef:
+#                       name: zerg-db-app
+#                       key: uri

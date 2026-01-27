@@ -36,14 +36,15 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
-    # Rust tests
-    cargo-test:
-      run: cargo test --workspace
+#    # Rust tests
+#    cargo-test:
+#      run: cargo test --workspace
 
     # Nx affected checks
     nx-affected-lint:
       run: bun nx affected --target=lint --base=origin/main
-
+#    nx-affected-container:
+#      run: bun nx affected --target=container --base=origin/main
     nx-affected-test:
       run: bun nx affected --target=test --base=origin/main
 

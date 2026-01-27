@@ -4,7 +4,7 @@ mod schema;
 
 use clap::{Parser, ValueEnum};
 use color_eyre::Result;
-use generators::{DbmlGenerator, DiagramGenerator, MermaidGenerator};
+use generators::{AtlasGenerator, DbmlGenerator, DiagramGenerator, MermaidGenerator};
 use parser::EntityParser;
 use std::fs;
 use std::path::PathBuf;
@@ -38,6 +38,7 @@ struct Args {
 enum OutputFormat {
     Mermaid,
     Dbml,
+    Atlas,
     All,
 }
 
@@ -102,9 +103,13 @@ fn main() -> Result<()> {
         OutputFormat::Dbml => {
             generate_dbml(&schema, &args)?;
         }
+        OutputFormat::Atlas => {
+            generate_atlas(&schema, &args)?;
+        }
         OutputFormat::All => {
             generate_mermaid(&schema, &args)?;
             generate_dbml(&schema, &args)?;
+            generate_atlas(&schema, &args)?;
         }
     }
 
@@ -133,6 +138,18 @@ fn generate_dbml(schema: &schema::DatabaseSchema, args: &Args) -> Result<()> {
     fs::write(&output_path, output)?;
 
     println!("Generated DBML diagram: {}", output_path.display());
+
+    Ok(())
+}
+
+fn generate_atlas(schema: &schema::DatabaseSchema, args: &Args) -> Result<()> {
+    let generator = AtlasGenerator::new();
+    let output = generator.generate(schema);
+
+    let output_path = args.output.join("schema.hcl");
+    fs::write(&output_path, output)?;
+
+    println!("Generated Atlas HCL schema: {}", output_path.display());
 
     Ok(())
 }

@@ -32,6 +32,7 @@ pub async fn create_optimized_tasks_client(
 ///
 /// This is ideal for development environments where not all services are running.
 /// The connection is only established when the first RPC is made.
+#[allow(dead_code)]
 pub fn create_lazy_tasks_client(addr: String) -> eyre::Result<TasksServiceClient<Channel>> {
     let channel = grpc_client::create_channel_lazy(addr)?;
     let client = TasksServiceClient::new(channel)
@@ -77,6 +78,7 @@ pub fn create_lazy_vector_client(addr: String) -> eyre::Result<VectorServiceClie
 ///
 /// This is ideal for development environments where not all services are running.
 /// The connection is only established when the first RPC is made.
+#[allow(dead_code)]
 pub fn create_lazy_agent_client(addr: String) -> eyre::Result<AgentServiceClient<Channel>> {
     let channel = grpc_client::create_channel_lazy(addr)?;
     let client = AgentServiceClient::new(channel)

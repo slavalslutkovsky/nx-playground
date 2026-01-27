@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+resources:
+  - namespace.yaml
+  - cluster.yaml
+  - migration-job.yaml
+  - scheduled-backup.yaml
+
+# Common labels
+commonLabels:
+  app.kubernetes.io/part-of: zerg
+  app.kubernetes.io/managed-by: kustomize
+
+# Configuration
+configMapGenerator:
+  - name: db-config
+    literals:
+      - DATABASE_SCHEMA=public
+      - MIGRATION_DIR=libs/migration

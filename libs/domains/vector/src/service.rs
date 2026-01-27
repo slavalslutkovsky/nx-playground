@@ -161,6 +161,7 @@ impl<R: VectorRepository> VectorService<R> {
     // ===== Combined Operations =====
 
     /// Upsert a document with automatic embedding generation
+    #[allow(clippy::too_many_arguments)]
     pub async fn upsert_with_embedding(
         &self,
         tenant: &TenantContext,
@@ -193,6 +194,7 @@ impl<R: VectorRepository> VectorService<R> {
     }
 
     /// Search with automatic query embedding generation
+    #[allow(clippy::too_many_arguments)]
     pub async fn search_with_embedding(
         &self,
         tenant: &TenantContext,

@@ -229,10 +229,11 @@ pub enum EmbeddingProviderType {
 }
 
 /// Embedding model selection
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum EmbeddingModel {
     // OpenAI models
     /// OpenAI text-embedding-3-small (1536 dimensions)
+    #[default]
     TextEmbedding3Small,
     /// OpenAI text-embedding-3-large (3072 dimensions)
     TextEmbedding3Large,
@@ -337,12 +338,6 @@ impl EmbeddingModel {
             }
             EmbeddingModel::Custom(_) => EmbeddingProviderType::Local,
         }
-    }
-}
-
-impl Default for EmbeddingModel {
-    fn default() -> Self {
-        EmbeddingModel::TextEmbedding3Small
     }
 }
 

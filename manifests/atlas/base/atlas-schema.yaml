@@ -1,0 +1,75 @@
+# Atlas Schema Management
+# Docs: https://atlasgo.io/integrations/kubernetes/operator
+#
+# Prerequisites:
+#   helm install atlas-operator oci://ghcr.io/ariga/charts/atlas-operator
+#
+# This CRD tells Atlas Operator to:
+# 1. Read the desired schema from the ConfigMap
+# 2. Connect to the database
+# 3. Calculate and apply migrations automatically
+#
+---
+apiVersion: db.atlasgo.io/v1alpha1
+kind: AtlasSchema
+metadata:
+  name: zerg-schema
+  namespace: zerg
+spec:
+  # Database connection - references CNPG secret
+  urlFrom:
+    secretKeyRef:
+      name: zerg-db-app  # Created by CNPG
+      key: uri
+
+  # Schema source - from ConfigMap (synced by mise run atlas-sync-schema)
+  schema:
+    configMapKeyRef:
+      name: zerg-schema
+      key: schema.hcl
+
+  # Policy for handling destructive changes
+  policy:
+    # Lint rules before applying
+    lint:
+      destructive:
+        error: true  # Block destructive changes by default
+      # Review these in CI before applying
+      review: WARNING
+
+    # Diff policy
+    diff:
+      # Don't drop columns without explicit approval
+      skip:
+        drop_column: true
+        drop_table: true
+
+  # Exclude certain schemas/tables from management
+  exclude:
+    - "information_schema.*"
+    - "pg_catalog.*"
+    - "pg_toast.*"
+
+---
+# Alternative: Versioned migrations approach
+# Use this if you prefer explicit migration files over declarative schema
+#
+# apiVersion: db.atlasgo.io/v1alpha1
+# kind: AtlasMigration
+# metadata:
+#   name: zerg-migrations
+#   namespace: zerg
+# spec:
+#   urlFrom:
+#     secretKeyRef:
+#       name: zerg-db-app
+#       key: uri
+#   dir:
+#     configMapRef:
+#       name: zerg-migrations
+#   cloud:
+#     # Optional: Atlas Cloud for migration history
+#     tokenFrom:
+#       secretKeyRef:
+#         name: atlas-cloud-token
+#         key: token

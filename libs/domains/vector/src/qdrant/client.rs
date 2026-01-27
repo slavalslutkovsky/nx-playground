@@ -120,10 +120,8 @@ fn json_to_qdrant_value(val: serde_json::Value) -> Option<QdrantValue> {
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
                 Some(QdrantValue::from(i))
-            } else if let Some(f) = n.as_f64() {
-                Some(QdrantValue::from(f))
             } else {
-                None
+                n.as_f64().map(QdrantValue::from)
             }
         }
         serde_json::Value::String(s) => Some(QdrantValue::from(s)),
@@ -215,10 +213,10 @@ impl VectorRepository for QdrantRepository {
 
         let mut results = Vec::new();
         for collection in collections.collections {
-            if collection.name.starts_with(&prefix) {
-                if let Some(info) = self.get_collection_by_full_name(&collection.name).await? {
-                    results.push(info);
-                }
+            if collection.name.starts_with(&prefix)
+                && let Some(info) = self.get_collection_by_full_name(&collection.name).await?
+            {
+                results.push(info);
             }
         }
 
@@ -551,7 +549,7 @@ impl QdrantRepository {
 
     fn extract_counts(result: &qdrant::CollectionInfo) -> (u64, u64) {
         // Try to get counts from segments_count as a proxy
-        let segments = result.segments_count as u64;
+        let segments = result.segments_count;
         (segments, segments)
     }
 }

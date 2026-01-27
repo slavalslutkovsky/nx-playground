@@ -175,6 +175,7 @@ struct EmbeddingParameters {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct VertexAIResponse {
     predictions: Vec<EmbeddingPrediction>,
     #[serde(default)]
@@ -200,6 +201,7 @@ struct EmbeddingStatistics {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct ResponseMetadata {
     #[serde(default, rename = "billableCharacterCount")]
     billable_character_count: u64,
