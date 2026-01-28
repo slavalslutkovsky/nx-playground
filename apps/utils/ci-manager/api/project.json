@@ -1,0 +1,33 @@
+{
+  "name": "ci-manager-api",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/utils/ci-manager/api/src",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --watch src/index.ts",
+        "cwd": "apps/utils/ci-manager/api"
+      }
+    },
+    "build": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "bun build src/index.ts --outdir dist --target bun",
+        "cwd": "apps/utils/ci-manager/api"
+      }
+    },
+    "lint": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "biome check .",
+        "cwd": "apps/utils/ci-manager/api"
+      }
+    }
+  },
+  "tags": []
+}
