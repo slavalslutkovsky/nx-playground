@@ -1,0 +1,17 @@
+[package]
+name = "zerg_vector"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+core_config = { workspace = true }
+domain_vector = { workspace = true }
+eyre = { workspace = true }
+rpc = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+tonic-health = "0.14"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }

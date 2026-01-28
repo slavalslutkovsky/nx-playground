@@ -1,0 +1,47 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: zerg-api
+  labels:
+    app: zerg-api
+spec:
+  scaleTargetRef:
+    name: zerg-api
+  minReplicaCount: 0          # Scale to zero when idle
+  maxReplicaCount: 10
+  pollingInterval: 15
+  cooldownPeriod: 300
+  # Scale from 0->1 when there are pending HTTP requests
+  # Scale 1->N based on request rate
+  triggers:
+    # Prometheus: scale based on HTTP request rate (requires metrics)
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring.svc.cluster.local:9090
+        query: sum(rate(http_requests_total{app="zerg-api"}[2m]))
+        threshold: "10"           # Scale up when > 10 req/sec
+        activationThreshold: "1"  # Wake from zero when > 1 req/sec
+    # Fallback: CPU-based scaling (only works when replicas > 0)
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "70"
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 10
+              periodSeconds: 60
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+            - type: Pods
+              value: 4
+              periodSeconds: 15
+          selectPolicy: Max

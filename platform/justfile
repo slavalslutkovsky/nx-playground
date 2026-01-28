@@ -1,0 +1,240 @@
+# Platform Crossplane Configuration - Justfile
+# Run commands from the platform directory
+
+# Default recipe - show available commands
+default:
+    @just --list
+
+# Configuration
+registry := "docker.io/yurikrupnik/platform"
+
+# ============================================
+# Generation (XRDs from KCL schemas)
+# ============================================
+
+# Generate all XRD definitions from KCL schemas
+gen-xrds:
+    kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+    kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+    kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+    kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+    kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+    @echo "All XRD definitions generated from KCL schemas"
+
+# Preview all XRDs without writing files
+gen-xrds-preview:
+    kcl run render/all_xrds.k -o yaml
+
+# Generate compositions with inline KCL (for local dev)
+gen-compositions version="0.0.1":
+    SCHEMA_VERSION={{version}} ./scripts/gen-compositions.sh
+
+# Generate all: XRDs + compositions
+gen-all version="0.0.1":
+    just gen-xrds
+    just gen-compositions {{version}}
+    @echo "All XRDs and compositions generated"
+
+# ============================================
+# Development Workflow
+# ============================================
+
+# Build the platform Configuration package
+build:
+    up project build
+
+# Full build: generate XRDs + build Configuration
+full-build:
+    just gen-xrds
+    just build
+    @echo "Full platform build complete"
+
+# Build and push a new version (usage: just release v0.1.3)
+release version:
+    just full-build
+    just push {{version}}
+
+# Push the current build (assumes already built)
+push version:
+    up project push --tag {{version}}
+
+# Run local development control plane with hot-reload
+run:
+    up project run
+
+# Stop local development control plane
+stop:
+    up project stop
+
+# ============================================
+# Testing
+# ============================================
+
+# Run unit tests (fast, schema validation)
+test-unit:
+    cd schemas && kcl test
+
+# Run composition tests (slower, requires up CLI)
+test-composition:
+    up test run tests/composition/ || echo "No composition test files found"
+
+# Run all tests (unit + composition)
+test-all:
+    just test-unit
+    just test-composition
+
+# Alias for test-composition (backwards compatibility)
+test:
+    just test-composition
+
+# Render a specific composition (usage: just render database)
+render composition:
+    up composition render apis/{{composition}}/composition.yaml
+
+# Test a function locally (usage: just test-func compose-database aws)
+test-func func provider:
+    cd functions/{{func}} && kcl run main.k -D params='{"oxr": {"metadata": {"name": "test"}, "spec": {"provider": "{{provider}}", "region": "us-east-1", "environment": "dev"}}}'
+
+# ============================================
+# Cluster Operations
+# ============================================
+
+# Install Configuration in cluster (usage: just install v0.1.3)
+install version:
+    @echo 'apiVersion: pkg.crossplane.io/v1\nkind: Configuration\nmetadata:\n  name: platform\nspec:\n  package: {{registry}}:{{version}}' | kubectl apply -f -
+
+# Upgrade Configuration to new version
+upgrade version:
+    kubectl patch configuration platform --type merge -p '{"spec":{"package":"{{registry}}:{{version}}"}}'
+
+# Uninstall Configuration from cluster
+uninstall:
+    kubectl delete configuration platform --ignore-not-found
+
+# Check Configuration status
+status:
+    @echo "=== Configuration ==="
+    kubectl get configuration platform -o wide
+    @echo "\n=== Functions ==="
+    kubectl get functions
+    @echo "\n=== XRDs ==="
+    kubectl get xrds
+    @echo "\n=== Composites ==="
+    kubectl get composite
+
+# Watch Configuration health
+watch:
+    kubectl get configuration,functions,xrds -w
+
+# ============================================
+# Schema Publishing
+# ============================================
+
+# Publish schemas to OCI registry (usage: just publish-schemas 0.1.1)
+publish-schemas version:
+    cd schemas && kcl mod push oci://docker.io/yurikrupnik/platform-schemas:{{version}} --force
+
+# Publish models (generated CRD models) to OCI registry
+# Run 'up project generate' first to create .up/kcl/models
+publish-models version:
+    #!/usr/bin/env bash
+    set -e
+    MODELS_DIR=".up/kcl/models"
+    if [[ ! -d "$MODELS_DIR" ]]; then
+        echo "Models not found. Running 'up project generate'..."
+        up project generate
+    fi
+    # Create temp package for publishing
+    TEMP_DIR=$(mktemp -d)
+    cp -r "$MODELS_DIR"/* "$TEMP_DIR/"
+    cat > "$TEMP_DIR/kcl.mod" << 'EOF'
+    [package]
+    name = "platform-models"
+    version = "{{version}}"
+    EOF
+    cd "$TEMP_DIR" && kcl mod push oci://docker.io/yurikrupnik/platform-models:{{version}} --force
+    rm -rf "$TEMP_DIR"
+    echo "Published platform-models:{{version}}"
+
+# Publish both models and schemas (for initial setup or version bump)
+publish-deps version:
+    just publish-models {{version}}
+    just publish-schemas {{version}}
+    @echo "Published models and schemas with version {{version}}"
+
+# ============================================
+# Function Publishing
+# ============================================
+
+# Publish all functions to OCI registry
+# Note: Copies model files (replacing symlink) before push, then restores symlink
+publish-functions tag="latest":
+    #!/usr/bin/env bash
+    set -e
+    MODELS_DIR="$(pwd)/.up/kcl/models"
+    for func in compose-bucket compose-database compose-registry compose-application compose-network; do
+        echo "Publishing $func..."
+        cd functions/$func
+        # Replace symlink with actual files for packaging
+        if [ -L model ]; then
+            rm model
+            cp -r "$MODELS_DIR" model
+        fi
+        kcl mod push oci://docker.io/yurikrupnik/$func:{{tag}} --force
+        # Restore symlink
+        rm -rf model
+        ln -s ../../.up/kcl/models model
+        cd ../..
+    done
+    echo "All functions published with tag: {{tag}}"
+
+# Publish a single function (usage: just publish-function compose-bucket v0.1.0)
+publish-function name tag="latest":
+    #!/usr/bin/env bash
+    set -e
+    MODELS_DIR="$(pwd)/.up/kcl/models"
+    cd functions/{{name}}
+    # Replace symlink with actual files
+    if [ -L model ]; then
+        rm model
+        cp -r "$MODELS_DIR" model
+    fi
+    kcl mod push oci://docker.io/yurikrupnik/{{name}}:{{tag}} --force
+    # Restore symlink
+    rm -rf model
+    ln -s ../../.up/kcl/models model
+
+# Publish functions to local registry for development
+publish-functions-local tag="dev":
+    #!/usr/bin/env bash
+    set -e
+    MODELS_DIR="$(pwd)/.up/kcl/models"
+    for func in compose-bucket compose-database compose-registry compose-application compose-network; do
+        echo "Publishing $func to local registry..."
+        cd functions/$func
+        if [ -L model ]; then
+            rm model
+            cp -r "$MODELS_DIR" model
+        fi
+        kcl mod push oci://localhost:5000/$func:{{tag}} --force || true
+        rm -rf model
+        ln -s ../../.up/kcl/models model
+        cd ../..
+    done
+    echo "All functions published to local registry with tag: {{tag}}"
+
+# ============================================
+# Utilities
+# ============================================
+
+# Clean build artifacts
+clean:
+    rm -rf _output
+
+# Show current dependencies
+deps:
+    cat upbound.yaml | grep -A2 "package:"
+
+# Validate all KCL files
+validate:
+    find functions -name "*.k" -exec kcl {} \; 2>&1 | grep -E "^(Error|error)" || echo "All KCL files valid"

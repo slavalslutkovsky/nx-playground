@@ -1,0 +1,72 @@
+apiVersion: meta.dev.upbound.io/v2alpha1
+kind: Project
+metadata:
+  name: platform
+spec:
+  dependsOn:
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-family-gcp
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-family-aws
+    version: '>=v2.3.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-storage
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-s3
+    version: '>=v2.3.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Function
+    package: xpkg.upbound.io/crossplane-contrib/function-kcl
+    version: '>=v0.12.0'
+  - apiVersion: pkg.crossplane.io/v1beta1
+    kind: Function
+    package: xpkg.upbound.io/crossplane-contrib/function-auto-ready
+    version: '>=v0.0.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-sql
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-rds
+    version: '>=v1.20.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-ecr
+    version: '>=v1.20.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-artifact
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-cloudplatform
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-gcp-compute
+    version: '>=v2.4.0'
+  - apiVersion: pkg.crossplane.io/v1
+    kind: Provider
+    package: xpkg.upbound.io/upbound/provider-aws-ec2
+    version: '>=v1.20.0'
+  description: Multi-cloud platform APIs for networking, storage, database, and applications
+  license: Apache-2.0
+  maintainer: Yuri Krupnik <yuri@example.com>
+  readme: |
+    # Platform APIs
+
+    Multi-cloud Crossplane platform providing:
+    - XNetwork: VPC/Network with subnets (AWS VPC / GCP VPC)
+    - XBucket: Cloud storage (AWS S3 / GCP GCS)
+    - XDatabase: Managed databases (AWS RDS / GCP CloudSQL)
+    - XRegistry: Container registries (AWS ECR / GCP Artifact Registry / Harbor)
+    - XApplication: Full application stack (composes XBucket + XDatabase)
+  repository: docker.io/yurikrupnik/platform
+  source: github.com/yurikrupnik/nx-playground

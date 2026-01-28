@@ -3,12 +3,29 @@ name = "grpc-client"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[features]
+default = []
+# Enable OpenTelemetry integration for distributed tracing
+opentelemetry = ["dep:opentelemetry", "dep:opentelemetry_sdk", "dep:tracing-opentelemetry"]
+# Enable Prometheus metrics
+prometheus = ["dep:prometheus"]
+# Enable TLS support (requires tonic with transport feature)
+tls = []
+# Enable all features
+full = ["opentelemetry", "prometheus", "tls"]
 
+[dependencies]
 # Conversions
 chrono = { workspace = true }
 eyre = { workspace = true }
 futures = { workspace = true }
+
+# OpenTelemetry (optional)
+opentelemetry = { version = "0.31", optional = true }
+opentelemetry_sdk = { version = "0.31", optional = true }
+
+# Prometheus metrics (optional)
+prometheus = { version = "0.14", optional = true }
 prost = { workspace = true }
 
 # Error handling
@@ -16,11 +33,13 @@ thiserror = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }
+
 # Core gRPC dependencies
 tonic = { workspace = true }
 
 # Tracing
 tracing = { workspace = true }
+tracing-opentelemetry = { version = "0.32", optional = true }
 uuid = { workspace = true, features = ["v4"] }
 
 [dev-dependencies]

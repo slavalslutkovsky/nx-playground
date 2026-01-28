@@ -61,6 +61,92 @@ Nx Console is an editor extension that enriches your developer experience. It le
 
 [Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
+## Local Development Environment
+
+This project uses [Nushell](https://www.nushell.sh/) scripts and [KCL](https://kcl-lang.io/) for infrastructure automation.
+
+### Quick Start
+
+```bash
+# Bring up full dev environment (Kind cluster + databases + observability)
+just up
+
+# Tear down environment
+just down
+
+# Show environment status
+just status
+```
+
+### Environment Options
+
+```bash
+# Custom cluster name and workers
+just up -n prod -w 3
+
+# With HA mode (2+ workers)
+just up --ha
+
+# Skip optional components
+just up --skip-dbs --skip-obs
+
+# Dry run (preview without executing)
+just up --dry-run
+
+# Cloud providers (coming soon)
+just up -c aws -n prod
+just up -c gcp -n prod
+just up -c azure -n prod
+```
+
+### What `just up` Does
+
+1. Creates a Kind cluster with ingress support
+2. Creates app namespaces (based on `apps/` directory structure)
+3. Deploys databases via kompose (MongoDB, PostgreSQL, Redis, etc.)
+4. Deploys observability stack (Prometheus, Grafana)
+
+### Nu Scripts
+
+The automation is powered by Nushell scripts in `scripts/nu/`:
+
+```bash
+# Direct nu script usage
+nu scripts/nu/mod.nu up                    # Full environment
+nu scripts/nu/mod.nu down                  # Tear down
+nu scripts/nu/mod.nu status                # Show status
+
+# Subcommands
+nu scripts/nu/mod.nu setup install --all   # Install dependencies
+nu scripts/nu/mod.nu dev up -d             # Docker compose only
+nu scripts/nu/mod.nu cluster create -n dev # Cluster only
+nu scripts/nu/mod.nu secrets fetch         # Fetch secrets from Vault
+```
+
+### KCL Configuration
+
+Kind cluster configuration is defined in KCL (`scripts/kcl/cluster/`):
+
+```bash
+# Generate cluster config
+kcl run scripts/kcl/cluster/main.k -D name=dev -D workers=2 -D ingress=true
+
+# Run tests
+kcl run scripts/kcl/cluster/kind_test.k
+```
+
+### Prerequisites
+
+Install required tools:
+
+```bash
+# Via nu script
+nu scripts/nu/mod.nu setup install --k8s
+
+# Or manually (macOS)
+brew install kind kubectl kustomize tilt helm flux kcl nushell
+```
+
 ## Project Setup
 
 ### Environment Variables

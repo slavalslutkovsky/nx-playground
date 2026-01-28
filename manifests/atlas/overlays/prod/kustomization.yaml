@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg-prod
+
+resources:
+  - ../../base
+
+namePrefix: prod-
+
+# Production: Strict policy - no destructive changes without manual approval
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/policy/lint/destructive/error
+        value: true
+      - op: add
+        path: /spec/policy/lint/review
+        value: ERROR
+      - op: replace
+        path: /spec/policy/diff/skip/drop_column
+        value: true
+      - op: replace
+        path: /spec/policy/diff/skip/drop_table
+        value: true
+    target:
+      kind: AtlasSchema
+      name: zerg-schema

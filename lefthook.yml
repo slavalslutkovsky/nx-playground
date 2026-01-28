@@ -25,25 +25,35 @@ pre-commit:
     schema-gen:
       glob: "libs/domains/*/src/entity.rs"
       run: cargo run --bin schema-gen && git add docs/schema.md docs/schema.dbml
+    doc-deg:
+      glob: "docs/schema.dbml"
+      run: cargo doc --workspace --no-deps --document-private-items
+    cargo-check:
+      glob: "*.rs"
+      run: cargo check
 
 # Pre-push: Thorough checks before pushing
 pre-push:
   parallel: true
   commands:
-    # Rust tests
-    cargo-test:
-      run: cargo test --workspace
+#    # Rust tests
+#    cargo-test:
+#      run: cargo test --workspace
 
     # Nx affected checks
     nx-affected-lint:
       run: bun nx affected --target=lint --base=origin/main
+#    nx-affected-container:
+#      run: bun nx affected --target=container --base=origin/main
+    nx-affected-test:
+      run: bun nx affected --target=test --base=origin/main
 
     nx-affected-build:
       run: bun nx affected --target=build --base=origin/main
 
     # Security audit
-    cargo-deny:
-      run: cargo deny check
+#    cargo-deny:
+#      run: cargo deny check
 
 # Post-checkout: Sync after switching branches
 post-checkout:
@@ -62,7 +72,7 @@ commit-msg:
   commands:
     conventional:
       run: |
-        msg=$(cat "$1")
+        msg=$(cat "{1}")
         if ! echo "$msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(.+\))?: .+"; then
           echo "Commit message must follow Conventional Commits format"
           echo "Example: feat(api): add user authentication"

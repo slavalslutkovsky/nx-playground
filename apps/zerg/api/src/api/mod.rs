@@ -3,10 +3,13 @@ use axum::Router;
 pub mod auth;
 pub mod cloud_resources;
 pub mod health;
+// pub mod agents;  // Disabled - requires agent_client in AppState
 pub mod projects;
 pub mod tasks;
 pub mod tasks_direct;
 pub mod users;
+pub mod vectors;
+pub mod vectors_direct;
 
 /// Creates the API routes without the `/api` prefix.
 /// The `/api` prefix will be added by the `create_router` helper.
@@ -22,8 +25,11 @@ pub fn routes(state: &crate::state::AppState) -> Router {
 
     Router::new()
         .nest("/auth", auth::router(state)) // Auth routes at /api/auth
+        // .nest("/agents", agents::router(state.clone())) // Disabled - requires agent_client
         .nest("/tasks", tasks::router(state.clone()))
         .nest("/tasks-direct", tasks_direct::router(state))
+        .nest("/vectors", vectors::router(state.clone()))
+        .nest("/vectors-direct", vectors_direct::router(state.clone()))
         .nest(domain_projects::entity::Model::URL, projects::router(state))
         .nest(
             domain_cloud_resources::entity::Model::URL,

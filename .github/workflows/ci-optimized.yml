@@ -52,23 +52,17 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      - uses: oven-sh/setup-bun@v2
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - run: bun install --no-cache
-
-#      # Free up disk space before linting
-#      - name: Clean up disk space
-#        run: |
-#          df -h
-#          rm -rf dist/target
-#          docker system prune -af || true
-#          df -h
 
       # Run lint
       - run: bun nx affected -t lint
@@ -120,11 +114,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      - uses: oven-sh/setup-bun@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -188,11 +183,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Setup sccache for compiled artifacts (stored in GCS)
+      # Setup sccache BEFORE tool installations so cargo tools use it
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
-      - uses: oven-sh/setup-bun@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -219,8 +215,8 @@ jobs:
 #          df -h
 
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: bun nx fix-ci
-        if: always()
+#      - run: bun nx fix-ci
+#        if: always()
 
   container:
     runs-on: ubuntu-latest
@@ -232,7 +228,9 @@ jobs:
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
 
-      - uses: oven-sh/setup-bun@v2
+      # Setup Bun (replaces mise - saves ~360MB cache)
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -250,6 +248,7 @@ jobs:
       - name: Install Trivy
         run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
 
+# Scan depends on the container, which depends on the build
       - name: Build, push and scan container images
         run: bun nx affected -t scan --configuration=ci
         continue-on-error: true

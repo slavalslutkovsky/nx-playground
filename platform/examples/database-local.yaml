@@ -1,0 +1,17 @@
+# Local development database using CloudNative-PG
+# Requires: CNPG operator installed in the cluster
+# Install: kubectl apply -f https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v1.27.0/cnpg-1.27.0.yaml
+apiVersion: database.platform.io/v1alpha1
+kind: Database
+metadata:
+  name: my-local-database
+  namespace: default
+spec:
+  provider: kubernetes    # Uses CloudNative-PG
+  engine: postgres
+  engineVersion: "16"
+  size: small
+  storageGB: 10
+  instances: 1            # Single instance for local dev
+  namespace: default      # Where to create the CNPG cluster
+  environment: dev

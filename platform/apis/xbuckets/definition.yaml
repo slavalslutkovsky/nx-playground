@@ -1,0 +1,182 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xbuckets.storage.platform.io
+spec:
+  group: storage.platform.io
+  names:
+    kind: XBucket
+    plural: xbuckets
+  claimNames:
+    kind: Bucket
+    plural: buckets
+  defaultCompositionRef:
+    name: xbucket
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - provider
+            - region
+            - name
+            properties:
+              provider:
+                type: string
+                description: Cloud provider (aws or gcp)
+                enum:
+                - aws
+                - gcp
+              region:
+                type: string
+                description: Cloud region for the bucket
+              name:
+                type: string
+                description: Name of the bucket (must be globally unique, 3-63 characters)
+                minLength: 3
+                maxLength: 63
+              environment:
+                type: string
+                description: Environment (dev, staging, prod)
+                enum:
+                - dev
+                - staging
+                - prod
+                default: dev
+              storageClass:
+                type: string
+                description: Storage class
+                enum:
+                - standard
+                - nearline
+                - coldline
+                - archive
+                default: standard
+              versioning:
+                type: boolean
+                description: Enable versioning
+                default: false
+              encryption:
+                type: boolean
+                description: Enable encryption
+                default: true
+              publicAccess:
+                type: boolean
+                description: Allow public access (requires encryption)
+                default: false
+              deletionPolicy:
+                type: string
+                description: Deletion policy
+                enum:
+                - Delete
+                - Orphan
+                default: Delete
+              tags:
+                type: object
+                description: Custom tags/labels to apply to resources
+                additionalProperties:
+                  type: string
+              cors:
+                type: array
+                description: CORS rules for the bucket
+                items:
+                  type: object
+                  properties:
+                    allowedOrigins:
+                      type: array
+                      items:
+                        type: string
+                      description: Origins allowed to access the bucket
+                    allowedMethods:
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                        - GET
+                        - PUT
+                        - POST
+                        - DELETE
+                        - HEAD
+                      default:
+                      - GET
+                      description: HTTP methods allowed
+                    allowedHeaders:
+                      type: array
+                      items:
+                        type: string
+                      default:
+                      - '*'
+                      description: Headers allowed in requests
+                    maxAgeSeconds:
+                      type: integer
+                      default: 3600
+                      description: Time in seconds for browser caching
+                  required:
+                  - allowedOrigins
+              lifecycle:
+                type: array
+                description: Lifecycle rules for automatic object management
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the lifecycle rule
+                    prefix:
+                      type: string
+                      default: ''
+                      description: Object prefix to match
+                    enabled:
+                      type: boolean
+                      default: true
+                      description: Whether the rule is enabled
+                    expirationDays:
+                      type: integer
+                      default: 0
+                      description: Days after which objects are deleted (0 = disabled)
+                    transitionDays:
+                      type: integer
+                      default: 0
+                      description: Days after which objects transition to another storage class
+                    transitionStorageClass:
+                      type: string
+                      enum:
+                      - standard
+                      - nearline
+                      - coldline
+                      - archive
+                      default: nearline
+                      description: Target storage class for transition
+                  required:
+                  - name
+          status:
+            type: object
+            properties:
+              provider:
+                type: string
+              region:
+                type: string
+              bucketName:
+                type: string
+              url:
+                type: string
+              id:
+                type: string
+              cloud-url:
+                type: string
+    additionalPrinterColumns:
+    - name: url
+      type: string
+      jsonPath: '.status.url'
+    - name: id
+      type: string
+      jsonPath: '.status.id'
+    - name: cloud-url
+      type: string
+      jsonPath: '.status.cloud-url'

@@ -1,0 +1,28 @@
+{
+  "name": "ci-manager-web",
+  "version": "0.0.1",
+  "description": "CI Pipeline Manager Web UI",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "lint": "biome check --write ."
+  },
+  "dependencies": {
+    "@tanstack/solid-query": "^5.90.15",
+    "@tanstack/solid-router": "^1.139.14",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "solid-js": "^1.9.5",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "solid-devtools": "^0.34.3",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.4",
+    "vite-plugin-solid": "2.11.9"
+  }
+}

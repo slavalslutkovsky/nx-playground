@@ -1,0 +1,13 @@
+apiVersion: storage.platform.io/v1alpha1
+kind: Bucket
+metadata:
+  name: my-aws-bucket
+  namespace: default
+spec:
+  provider: aws
+  region: us-east-1
+  name: yurikrupnik-platform-example-bucket-aws
+  environment: dev
+  storageClass: standard
+  versioning: false
+  encryption: true

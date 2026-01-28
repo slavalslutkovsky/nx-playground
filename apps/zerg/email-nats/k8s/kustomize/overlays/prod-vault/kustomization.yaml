@@ -1,0 +1,79 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Build on top of prod overlay
+resources:
+  - ../prod
+
+# Vault Agent Injector annotations
+patches:
+  - target:
+      kind: Deployment
+      name: email-nats-worker
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: email-nats-worker
+      spec:
+        template:
+          metadata:
+            annotations:
+              # Enable Vault Agent Injector
+              vault.hashicorp.com/agent-inject: "true"
+              vault.hashicorp.com/role: "email-worker"
+
+              # Inject AWS credentials from Vault AWS secrets engine
+              vault.hashicorp.com/agent-inject-secret-aws-creds: "aws/creds/ses-sender"
+              vault.hashicorp.com/agent-inject-template-aws-creds: |
+                {{- with secret "aws/creds/ses-sender" -}}
+                export AWS_ACCESS_KEY_ID="{{ .Data.access_key }}"
+                export AWS_SECRET_ACCESS_KEY="{{ .Data.secret_key }}"
+                {{ if .Data.security_token }}export AWS_SESSION_TOKEN="{{ .Data.security_token }}"{{ end }}
+                {{- end }}
+
+              # Auto-refresh credentials before TTL expires
+              vault.hashicorp.com/agent-pre-populate-only: "false"
+              vault.hashicorp.com/agent-cache-enable: "true"
+
+              # Optional: Use init container for pre-population
+              vault.hashicorp.com/agent-init-first: "true"
+          spec:
+            serviceAccountName: email-worker
+            containers:
+              - name: email-nats-worker
+                # Source the Vault-injected credentials
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    source /vault/secrets/aws-creds
+                    exec /app/email-nats-worker
+                env:
+                  - name: EMAIL_PROVIDER
+                    value: "ses"
+                  - name: AWS_SES_REGION
+                    valueFrom:
+                      configMapKeyRef:
+                        name: email-config
+                        key: AWS_SES_REGION
+
+---
+# ServiceAccount for Vault auth
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: email-worker
+  namespace: zerg
+
+---
+# ConfigMap for non-secret configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: email-config
+  namespace: zerg
+data:
+  AWS_SES_REGION: "us-east-1"
+  EMAIL_FROM_ADDRESS: "noreply@yourdomain.com"
+  EMAIL_FROM_NAME: "Notifications"

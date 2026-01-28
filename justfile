@@ -3,6 +3,31 @@
 default:
     just -l
 
+# ============================================================================
+# Local Development Environment
+# ============================================================================
+
+# Start full local dev environment (Kind + DBs + Secrets + Tilt)
+local-up *args:
+    nu scripts/nu/mod.nu up {{args}}
+
+# Tear down local dev environment
+local-down *args:
+    nu scripts/nu/mod.nu down {{args}}
+
+# Quick restart (keep cluster, redeploy apps)
+local-restart:
+    nu scripts/nu/mod.nu down --keep-cluster
+    tilt up
+
+# Show environment status
+local-status:
+    nu scripts/nu/mod.nu status
+
+# ============================================================================
+# Quality Checks
+# ============================================================================
+
 # Full quality check for Rust monorepo (read-only, CI-safe)
 check: fmt-check lint test audit
     @echo "All checks passed!"
@@ -33,18 +58,45 @@ check-quick: fmt-check
     cargo check --workspace
     cargo clippy --workspace --all-targets -- -D warnings
 
-# Show outdated dependencies
-outdated:
-    cargo outdated --workspace
+# ============================================================================
+# Dependency Updates
+# ============================================================================
 
-# Update Cargo.lock to latest compatible versions
+# Show outdated dependencies (cargo + bun)
+outdated:
+    @echo "=== Cargo Outdated ==="
+    cargo outdated --workspace || true
+    @echo ""
+    @echo "=== Bun Outdated ==="
+    bun outdated || true
+
+# Update all lockfiles (Cargo.lock + bun.lock)
 update:
     cargo update
+    bun update
 
-# Upgrade Cargo.toml versions to latest (requires cargo-edit)
+# Upgrade all dependencies to latest versions
 upgrade:
+    cargo upgrade --incompatible
+    cargo update
+    bun update --latest
+
+# Update Cargo only
+cargo-update:
+    cargo update
+
+# Upgrade Cargo.toml to latest versions (requires cargo-edit)
+cargo-upgrade:
     cargo upgrade --workspace --incompatible
     cargo update
+
+# Update bun packages only
+bun-update:
+    bun update
+
+# Upgrade bun packages to latest (ignores semver)
+bun-upgrade:
+    bun update --latest
 
 _docker-up:
     docker compose -f manifests/dockers/compose.yaml up -d
@@ -75,6 +127,7 @@ _seed:
 sort-deps:
     cargo fmt
     cargo sort --workspace
+#    biome check . --write
 
 #  cargo doc --workspace --no-deps --document-private-items --open
 #  bacon doc --open
@@ -294,3 +347,198 @@ dsa:
     nx add @nx/vite
     nx g @nx/vite:app web --directory=apps/zerg/web --unitTestRunner=vitest --projectNameAndRootFormat=as-provided
     cargo run -- migrate up # test is why it is up like this
+
+# ============================================================================
+# Environment Lifecycle (nu scripts)
+# ============================================================================
+
+# Bring up full dev environment (Kind cluster + services)
+up *args:
+    nu scripts/nu/mod.nu up {{args}}
+
+# Tear down dev environment
+down *args:
+    nu scripts/nu/mod.nu down {{args}}
+
+# Show environment status
+status:
+    nu scripts/nu/mod.nu status
+
+# ============================================================================
+# Crossplane
+# ============================================================================
+
+# Apply Crossplane functions (function-kcl, function-auto-ready)
+crossplane-functions:
+    kubectl apply -f manifests/crossplane/base/functions.yaml
+
+# Install AWS providers
+crossplane-providers-aws:
+    kubectl apply -f manifests/crossplane/base/providers/aws.yaml
+
+# Install GCP providers
+crossplane-providers-gcp:
+    kubectl apply -f manifests/crossplane/base/providers/gcp.yaml
+
+# Install all providers (AWS + GCP)
+crossplane-providers:
+    kubectl apply -k manifests/crossplane/base/providers/
+
+# Configure AWS credentials - use: kubectl apply -f manifests/crossplane/base/providerconfigs/aws.yaml
+crossplane-config-aws:
+    @echo "Configure AWS: kubectl apply -f manifests/crossplane/base/providerconfigs/aws.yaml"
+
+# Configure GCP credentials - use: kubectl apply -f manifests/crossplane/base/providerconfigs/gcp.yaml
+crossplane-config-gcp:
+    @echo "Configure GCP: kubectl apply -f manifests/crossplane/base/providerconfigs/gcp.yaml"
+
+# Show provider status
+crossplane-providers-status:
+    kubectl get providers
+
+# Apply all Crossplane XRDs and Compositions (dev)
+crossplane-apply-dev:
+    kubectl apply -k manifests/crossplane/overlays/dev
+
+# Apply all Crossplane XRDs and Compositions (prod)
+crossplane-apply-prod:
+    kubectl apply -k manifests/crossplane/overlays/prod
+
+# Apply all Crossplane base resources
+crossplane-apply:
+    kubectl apply -k manifests/crossplane/base
+
+# Delete all Crossplane resources
+crossplane-delete:
+    kubectl delete -k manifests/crossplane/base --ignore-not-found
+
+# Show Crossplane composite resources
+crossplane-composites:
+    kubectl get composite
+
+# Show Crossplane managed resources
+crossplane-managed:
+    kubectl get managed
+
+# Show Crossplane claims
+crossplane-claims:
+    kubectl get claim --all-namespaces
+
+# Full Crossplane setup (functions + providers + XRDs + compositions)
+crossplane-setup:
+    just crossplane-functions
+    just crossplane-providers
+    @echo "Waiting for functions and providers to install..."
+    sleep 30
+    just crossplane-apply
+    @echo "Crossplane setup complete (configure credentials with crossplane-config-aws/gcp)"
+
+# Watch Crossplane resources
+crossplane-watch:
+    watch -n 2 'kubectl get xrd,composition,composite,managed 2>/dev/null | head -50'
+kube-get:
+  kubectl get bucket.storage.gcp.upbound.io my-app-data -o yaml
+
+# ============================================================================
+# Platform (Upbound CLI) - KCL Schema-Driven Crossplane
+# ============================================================================
+
+platform_dir := "platform"
+schema_registry := "docker.io/yurikrupnik/platform-schemas"
+
+# ============================================================================
+# Schema Management (OCI Registry)
+# ============================================================================
+
+# Login to Docker Hub for KCL registry
+schema-login:
+    kcl registry login docker.io
+
+# Publish schemas to OCI registry (uses version from schemas/kcl.mod)
+# Note: KCL uses the package version from kcl.mod, not the URL tag
+schema-publish:
+    cd {{ platform_dir }}/schemas && kcl mod push oci://{{ schema_registry }} --force
+    @echo "Published schemas (version from kcl.mod)"
+
+# Bump schema version and publish
+schema-publish-version version:
+    cd {{ platform_dir }}/schemas && sed -i '' 's|version = ".*"|version = "{{ version }}"|g' kcl.mod
+    cd {{ platform_dir }}/schemas && kcl mod push oci://{{ schema_registry }} --force
+    @echo "Published {{ schema_registry }}:{{ version }}"
+
+# Update all function kcl.mod files to use a specific schema version
+platform-update-schema-refs version:
+    #!/usr/bin/env bash
+    for mod in {{ platform_dir }}/functions/*/kcl.mod; do
+        sed -i '' 's|tag = ".*"|tag = "{{ version }}"|g' "$mod"
+    done
+    echo "Updated all functions to use schemas:{{ version }}"
+
+# ============================================================================
+# XRD Generation
+# ============================================================================
+
+# Generate all XRD definitions from KCL schemas
+platform-gen-xrds:
+    cd {{ platform_dir }} && kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+    cd {{ platform_dir }} && kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+    cd {{ platform_dir }} && kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+    cd {{ platform_dir }} && kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+    cd {{ platform_dir }} && kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+    @echo "All XRD definitions generated from KCL schemas"
+
+# Build Upbound platform project (generates .up/kcl/models/)
+platform-build:
+    cd {{ platform_dir }} && up project build
+    @echo "Platform built - provider models generated in .up/kcl/models/"
+
+# Full platform build: generate XRDs from schemas, then build with Upbound
+platform-full-build:
+    just platform-gen-xrds
+    just platform-build
+    @echo "Full platform build complete"
+
+# Run KCL tests for platform schemas (deprecated, use platform-test-unit)
+platform-test-schemas:
+    cd {{ platform_dir }}/schemas && kcl test . || true
+
+# Run platform unit tests
+platform-test-unit:
+    cd {{ platform_dir }} && kcl test tests/unit/
+
+# Validate platform KCL syntax
+platform-lint:
+    cd {{ platform_dir }} && kcl lint schemas/
+    cd {{ platform_dir }} && kcl lint render/
+
+# Run Upbound project locally (creates KIND cluster)
+platform-run-local:
+    cd {{ platform_dir }} && up project run --local --ingress
+
+# Run Upbound composition tests (requires schemas:dev to be published)
+platform-test:
+    cd {{ platform_dir }} && up test run tests/*
+
+# Full test cycle: publish schemas, then run composition tests
+platform-test-full: schema-publish platform-test
+    @echo "Full test cycle complete"
+
+# Render a composition for debugging
+platform-render resource example:
+    cd {{ platform_dir }} && up composition render apis/x{{ resource }}s/composition.yaml --composite-resource examples/{{ example }}.yaml
+
+# Push platform to Docker Hub
+platform-push version:
+    cd {{ platform_dir }} && up project push docker.io/yurikrupnik/platform:{{ version }}
+
+# Show all XRDs from schemas (preview without writing)
+platform-preview-xrds:
+    cd {{ platform_dir }} && kcl run render/all_xrds.k -o yaml
+
+# Quick check: lint + test schemas
+platform-check: platform-lint platform-test-schemas
+    @echo "Platform checks passed"
+
+# Full workflow: check, generate, build
+platform: platform-check platform-full-build
+    @echo "Platform ready!"

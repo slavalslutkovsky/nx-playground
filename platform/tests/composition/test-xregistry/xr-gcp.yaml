@@ -1,0 +1,15 @@
+apiVersion: registry.platform.io/v1alpha1
+kind: XRegistry
+metadata:
+  name: test-registry-gcp
+spec:
+  provider: gcp
+  name: test-registry
+  region: europe-west1
+  format: docker
+  immutableTags: false
+  scanOnPush: true
+  encryption: true
+  publicAccess: false
+  environment: dev
+  deletionPolicy: Delete

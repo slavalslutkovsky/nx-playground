@@ -1,0 +1,17 @@
+{
+  "name": "@rpc/types",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./types/index.ts",
+  "types": "./types/index.ts",
+  "exports": {
+    ".": "./types/index.ts",
+    "./types": "./types/index.ts",
+    "./types/*": "./types/*"
+  },
+  "description": "RPC types - Rust (prost/tonic) + TypeScript (protobuf-es/connect-es) generated from proto files",
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.2.3",
+    "@connectrpc/connect": "^1.6.1"
+  }
+}

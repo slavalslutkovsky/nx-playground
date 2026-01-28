@@ -1,0 +1,104 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xapplications.platform.io
+spec:
+  group: platform.io
+  names:
+    kind: XApplication
+    plural: xapplications
+  claimNames:
+    kind: Application
+    plural: applications
+  defaultCompositionRef:
+    name: xapplication
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - provider
+            - region
+            - name
+            properties:
+              name:
+                type: string
+                description: Application name
+              provider:
+                type: string
+                description: Cloud provider (aws or gcp)
+                enum:
+                - aws
+                - gcp
+              region:
+                type: string
+                description: Cloud region
+              environment:
+                type: string
+                description: Environment (dev, staging, prod)
+                enum:
+                - dev
+                - staging
+                - prod
+                default: dev
+              storage:
+                type: object
+                description: Storage configuration
+                properties:
+                  enabled:
+                    type: boolean
+                    description: Enable storage
+                    default: true
+                  storageClass:
+                    type: string
+                    enum:
+                    - standard
+                    - nearline
+                    - coldline
+                    default: standard
+              database:
+                type: object
+                description: Database configuration
+                properties:
+                  enabled:
+                    type: boolean
+                    description: Enable database
+                    default: true
+                  engine:
+                    type: string
+                    enum:
+                    - postgres
+                    - mysql
+                    default: postgres
+                  size:
+                    type: string
+                    enum:
+                    - small
+                    - medium
+                    - large
+                    default: small
+              deletionPolicy:
+                type: string
+                description: Deletion policy
+                enum:
+                - Delete
+                - Orphan
+                default: Delete
+          status:
+            type: object
+            properties:
+              provider:
+                type: string
+              region:
+                type: string
+              bucketName:
+                type: string
+              databaseEndpoint:
+                type: string
+    additionalPrinterColumns: null

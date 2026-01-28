@@ -1,7 +1,18 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "ignoreUnknown": false },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/coverage",
+      "!**/.nx/cache",
+      "!**/.nx/workspace-data",
+      "!**/libs/rpc/types/apps/v1",
+      "!**/libs/domains/tasks/types"
+    ]
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -13,14 +24,7 @@
     "bracketSameLine": false,
     "bracketSpacing": true,
     "expand": "auto",
-    "useEditorconfig": true,
-    "includes": [
-      "**",
-      "!./dist",
-      "!./coverage",
-      "!./.nx/cache",
-      "!./.nx/workspace-data"
-    ]
+    "useEditorconfig": true
   },
   "linter": {
     "enabled": true,

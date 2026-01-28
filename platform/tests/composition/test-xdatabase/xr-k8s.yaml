@@ -1,0 +1,14 @@
+apiVersion: database.platform.io/v1alpha1
+kind: XDatabase
+metadata:
+  name: test-database-k8s
+spec:
+  provider: kubernetes
+  namespace: default
+  engine: postgres
+  engineVersion: "15"
+  size: small
+  storageGB: 10
+  instances: 1
+  environment: dev
+  deletionPolicy: Delete

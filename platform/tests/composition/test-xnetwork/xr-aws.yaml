@@ -1,0 +1,13 @@
+apiVersion: network.platform.io/v1alpha1
+kind: XNetwork
+metadata:
+  name: test-network-aws
+spec:
+  provider: aws
+  name: test-vpc
+  region: eu-west-1
+  cidrBlock: "10.0.0.0/16"
+  environment: dev
+  enableDnsSupport: true
+  enableDnsHostnames: true
+  deletionPolicy: Delete

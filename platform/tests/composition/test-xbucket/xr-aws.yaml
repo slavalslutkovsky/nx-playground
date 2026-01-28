@@ -1,0 +1,14 @@
+apiVersion: storage.platform.io/v1alpha1
+kind: XBucket
+metadata:
+  name: test-bucket-aws
+spec:
+  provider: aws
+  region: us-east-1
+  name: test-bucket-aws
+  environment: dev
+  storageClass: standard
+  versioning: true
+  encryption: true
+  publicAccess: false
+  deletionPolicy: Delete

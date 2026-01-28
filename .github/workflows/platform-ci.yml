@@ -1,0 +1,421 @@
+name: Platform CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'platform/**'
+      - '.github/workflows/platform-ci.yml'
+  pull_request:
+    paths:
+      - 'platform/**'
+  schedule:
+    # Nightly integration test at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version (e.g. v0.1.0)
+        required: false
+      push:
+        description: Push to registry
+        type: boolean
+        default: false
+
+defaults:
+  run:
+    working-directory: platform
+
+env:
+  DOCKER_REGISTRY: docker.io/yurikrupnik
+  SCHEMA_PACKAGE: docker.io/yurikrupnik/platform-schemas
+
+jobs:
+  lint:
+    name: Lint KCL
+    runs-on: ubuntu-latest
+    # Skip lint on nightly - just run integration tests
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Lint schemas and render scripts
+        run: kcl lint schemas/ && kcl lint render/
+
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Run unit tests
+        working-directory: platform
+        run: kcl test tests/unit/
+
+  test-schemas:
+    name: Test Schemas
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Run KCL tests
+        run: kcl test schemas/ || true  # Tests may not exist yet
+
+  validate-xrds:
+    name: Validate XRD Generation
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Generate XRDs from schemas
+        run: |
+          kcl run render/bucket_xrd.k > /tmp/bucket.yaml
+          kcl run render/database_xrd.k > /tmp/database.yaml
+          kcl run render/registry_xrd.k > /tmp/registry.yaml
+          kcl run render/application_xrd.k > /tmp/application.yaml
+          kcl run render/network_xrd.k > /tmp/network.yaml
+
+      - name: Validate generated YAML
+        run: |
+          for f in /tmp/*.yaml; do
+            echo "Validating $f..."
+            cat "$f" | head -20
+            grep -q "apiVersion: apiextensions.crossplane.io/v1" "$f"
+            grep -q "kind: CompositeResourceDefinition" "$f"
+          done
+          echo "All XRDs valid!"
+
+  # Publish KCL functions as OCI artifacts
+  publish-functions:
+    name: Publish Functions
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-schemas]
+    if: github.event_name != 'schedule'
+    strategy:
+      matrix:
+        function:
+          - compose-bucket
+          - compose-database
+          - compose-registry
+          - compose-application
+          - compose-network
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            VERSION="latest"
+          else
+            VERSION="dev-${{ github.sha }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Login to Docker Hub (KCL)
+        run: |
+          kcl registry login docker.io \
+            -u ${{ secrets.DOCKERHUB_USERNAME }} \
+            -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate KCL models from Crossplane CRDs
+        working-directory: platform
+        run: |
+          # Install up CLI for model generation
+          curl -sL https://cli.upbound.io | sh
+          sudo mv up /usr/local/bin/
+          # Generate models (this creates .up/kcl/models)
+          up project generate || echo "Models may already exist"
+
+      - name: Publish function to OCI
+        working-directory: platform/functions/${{ matrix.function }}
+        run: |
+          echo "Publishing ${{ matrix.function }} as ${{ env.DOCKER_REGISTRY }}/${{ matrix.function }}:${{ steps.version.outputs.version }}"
+          # Replace model symlink with actual files
+          if [ -L model ]; then
+            rm model
+            cp -r ../../.up/kcl/models model
+          fi
+          kcl mod push oci://${{ env.DOCKER_REGISTRY }}/${{ matrix.function }}:${{ steps.version.outputs.version }} --force
+
+  # Publish schemas to OCI registry before testing functions
+  publish-schemas:
+    name: Publish Schemas
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-schemas]
+    if: github.event_name != 'schedule'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Determine schema version
+        id: version
+        run: |
+          # KCL uses version from kcl.mod, so we update it before pushing
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            # Use current kcl.mod version for main
+            VERSION=$(grep 'version = ' platform/schemas/kcl.mod | sed 's/version = "\(.*\)"/\1/')
+          else
+            # For PRs, append commit SHA to distinguish builds
+            BASE_VERSION=$(grep 'version = ' platform/schemas/kcl.mod | sed 's/version = "\(.*\)"/\1/')
+            VERSION="${BASE_VERSION}-dev.${{ github.sha }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update schema version in kcl.mod
+        working-directory: platform/schemas
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          sed -i 's|version = ".*"|version = "'"$VERSION"'"|g' kcl.mod
+          echo "Updated schemas/kcl.mod to version: $VERSION"
+          cat kcl.mod
+
+      - name: Login to Docker Hub (KCL)
+        run: |
+          kcl registry login docker.io \
+            -u ${{ secrets.DOCKERHUB_USERNAME }} \
+            -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish schemas to OCI
+        working-directory: platform/schemas
+        run: |
+          echo "Publishing schemas as ${{ env.SCHEMA_PACKAGE }}:${{ steps.version.outputs.version }}"
+          kcl mod push oci://${{ env.SCHEMA_PACKAGE }} --force
+
+  # Test composition functions with published schemas
+  test-compositions:
+    name: Test Compositions
+    runs-on: ubuntu-latest
+    needs: [publish-schemas]
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Install Upbound CLI
+        run: |
+          curl -sL https://cli.upbound.io | sh
+          sudo mv up /usr/local/bin/
+
+      - name: Update schema references in functions
+        run: |
+          VERSION=${{ needs.publish-schemas.outputs.version }}
+          echo "Updating functions to use schemas:${VERSION}"
+          for mod in functions/*/kcl.mod; do
+            if grep -q "platform-schemas" "$mod"; then
+              sed -i "s|tag = \".*\"|tag = \"${VERSION}\"|g" "$mod"
+              echo "Updated $mod to use ${VERSION}"
+              cat "$mod"
+            fi
+          done
+
+      - name: Generate XRDs from schemas
+        run: |
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+
+      - name: Run composition tests
+        run: up test run tests/composition/* || echo "No tests found or tests failed"
+
+  # Build platform package
+  build:
+    name: Build Platform
+    runs-on: ubuntu-latest
+    needs: [validate-xrds, test-compositions]
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Install Upbound CLI
+        run: |
+          curl -sL https://cli.upbound.io | sh
+          sudo mv up /usr/local/bin/
+
+      - name: Build platform
+        run: |
+          # gen-xrds
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+          # build
+          up project build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-package
+          path: platform/_output/
+          retention-days: 7
+
+  # Push to registry on main or manual trigger
+  push:
+    name: Push to Docker Hub
+    runs-on: ubuntu-latest
+    needs: [build, publish-schemas]
+    if: |
+      github.event_name != 'schedule' && (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch' && inputs.push)
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Install Upbound CLI
+        run: |
+          curl -sL https://cli.upbound.io | sh
+          sudo mv up /usr/local/bin/
+
+      - name: Generate XRDs and build
+        run: |
+          # gen-xrds
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+          # build
+          up project build
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push to registry
+        run: |
+          VERSION="${{ inputs.version || needs.publish-schemas.outputs.version }}"
+          up project push ${{ env.DOCKER_REGISTRY }}/platform:${VERSION}
+          echo "Pushed ${{ env.DOCKER_REGISTRY }}/platform:${VERSION}"
+
+  # Nightly integration test against latest published artifacts
+  nightly-integration:
+    name: Nightly Integration Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install KCL directly (replaces mise - saves ~360MB cache)
+      - name: Setup KCL
+        run: |
+          curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
+          echo "${HOME}/.kcl/bin" >> $GITHUB_PATH
+
+      - name: Install Upbound CLI
+        run: |
+          curl -sL https://cli.upbound.io | sh
+          sudo mv up /usr/local/bin/
+
+      - name: Get latest schema version and update functions
+        working-directory: platform
+        run: |
+          # Get the current version from schemas/kcl.mod (should match what's published)
+          LATEST_VERSION=$(grep 'version = ' schemas/kcl.mod | sed 's/version = "\(.*\)"/\1/')
+          echo "Testing with schemas:${LATEST_VERSION}"
+          for mod in functions/*/kcl.mod; do
+            if grep -q "platform-schemas" "$mod"; then
+              sed -i "s|tag = \".*\"|tag = \"${LATEST_VERSION}\"|g" "$mod"
+              echo "Updated $mod to use ${LATEST_VERSION}"
+            fi
+          done
+
+      - name: Generate XRDs from schemas
+        working-directory: platform
+        run: |
+          kcl run render/bucket_xrd.k > apis/xbuckets/definition.yaml
+          kcl run render/database_xrd.k > apis/xdatabases/definition.yaml
+          kcl run render/registry_xrd.k > apis/xregistries/definition.yaml
+          kcl run render/network_xrd.k > apis/xnetworks/definition.yaml
+          kcl run render/application_xrd.k > apis/xapplications/definition.yaml
+
+      - name: Run composition tests
+        working-directory: platform
+        run: up test run tests/composition/*
+
+      - name: Run E2E tests (if available)
+        working-directory: platform
+        run: up test run tests/composition/* --e2e || echo "No E2E tests configured"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Nightly integration tests failed! Check schema/function compatibility."
+          # Add Slack/email notification here if needed

@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg-dev
+
+resources:
+  - ../../base
+
+namePrefix: dev-
+
+# Dev-specific patches
+patches:
+  # Single instance for dev
+  - patch: |-
+      - op: replace
+        path: /spec/instances
+        value: 1
+      - op: replace
+        path: /spec/storage/size
+        value: 5Gi
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: 256Mi
+      - op: replace
+        path: /spec/resources/limits/memory
+        value: 512Mi
+    target:
+      kind: Cluster
+      name: zerg-db
+
+  # Use local migration image for dev
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: zerg-migration:local
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+    target:
+      kind: Job
+      name: zerg-migrate

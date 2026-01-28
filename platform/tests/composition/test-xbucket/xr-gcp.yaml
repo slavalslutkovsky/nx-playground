@@ -1,0 +1,14 @@
+apiVersion: storage.platform.io/v1alpha1
+kind: XBucket
+metadata:
+  name: test-bucket-gcp
+spec:
+  provider: gcp
+  region: us-east1
+  name: test-bucket-gcp
+  environment: dev
+  storageClass: standard
+  versioning: true
+  encryption: true
+  publicAccess: false
+  deletionPolicy: Delete

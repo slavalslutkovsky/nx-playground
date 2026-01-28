@@ -1,0 +1,13 @@
+# Local development registry using Harbor (CNCF Graduated)
+# Requires: Harbor Operator installed in the cluster
+# Install: kubectl apply -f https://raw.githubusercontent.com/goharbor/harbor-operator/main/manifests/cluster/deployment.yaml
+apiVersion: registry.platform.io/v1alpha1
+kind: Registry
+metadata:
+  name: my-local-registry
+  namespace: default
+spec:
+  provider: kubernetes   # Uses Harbor operator
+  name: local-registry
+  namespace: default     # Where to create Harbor instance
+  environment: dev

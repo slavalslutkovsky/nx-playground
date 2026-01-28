@@ -1,0 +1,13 @@
+apiVersion: network.platform.io/v1alpha1
+kind: Network
+metadata:
+  name: my-gcp-network
+  namespace: default
+spec:
+  provider: gcp
+  name: my-vpc
+  region: europe-west1
+  cidrBlock: "10.0.0.0/16"
+  environment: dev
+  # Uses default subnets: public (10.0.1.0/24) and private (10.0.2.0/24)
+  deletionPolicy: Delete

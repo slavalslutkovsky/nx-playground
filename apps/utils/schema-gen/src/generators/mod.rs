@@ -1,6 +1,8 @@
+pub mod atlas;
 pub mod dbml;
 pub mod mermaid;
 
+pub use atlas::AtlasGenerator;
 pub use dbml::DbmlGenerator;
 pub use mermaid::MermaidGenerator;
 

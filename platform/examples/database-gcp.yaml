@@ -1,0 +1,13 @@
+apiVersion: database.platform.io/v1alpha1
+kind: Database
+metadata:
+  name: my-gcp-database
+  namespace: default
+spec:
+  provider: gcp
+  region: us-east1
+  engine: postgres
+  engineVersion: "15"
+  size: small
+  storageGB: 20
+  environment: dev

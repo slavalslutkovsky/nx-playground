@@ -1,0 +1,22 @@
+apiVersion: network.platform.io/v1alpha1
+kind: Network
+metadata:
+  name: my-custom-network
+  namespace: default
+spec:
+  provider: gcp
+  name: custom-vpc
+  region: us-east1
+  cidrBlock: "172.16.0.0/16"
+  environment: prod
+  subnets:
+    - name: web-tier
+      cidrBlock: "172.16.1.0/24"
+      type: public
+    - name: app-tier
+      cidrBlock: "172.16.10.0/24"
+      type: private
+    - name: data-tier
+      cidrBlock: "172.16.20.0/24"
+      type: private
+  deletionPolicy: Orphan

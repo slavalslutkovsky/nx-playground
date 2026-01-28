@@ -5,6 +5,7 @@ namespace: zerg
 
 resources:
   - ../../base
+  - scaledobject.yaml
 
 patches:
   - patch: |-
@@ -22,13 +23,6 @@ patches:
               secretKeyRef:
                 name: postgres-secret
                 key: DATABASE_URL
-    target:
-      kind: Deployment
-      name: zerg-tasks
-  - patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 3
     target:
       kind: Deployment
       name: zerg-tasks

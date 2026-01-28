@@ -1,0 +1,84 @@
+# Platform Crossplane Configuration - Tiltfile
+# Watches KCL files and regenerates/applies XRDs and Compositions
+# Uses inline KCL in compositions - no function publishing needed for local dev
+
+# ============================================
+# Configuration
+# ============================================
+
+# XRD resources to generate and apply
+XRDS = ['xbuckets', 'xdatabases', 'xregistries', 'xapplications', 'xnetworks']
+
+# Schema version for OCI dependencies (models + schemas)
+SCHEMA_VERSION = '0.0.1'
+
+# ============================================
+# KCL Schema -> XRD Generation
+# ============================================
+
+# Generate all XRDs from KCL schemas
+local_resource(
+    'platform-gen-xrds',
+    cmd='just gen-xrds',
+    deps=[
+        'schemas',
+        'render',
+    ],
+    labels=['platform'],
+    allow_parallel=True,
+)
+
+# ============================================
+# KCL Functions -> Compositions (Inline KCL)
+# ============================================
+
+# Generate compositions with inline KCL source
+# This embeds the KCL code directly in composition.yaml
+# Dependencies (models, schemas) are pulled from OCI at runtime
+local_resource(
+    'platform-gen-compositions',
+    cmd='just gen-compositions %s' % SCHEMA_VERSION,
+    deps=[
+        'functions',  # Watch all function code
+        'scripts/gen-compositions.sh',
+    ],
+    labels=['platform'],
+    resource_deps=['platform-gen-xrds'],
+)
+
+# ============================================
+# Apply XRDs and Compositions to Cluster
+# ============================================
+
+# Apply all XRD definitions and compositions
+for xrd in XRDS:
+    k8s_yaml('apis/%s/definition.yaml' % xrd)
+    k8s_yaml('apis/%s/composition.yaml' % xrd)
+
+# Group all platform resources
+k8s_resource(
+    objects=[
+        'xbuckets.storage.platform.io:compositeresourcedefinition',
+        'xdatabases.database.platform.io:compositeresourcedefinition',
+        'xregistries.registry.platform.io:compositeresourcedefinition',
+        'xapplications.platform.io:compositeresourcedefinition',
+        'xnetworks.network.platform.io:compositeresourcedefinition',
+        'xbucket:composition',
+        'xdatabase:composition',
+        'xregistry:composition',
+        'xapplication:composition',
+        'xnetwork:composition',
+    ],
+    new_name='platform-xrds',
+    labels=['platform'],
+    resource_deps=['platform-gen-compositions'],
+)
+
+# ============================================
+# Example Resources (optional - uncomment to test)
+# ============================================
+
+# Uncomment to apply example resources for testing
+# k8s_yaml('examples/bucket-aws.yaml')
+k8s_yaml('examples/bucket-gcp.yaml')
+# k8s_yaml('examples/database-aws.yaml')
