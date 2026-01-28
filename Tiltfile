@@ -2,7 +2,7 @@
 #k8s_yaml(kustomize('./manifests/kustomize/domains/zerg/overlays/dev'))
 #k8s_yaml(kustomize('./manifests/kustomize/all/dev'))
 k8s_yaml('./manifests/security/base/secrets.yaml')
-k8s_yaml(kustomize('./manifests/atlas/overlays/dev'))
+#k8s_yaml(kustomize('./manifests/atlas/overlays/dev'))
 #k8s_yaml(kustomize('./manifests/kustomize/all/overlays/dev'))
 
 # =============================================================================

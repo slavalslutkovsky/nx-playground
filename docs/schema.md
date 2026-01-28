@@ -1,6 +1,6 @@
 # Database Schema
 
-Auto-generated from SeaORM entities on 2026-01-27 14:10:56 UTC
+Auto-generated from SeaORM entities on 2026-01-28 09:19:15 UTC
 
 ```mermaid
 erDiagram

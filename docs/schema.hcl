@@ -1,5 +1,5 @@
 # Atlas HCL Schema
-# Auto-generated from SeaORM entities on 2026-01-27 15:17:05 UTC
+# Auto-generated from SeaORM entities on 2026-01-28 11:57:15 UTC
 # Docs: https://atlasgo.io/atlas-schema/hcl
 
 schema "public" {
