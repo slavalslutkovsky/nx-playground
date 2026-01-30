@@ -290,7 +290,23 @@ backstage-restart:
     kubectl rollout restart deployment/backstage -n backstage
     kubectl rollout status deployment/backstage -n backstage
 
-dsa:
-    nx add @nx/vite
-    nx g @nx/vite:app web --directory=apps/zerg/web --unitTestRunner=vitest --projectNameAndRootFormat=as-provided
-    cargo run -- migrate up # test is why it is up like this
+# ============================================================================
+# Local Development Environment
+# ============================================================================
+
+# Start full local dev environment (Kind + DBs + Secrets + Tilt)
+local-up *args:
+    nu scripts/nu/mod.nu up {{args}}
+
+# Tear down local dev environment
+local-down *args:
+    nu scripts/nu/mod.nu down {{args}}
+
+# Quick restart (keep cluster, redeploy apps)
+local-restart:
+    nu scripts/nu/mod.nu down --keep-cluster
+    tilt up
+
+# Show environment status
+local-status:
+    nu scripts/nu/mod.nu status
