@@ -6,10 +6,13 @@
 //! - gRPC client connections
 //! - Database connections (PostgreSQL, Redis)
 //! - Notification service (NATS-based email queueing)
+//! - Vector service (Qdrant-backed)
 
 use axum_helpers::JwtRedisAuth;
+use domain_vector::{QdrantRepository, VectorService};
 use email::NotificationService;
 use rpc::tasks::tasks_service_client::TasksServiceClient;
+use std::sync::Arc;
 use tonic::transport::Channel;
 
 /// Shared application state.
@@ -21,6 +24,7 @@ use tonic::transport::Channel;
 /// - Redis connection manager
 /// - JWT authentication (hybrid JWT + Redis)
 /// - Notification service for email queueing via NATS
+/// - Vector service for Qdrant operations
 #[derive(Clone)]
 pub struct AppState {
     /// Application configuration loaded from environment variables
@@ -36,4 +40,6 @@ pub struct AppState {
     pub jwt_auth: JwtRedisAuth,
     /// Notification service for queueing emails via NATS JetStream
     pub notifications: NotificationService,
+    /// Vector service for Qdrant operations (wrapped in Arc for cheap cloning)
+    pub vector_service: Option<Arc<VectorService<QdrantRepository>>>,
 }

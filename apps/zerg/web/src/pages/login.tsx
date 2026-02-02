@@ -36,7 +36,7 @@ export function LoginPage() {
         email: email(),
         password: password(),
       });
-      await navigate({to: '/tasks'});
+      await navigate({ to: '/tasks' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

@@ -7,6 +7,7 @@ pub mod projects;
 pub mod tasks;
 pub mod tasks_direct;
 pub mod users;
+pub mod vector;
 
 /// Creates the API routes without the `/api` prefix.
 /// The `/api` prefix will be added by the `create_router` helper.
@@ -20,7 +21,7 @@ pub fn routes(state: &crate::state::AppState) -> Router {
     // Import ApiResource trait to access URL constants
     use domain_projects::ApiResource;
 
-    Router::new()
+    let router = Router::new()
         .nest("/auth", auth::router(state)) // Auth routes at /api/auth
         .nest("/tasks", tasks::router(state.clone()))
         .nest("/tasks-direct", tasks_direct::router(state))
@@ -29,7 +30,14 @@ pub fn routes(state: &crate::state::AppState) -> Router {
             domain_cloud_resources::entity::Model::URL,
             cloud_resources::router(state),
         )
-        .nest("/users", users::router(state)) // TODO: Add SeaOrmResource to domain_users
+        .nest("/users", users::router(state)); // TODO: Add SeaOrmResource to domain_users
+
+    // Add vector routes if Qdrant is configured
+    if let Some(vector_router) = vector::router(state) {
+        router.nest("/vector", vector_router)
+    } else {
+        router
+    }
 }
 
 /// Creates a router with the /ready endpoint that performs actual health checks.

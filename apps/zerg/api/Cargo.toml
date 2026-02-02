@@ -15,6 +15,7 @@ domain_cloud_resources = { workspace = true }
 domain_projects = { workspace = true }
 domain_tasks = { path = "../../../libs/domains/tasks" }
 domain_users = { workspace = true, features = ["notifications"] }
+domain_vector = { workspace = true }
 email = { workspace = true }
 eyre = { workspace = true }
 grpc-client = { workspace = true }

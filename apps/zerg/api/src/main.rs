@@ -1,6 +1,8 @@
 use axum_helpers::server::{create_production_app, health_router};
 use core_config::tracing::{init_tracing, install_color_eyre};
+use domain_vector::{OpenAIProvider, QdrantConfig, QdrantRepository, VectorService};
 use email::NotificationService;
+use std::sync::Arc;
 use std::time::Duration;
 use tracing::info;
 
@@ -63,6 +65,36 @@ async fn main() -> eyre::Result<()> {
     let jwt_auth = axum_helpers::JwtRedisAuth::new(redis.clone(), &config.jwt)
         .map_err(|e| eyre::eyre!("Failed to initialize JWT auth: {}", e))?;
 
+    // Initialize Qdrant/Vector service (optional)
+    let vector_service = match QdrantConfig::from_env() {
+        Ok(qdrant_config) => {
+            info!("Connecting to Qdrant...");
+            match QdrantRepository::new(qdrant_config).await {
+                Ok(qdrant_repo) => {
+                    info!("Connected to Qdrant");
+                    let service = VectorService::new(qdrant_repo);
+                    // Optionally add embedding provider
+                    let service = if let Ok(provider) = OpenAIProvider::from_env() {
+                        info!("OpenAI embedding provider configured");
+                        service.with_embedding_provider(Arc::new(provider))
+                    } else {
+                        info!("No embedding provider configured");
+                        service
+                    };
+                    Some(Arc::new(service))
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to connect to Qdrant (vector service disabled): {}", e);
+                    None
+                }
+            }
+        }
+        Err(_) => {
+            info!("Qdrant not configured - vector service disabled");
+            None
+        }
+    };
+
     // Initialize the application state with database connections
     let state = AppState {
         config,
@@ -71,6 +103,7 @@ async fn main() -> eyre::Result<()> {
         redis,
         jwt_auth,
         notifications,
+        vector_service,
     };
 
     // Build router with API routes (pass reference, not ownership!)
