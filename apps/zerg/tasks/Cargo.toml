@@ -9,12 +9,11 @@ core_config = { workspace = true }
 database = { workspace = true, features = ["config"] }
 domain_tasks = { path = "../../../libs/domains/tasks" }
 eyre = { workspace = true }
-grpc-client = { path = "../../../libs/core/grpc" }
+grpc-client = { path = "../../../libs/core/grpc", features = ["server"] }
 rpc = { workspace = true }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
 tonic = { workspace = true }
-tonic-health = "0.14"
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }

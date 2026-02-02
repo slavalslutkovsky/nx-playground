@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+async-nats = { workspace = true }
 axum = { workspace = true }
 axum-helpers = { workspace = true }
 chrono = { workspace = true }
@@ -13,7 +14,8 @@ database = { workspace = true, features = ["all"] }
 domain_cloud_resources = { workspace = true }
 domain_projects = { workspace = true }
 domain_tasks = { path = "../../../libs/domains/tasks" }
-domain_users = { workspace = true }
+domain_users = { workspace = true, features = ["notifications"] }
+email = { workspace = true }
 eyre = { workspace = true }
 grpc-client = { workspace = true }
 migration = { workspace = true }

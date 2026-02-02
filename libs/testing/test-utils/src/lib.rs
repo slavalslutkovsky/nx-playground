@@ -3,6 +3,7 @@
 //! This crate provides reusable test infrastructure for all domain crates:
 //! - `TestDatabase`: PostgreSQL container with automatic cleanup (feature: "postgres")
 //! - `TestRedis`: Redis container with automatic cleanup (feature: "redis")
+//! - `TestNats`: NATS container with JetStream for stream testing (feature: "nats")
 //! - `TestDataBuilder`: Deterministic test data generation (always available)
 //! - `assertions`: Custom assertion helpers (always available)
 //!
@@ -10,7 +11,8 @@
 //!
 //! - `postgres` (default): Enables PostgreSQL test infrastructure
 //! - `redis`: Enables Redis test infrastructure
-//! - `all`: Enables all database test infrastructure
+//! - `nats`: Enables NATS JetStream test infrastructure
+//! - `all`: Enables all test infrastructure
 //!
 //! # Usage
 //!
@@ -54,6 +56,29 @@
 //!     assert_eq!(value, "value");
 //! }
 //! ```
+//!
+//! ## NATS JetStream Testing
+//!
+//! Add `features = ["nats"]` to your dev-dependencies:
+//!
+//! ```toml
+//! [dev-dependencies]
+//! test-utils = { workspace = true, features = ["nats"] }
+//! ```
+//!
+//! Then in your tests:
+//!
+//! ```rust,ignore
+//! use test_utils::TestNats;
+//!
+//! #[tokio::test]
+//! async fn my_nats_test() {
+//!     let nats = TestNats::new().await;
+//!     let jetstream = nats.jetstream();
+//!
+//!     // Create streams, publish messages, etc.
+//! }
+//! ```
 
 use uuid::Uuid;
 
@@ -64,12 +89,18 @@ mod postgres;
 #[cfg(feature = "redis")]
 mod redis;
 
+#[cfg(feature = "nats")]
+mod nats;
+
 // Re-export based on enabled features
 #[cfg(feature = "postgres")]
 pub use postgres::TestDatabase;
 
 #[cfg(feature = "redis")]
 pub use redis::TestRedis;
+
+#[cfg(feature = "nats")]
+pub use nats::TestNats;
 
 /// Builder for test data with deterministic randomization
 ///

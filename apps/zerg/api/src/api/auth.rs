@@ -35,6 +35,7 @@ pub fn router(state: &crate::state::AppState) -> Router {
         jwt_auth: state.jwt_auth.clone(),
         oauth_state_manager,
         account_linking,
+        notifications: Some(state.notifications.clone()),
     };
 
     // Return auth router

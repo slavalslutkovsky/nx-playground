@@ -5,8 +5,10 @@
 //! - Configuration
 //! - gRPC client connections
 //! - Database connections (PostgreSQL, Redis)
+//! - Notification service (NATS-based email queueing)
 
 use axum_helpers::JwtRedisAuth;
+use email::NotificationService;
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use tonic::transport::Channel;
 
@@ -18,6 +20,7 @@ use tonic::transport::Channel;
 /// - PostgreSQL database connection pool (SeaORM)
 /// - Redis connection manager
 /// - JWT authentication (hybrid JWT + Redis)
+/// - Notification service for email queueing via NATS
 #[derive(Clone)]
 pub struct AppState {
     /// Application configuration loaded from environment variables
@@ -31,4 +34,6 @@ pub struct AppState {
     pub redis: database::redis::ConnectionManager,
     /// JWT + Redis hybrid authentication
     pub jwt_auth: JwtRedisAuth,
+    /// Notification service for queueing emails via NATS JetStream
+    pub notifications: NotificationService,
 }

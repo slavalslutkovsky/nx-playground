@@ -1,0 +1,37 @@
+[package]
+name = "email"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = ["smtp"]
+smtp = ["dep:lettre"]
+sendgrid = ["dep:reqwest"]
+integration = []
+
+[dependencies]
+# Core dependencies (always included)
+async-nats = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+eyre = { workspace = true }
+handlebars = "6"
+rand = { workspace = true }
+
+# Provider dependencies (optional)
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "builder", "smtp-transport", "hostname"], optional = true }
+messaging = { workspace = true, features = ["nats"] }
+reqwest = { workspace = true, features = ["json"], optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+async-nats = { workspace = true }
+test-utils = { path = "../../testing/test-utils", features = ["nats"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }

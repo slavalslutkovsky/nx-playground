@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg-prod
+
+resources:
+  - ../../base
+  - pdb.yaml  # IMPROVEMENT: Added PodDisruptionBudget
+
+namePrefix: prod-
+
+# Production-specific patches
+patches:
+  # 3 instances for HA
+  - patch: |-
+      - op: replace
+        path: /spec/instances
+        value: 3
+      - op: replace
+        path: /spec/storage/size
+        value: 50Gi
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/resources/requests/cpu
+        value: 500m
+      - op: replace
+        path: /spec/resources/limits/memory
+        value: 2Gi
+      - op: replace
+        path: /spec/resources/limits/cpu
+        value: 2000m
+      - op: replace
+        path: /spec/postgresql/parameters/shared_buffers
+        value: 512MB
+      - op: replace
+        path: /spec/postgresql/parameters/effective_cache_size
+        value: 1536MB
+      - op: replace
+        path: /spec/postgresql/parameters/max_connections
+        value: "200"
+    target:
+      kind: Cluster
+      name: zerg-db
+
+# Production should use external secrets management
+# Uncomment when using external-secrets or sealed-secrets
+# secretGenerator:
+#   - name: zerg-db-credentials
+#     behavior: replace
+#     literals: []  # Managed by external-secrets

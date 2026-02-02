@@ -40,6 +40,9 @@ pub struct AuthState<R: UserRepository, O: OAuthAccountRepository> {
     pub jwt_auth: JwtRedisAuth,
     pub oauth_state_manager: OAuthStateManager,
     pub account_linking: AccountLinkingService<R, O>,
+    /// Optional notification service for sending emails (requires `notifications` feature)
+    #[cfg(feature = "notifications")]
+    pub notifications: Option<email::NotificationService>,
 }
 
 /// Check if running in development mode
@@ -64,6 +67,30 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
             roles: vec![],
         })
         .await?;
+
+    // Queue welcome email (if notifications feature is enabled)
+    #[cfg(feature = "notifications")]
+    if let Some(ref notifications) = state.notifications {
+        // TODO: Add email verification flow with token
+        if let Err(e) = notifications
+            .queue_welcome_email(user.id, &user.email, &user.name, false, None)
+            .await
+        {
+            // Log error but don't fail registration
+            tracing::warn!(
+                user_id = %user.id,
+                email = %user.email,
+                error = %e,
+                "Failed to queue welcome email"
+            );
+        } else {
+            tracing::info!(
+                user_id = %user.id,
+                email = %user.email,
+                "Welcome email queued successfully"
+            );
+        }
+    }
 
     let user_id = user.id.to_string();
 

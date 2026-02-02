@@ -11,9 +11,10 @@ use core_config::{Environment, FromEnv};
 use database::postgres::PostgresConfig;
 use domain_tasks::{PgTaskRepository, TaskService};
 use eyre::{Result, WrapErr};
+use grpc_client::server::{GrpcServer, ServerConfig, create_health_service};
 use rpc::tasks::tasks_service_server::{SERVICE_NAME, TasksServiceServer};
+use tonic::codec::CompressionEncoding;
 use tonic::transport::Server;
-use tonic_health::server::health_reporter;
 use tracing::info;
 
 use crate::service::TasksServiceImpl;
@@ -39,11 +40,14 @@ pub async fn run() -> Result<()> {
     core_config::tracing::init_tracing(&environment);
 
     // Load database configuration from environment
-    let config = PostgresConfig::from_env().wrap_err("Failed to load database configuration")?;
+    let db_config = PostgresConfig::from_env().wrap_err("Failed to load database configuration")?;
+
+    // Load gRPC server configuration
+    let server_config = ServerConfig::from_env().wrap_err("Failed to load server configuration")?;
 
     // Connect to a database with retry logic
     info!("Connecting to database...");
-    let db = database::postgres::connect_from_config_with_retry(config, None)
+    let db = database::postgres::connect_from_config_with_retry(db_config, None)
         .await
         .wrap_err("Failed to connect to database")?;
     info!("Connected to database successfully");
@@ -52,42 +56,29 @@ pub async fn run() -> Result<()> {
     let repository = PgTaskRepository::new(db);
     let service = TaskService::new(repository);
 
-    // Create gRPC service implementation
-    let tasks_service = TasksServiceImpl::new(service);
+    // Create gRPC service implementation with compression
+    let tasks_service = TasksServiceServer::new(TasksServiceImpl::new(service))
+        .accept_compressed(CompressionEncoding::Zstd)
+        .send_compressed(CompressionEncoding::Zstd);
 
-    // Configure server address from environment or default
-    let host = std::env::var("GRPC_HOST").unwrap_or_else(|_| "[::1]".to_string());
-    let port = std::env::var("GRPC_PORT").unwrap_or_else(|_| "50051".to_string());
-    let addr_str = format!("{}:{}", host, port);
-    let addr = addr_str
-        .parse()
-        .wrap_err_with(|| format!("Failed to parse server address: {}", addr_str))?;
-    info!("TasksService listening on {}", addr);
-    info!("Using Zstd compression for optimal performance");
+    // Create health service
+    let (health_reporter, health_service) = create_health_service();
 
-    // Create a health reporter for Kubernetes probes
-    let (health_reporter, health_service) = health_reporter();
+    // Mark service as serving (for k8s readiness/liveness probes)
+    GrpcServer::setup_health(&health_reporter, SERVICE_NAME).await;
 
-    // Mark tasks service as serving (for k8s readiness/liveness probes)
-    // Using the service name from the generated gRPC code
-    health_reporter
-        .set_service_status(SERVICE_NAME, tonic_health::ServingStatus::Serving)
-        .await;
-    // Also set an empty service name for generic health checks (what k8s uses by default)
-    health_reporter
-        .set_service_status("", tonic_health::ServingStatus::Serving)
-        .await;
-    info!("Health check service enabled (grpc.health.v1.Health)");
+    // Log startup
+    GrpcServer::log_startup(&server_config, SERVICE_NAME);
 
-    // Build and start the gRPC server with production settings
+    // Get socket address
+    let addr = server_config
+        .socket_addr()
+        .wrap_err("Invalid server address")?;
+
+    // Build and start the gRPC server
     Server::builder()
         .add_service(health_service)
-        .add_service(
-            TasksServiceServer::new(tasks_service)
-                // Enable zstd compression (3-5x faster than gzip, better compression ratio)
-                .accept_compressed(tonic::codec::CompressionEncoding::Zstd)
-                .send_compressed(tonic::codec::CompressionEncoding::Zstd),
-        )
+        .add_service(tasks_service)
         .serve(addr)
         .await
         .wrap_err("gRPC server failed")?;

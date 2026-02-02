@@ -70,6 +70,9 @@ pub mod error;
 pub mod interceptors;
 pub mod retry;
 
+#[cfg(feature = "server")]
+pub mod server;
+
 // Re-export main types and functions for convenience
 pub use channel::{
     ChannelConfig, create_channel, create_channel_with_config, create_channel_with_retry,
@@ -86,3 +89,7 @@ pub use interceptors::{
     AuthInterceptor, ComposedInterceptor, MetricsInterceptor, TracingInterceptor,
     compose_interceptors,
 };
+
+// Re-export server types (when feature enabled)
+#[cfg(feature = "server")]
+pub use server::{GrpcServer, ServerConfig, create_health_service};

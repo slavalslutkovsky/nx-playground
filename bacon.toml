@@ -17,6 +17,14 @@ allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
 
+[jobs.zerg-email-nats]
+command = ["cargo", "run", "-p", "zerg_email_nats", "--color", "always"]
+need_stdout = true
+watch = ["apps/zerg/email-nats", "libs"]
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+
 [jobs.zerg-email]
 command = ["cargo", "run", "-p", "zerg_tasks", "--color", "always"]
 need_stdout = true
@@ -33,6 +41,16 @@ watch = ["apps/terran/api", "libs"]
 allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
+
+[jobs.zerg-tasks]
+command = ["cargo", "run", "-p", "zerg_tasks", "--color", "always"]
+need_stdout = true
+watch = ["apps/zerg/tasks", "libs"]
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+#env = { DATABASE_URL = "postgres://myuser:mypassword@localhost:5432/mydatabase" }
+
 
 [jobs.zerg-cli]
 command = ["cargo", "run", "-p", "zerg_cli", "--color", "always"]

@@ -1,7 +1,7 @@
 use core_proc_macros::ApiResource;
 
 #[derive(ApiResource)]
-#[api_resource(url = true)]  // Should fail - url must be a string
+#[api_resource(url = true)]
 pub struct User {
     id: String,
 }

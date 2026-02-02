@@ -3,7 +3,12 @@ name = "domain_users"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+notifications = ["dep:email"]
+
 [dependencies]
+email = { workspace = true, optional = true }
 argon2 = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true }
