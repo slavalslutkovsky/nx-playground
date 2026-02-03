@@ -84,7 +84,10 @@ async fn main() -> eyre::Result<()> {
                     Some(Arc::new(service))
                 }
                 Err(e) => {
-                    tracing::warn!("Failed to connect to Qdrant (vector service disabled): {}", e);
+                    tracing::warn!(
+                        "Failed to connect to Qdrant (vector service disabled): {}",
+                        e
+                    );
                     None
                 }
             }

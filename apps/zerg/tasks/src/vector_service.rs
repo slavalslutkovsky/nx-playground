@@ -5,19 +5,18 @@
 use std::sync::Arc;
 
 use domain_vector::{
-    conversions as conv, CreateCollection, RecommendQuery,
-    SearchFilter, SearchQuery, TenantContext, Vector, VectorRepository,
-    VectorService,
+    CreateCollection, RecommendQuery, SearchFilter, SearchQuery, TenantContext, Vector,
+    VectorRepository, VectorService, conversions as conv,
 };
 use rpc::vector::v1::{
-    vector_service_server::VectorService as VectorServiceTrait, CreateCollectionRequest,
-    CreateCollectionResponse, DeleteCollectionRequest, DeleteCollectionResponse, DeleteRequest,
-    DeleteResponse, EmbedBatchRequest, EmbedBatchResponse, EmbedRequest, EmbedResponse,
-    EmbeddingResult as ProtoEmbeddingResult, GetCollectionRequest, GetCollectionResponse,
-    GetRequest, GetResponse, ListCollectionsRequest, ListCollectionsResponse, RecommendRequest,
-    RecommendResponse, SearchRequest, SearchResponse, SearchWithEmbeddingRequest,
-    UpsertBatchRequest, UpsertBatchResponse, UpsertRequest, UpsertResponse,
-    UpsertWithEmbeddingRequest,
+    CreateCollectionRequest, CreateCollectionResponse, DeleteCollectionRequest,
+    DeleteCollectionResponse, DeleteRequest, DeleteResponse, EmbedBatchRequest, EmbedBatchResponse,
+    EmbedRequest, EmbedResponse, EmbeddingResult as ProtoEmbeddingResult, GetCollectionRequest,
+    GetCollectionResponse, GetRequest, GetResponse, ListCollectionsRequest,
+    ListCollectionsResponse, RecommendRequest, RecommendResponse, SearchRequest, SearchResponse,
+    SearchWithEmbeddingRequest, UpsertBatchRequest, UpsertBatchResponse, UpsertRequest,
+    UpsertResponse, UpsertWithEmbeddingRequest,
+    vector_service_server::VectorService as VectorServiceTrait,
 };
 use tonic::{Request, Response, Status};
 use tracing::info;
@@ -173,8 +172,9 @@ where
             .vectors
             .into_iter()
             .map(|v| {
-                v.try_into()
-                    .map_err(|e: domain_vector::VectorError| Status::invalid_argument(e.to_string()))
+                v.try_into().map_err(|e: domain_vector::VectorError| {
+                    Status::invalid_argument(e.to_string())
+                })
             })
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -248,7 +248,13 @@ where
 
         let vectors = self
             .service
-            .get(&tenant, &req.collection_name, ids, req.with_vectors, req.with_payloads)
+            .get(
+                &tenant,
+                &req.collection_name,
+                ids,
+                req.with_vectors,
+                req.with_payloads,
+            )
             .await
             .map_err(|e| Status::internal(format!("Failed to get: {}", e)))?;
 
@@ -289,7 +295,10 @@ where
 
     // ===== Embedding Operations =====
 
-    async fn embed(&self, request: Request<EmbedRequest>) -> Result<Response<EmbedResponse>, Status> {
+    async fn embed(
+        &self,
+        request: Request<EmbedRequest>,
+    ) -> Result<Response<EmbedResponse>, Status> {
         let req = request.into_inner();
         let provider_type = conv::embedding_provider_from_proto(req.provider);
         let model = conv::embedding_model_from_proto(req.model, req.custom_dimension);
@@ -346,8 +355,8 @@ where
         let provider_type = conv::embedding_provider_from_proto(req.provider);
         let model = conv::embedding_model_from_proto(req.model, None);
 
-        let id = conv::bytes_to_uuid(&req.id)
-            .map_err(|e| Status::invalid_argument(e.to_string()))?;
+        let id =
+            conv::bytes_to_uuid(&req.id).map_err(|e| Status::invalid_argument(e.to_string()))?;
 
         let payload = req.payload.and_then(|p| {
             if p.json.is_empty() {
@@ -468,6 +477,8 @@ where
             .await
             .map_err(|e| Status::internal(format!("Failed to recommend: {}", e)))?;
 
-        Ok(Response::new(conv::search_results_to_recommend_response(results)))
+        Ok(Response::new(conv::search_results_to_recommend_response(
+            results,
+        )))
     }
 }

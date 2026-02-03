@@ -4,7 +4,7 @@
 
 pub mod direct;
 
-use axum::{Router, routing::get, routing::post};
+use axum::{routing::get, routing::post, Router};
 use std::sync::Arc;
 use utoipa::OpenApi;
 
@@ -63,7 +63,10 @@ pub fn router<R: VectorRepository + 'static>(service: VectorService<R>) -> Route
 
     Router::new()
         // Collection management
-        .route("/collections", get(direct::list_collections).post(direct::create_collection))
+        .route(
+            "/collections",
+            get(direct::list_collections).post(direct::create_collection),
+        )
         .route(
             "/collections/{name}",
             get(direct::get_collection).delete(direct::delete_collection),
@@ -76,6 +79,9 @@ pub fn router<R: VectorRepository + 'static>(service: VectorService<R>) -> Route
         .route("/vectors/delete", post(direct::delete_vectors))
         // Embedding operations
         .route("/embed", post(direct::embed))
-        .route("/search-with-embedding", post(direct::search_with_embedding))
+        .route(
+            "/search-with-embedding",
+            post(direct::search_with_embedding),
+        )
         .with_state(shared_service)
 }

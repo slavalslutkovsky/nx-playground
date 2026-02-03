@@ -25,8 +25,8 @@ impl Default for ServerConfig {
             host: "[::1]".to_string(),
             port: 50051,
             enable_compression: true,
-            max_decoding_message_size: 8 * 1024 * 1024,  // 8MB
-            max_encoding_message_size: 8 * 1024 * 1024,  // 8MB
+            max_decoding_message_size: 8 * 1024 * 1024, // 8MB
+            max_encoding_message_size: 8 * 1024 * 1024, // 8MB
             keepalive_secs: 60,
         }
     }

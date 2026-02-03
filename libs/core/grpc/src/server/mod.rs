@@ -39,8 +39,8 @@
 //!     .await?;
 //! ```
 
-mod config;
 mod builder;
+mod config;
 
-pub use config::ServerConfig;
 pub use builder::{GrpcServer, create_health_service};
+pub use config::ServerConfig;

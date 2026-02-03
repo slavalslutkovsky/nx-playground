@@ -51,12 +51,12 @@ use axum::{
     response::IntoResponse,
 };
 use domain_vector::{
+    QdrantRepository, VectorService,
     error::VectorResult,
     models::{
         CollectionInfo, CreateCollection, EmbeddingResult, SearchResult, TenantContext, Vector,
         VectorConfig,
     },
-    QdrantRepository, VectorService,
 };
 use serde::Deserialize;
 use std::sync::Arc;

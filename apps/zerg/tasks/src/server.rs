@@ -93,7 +93,9 @@ pub async fn run() -> Result<()> {
     GrpcServer::log_startup_multiple(&server_config, &services);
 
     // Build and start server
-    let addr = server_config.socket_addr().wrap_err("Invalid server address")?;
+    let addr = server_config
+        .socket_addr()
+        .wrap_err("Invalid server address")?;
 
     Server::builder()
         .add_service(health_service)
