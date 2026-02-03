@@ -1,0 +1,331 @@
+syntax = "proto3";
+
+package vector.v1;
+
+option go_package = "grpc/vector/v1";
+
+// VectorService - Centralized vector operations with optional embedding generation
+// Wraps Qdrant for TypeScript/JavaScript team, supports multi-tenancy
+service VectorService {
+  // Collection Management
+  rpc CreateCollection(CreateCollectionRequest) returns (CreateCollectionResponse) {}
+  rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResponse) {}
+  rpc GetCollection(GetCollectionRequest) returns (GetCollectionResponse) {}
+  rpc ListCollections(ListCollectionsRequest) returns (ListCollectionsResponse) {}
+
+  // Vector Operations
+  rpc Upsert(UpsertRequest) returns (UpsertResponse) {}
+  rpc UpsertBatch(UpsertBatchRequest) returns (UpsertBatchResponse) {}
+  rpc Search(SearchRequest) returns (SearchResponse) {}
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+
+  // Embedding Generation (text -> vectors)
+  rpc Embed(EmbedRequest) returns (EmbedResponse) {}
+  rpc EmbedBatch(EmbedBatchRequest) returns (EmbedBatchResponse) {}
+
+  // Combined Operations (Embed + Store/Search)
+  rpc UpsertWithEmbedding(UpsertWithEmbeddingRequest) returns (UpsertResponse) {}
+  rpc SearchWithEmbedding(SearchWithEmbeddingRequest) returns (SearchResponse) {}
+
+  // Recommendations
+  rpc Recommend(RecommendRequest) returns (RecommendResponse) {}
+}
+
+// ============= Enums =============
+
+// Embedding provider selection
+enum EmbeddingProvider {
+  EMBEDDING_UNSPECIFIED = 0;
+  EMBEDDING_OPENAI = 1;
+  EMBEDDING_ANTHROPIC = 2;
+  EMBEDDING_LOCAL = 3; // Self-hosted models
+  EMBEDDING_VERTEXAI = 4; // Google Vertex AI
+  EMBEDDING_COHERE = 5; // Cohere embeddings
+  EMBEDDING_VOYAGE = 6; // Voyage AI
+}
+
+// Embedding models (across providers)
+enum EmbeddingModel {
+  EMBEDDING_MODEL_UNSPECIFIED = 0;
+
+  // OpenAI models
+  EMBEDDING_MODEL_EMBEDDING_3_SMALL = 1; // OpenAI text-embedding-3-small (1536 dimensions)
+  EMBEDDING_MODEL_EMBEDDING_3_LARGE = 2; // OpenAI text-embedding-3-large (3072 dimensions)
+  EMBEDDING_MODEL_EMBEDDING_ADA_002 = 3; // OpenAI text-embedding-ada-002 (1536 dimensions, legacy)
+
+  // Vertex AI models
+  EMBEDDING_MODEL_GECKO = 10; // Vertex AI textembedding-gecko (768 dimensions)
+  EMBEDDING_MODEL_GECKO_MULTILINGUAL = 11; // Vertex AI textembedding-gecko-multilingual (768 dimensions)
+  EMBEDDING_MODEL_TEXT_EMBEDDING_004 = 12; // Vertex AI text-embedding-004 (768 dimensions)
+  EMBEDDING_MODEL_TEXT_EMBEDDING_005 = 13; // Vertex AI text-embedding-005 (768 dimensions)
+  EMBEDDING_MODEL_TEXT_MULTILINGUAL_EMBEDDING_002 = 14; // Vertex AI text-multilingual-embedding-002 (768 dimensions)
+
+  // Cohere models
+  EMBEDDING_MODEL_COHERE_EMBED_V3 = 20; // Cohere embed-english-v3.0 (1024 dimensions)
+  EMBEDDING_MODEL_COHERE_EMBED_MULTILINGUAL_V3 = 21; // Cohere embed-multilingual-v3.0 (1024 dimensions)
+
+  // Voyage AI models
+  EMBEDDING_MODEL_VOYAGE_3 = 30; // Voyage voyage-3 (1024 dimensions)
+  EMBEDDING_MODEL_VOYAGE_3_LITE = 31; // Voyage voyage-3-lite (512 dimensions)
+  EMBEDDING_MODEL_VOYAGE_CODE_3 = 32; // Voyage voyage-code-3 (1024 dimensions)
+
+  // Custom/local models
+  EMBEDDING_MODEL_CUSTOM = 100; // User-specified dimension
+}
+
+// Distance metric for similarity
+enum DistanceMetric {
+  DISTANCE_METRIC_UNSPECIFIED = 0;
+  DISTANCE_METRIC_COSINE = 1;
+  DISTANCE_METRIC_EUCLIDEAN = 2;
+  DISTANCE_METRIC_DOT_PRODUCT = 3;
+  DISTANCE_METRIC_MANHATTAN = 4;
+}
+
+// ============= Multi-Tenancy =============
+
+// Tenant context for all operations
+message TenantContext {
+  bytes project_id = 1; // UUID as bytes (16 bytes)
+  optional string namespace = 2; // Optional namespace within project
+  optional bytes user_id = 3; // Optional user ID for access control
+}
+
+// ============= Collection Management =============
+
+message VectorConfig {
+  uint32 dimension = 1; // Vector dimension (1536, 3072, etc.)
+  DistanceMetric distance = 2; // Distance metric
+  optional HnswConfig hnsw = 3; // Optional HNSW index config
+}
+
+message HnswConfig {
+  optional uint32 m = 1; // Max connections per layer (default: 16)
+  optional uint32 ef_construct = 2; // Construction time search width (default: 100)
+  optional uint32 full_scan_threshold = 3; // When to switch to full scan
+}
+
+message CreateCollectionRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  VectorConfig config = 3;
+}
+
+message CreateCollectionResponse {
+  string full_collection_name = 1; // Tenant-prefixed collection name
+  bool created = 2;
+}
+
+message DeleteCollectionRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+}
+
+message DeleteCollectionResponse {
+  bool deleted = 1;
+}
+
+message GetCollectionRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+}
+
+message CollectionInfo {
+  string collection_name = 1;
+  uint64 vectors_count = 2;
+  uint64 indexed_vectors_count = 3;
+  uint64 points_count = 4;
+  VectorConfig config = 5;
+  string status = 6; // "green", "yellow", "grey"
+}
+
+message GetCollectionResponse {
+  CollectionInfo info = 1;
+}
+
+message ListCollectionsRequest {
+  TenantContext tenant = 1;
+}
+
+message ListCollectionsResponse {
+  repeated CollectionInfo collections = 1;
+}
+
+// ============= Vector Operations =============
+
+// Payload as JSON bytes (flexible schema)
+message Payload {
+  bytes json = 1; // JSON serialized payload
+}
+
+// Sparse vector for hybrid search
+message SparseVector {
+  repeated uint32 indices = 1;
+  repeated float values = 2;
+}
+
+// A single vector point
+message Vector {
+  bytes id = 1; // UUID as bytes
+  repeated float values = 2; // Dense vector values
+  optional Payload payload = 3; // JSON metadata
+  optional SparseVector sparse = 4; // Optional sparse vector for hybrid search
+}
+
+message UpsertRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  Vector vector = 3;
+  bool wait = 4; // Wait for indexing
+}
+
+message UpsertResponse {
+  bytes id = 1;
+  string status = 2; // "completed" or "pending"
+}
+
+message UpsertBatchRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  repeated Vector vectors = 3;
+  bool wait = 4;
+}
+
+message UpsertBatchResponse {
+  repeated bytes ids = 1;
+  string status = 2;
+  uint32 upserted_count = 3;
+}
+
+// Filter conditions for search/get/delete
+message Filter {
+  optional bytes must_have_id = 1; // Filter by specific ID
+  optional Payload must_match = 2; // JSON filter conditions
+  optional string namespace_filter = 3; // Filter within namespace
+}
+
+message SearchRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  repeated float query_vector = 3; // Query vector
+  uint32 limit = 4; // Max results (default: 10)
+  optional float score_threshold = 5; // Min similarity score
+  optional Filter filter = 6; // Metadata filters
+  bool with_vectors = 7; // Include vectors in response
+  bool with_payloads = 8; // Include payloads in response
+}
+
+message SearchResult {
+  bytes id = 1;
+  float score = 2;
+  optional Payload payload = 3;
+  optional Vector vector = 4;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  uint64 search_time_ms = 2; // Query execution time
+}
+
+message GetRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  repeated bytes ids = 3; // Vector IDs to retrieve
+  bool with_vectors = 4;
+  bool with_payloads = 5;
+}
+
+message GetResponse {
+  repeated Vector vectors = 1;
+}
+
+message DeleteRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  repeated bytes ids = 3; // IDs to delete
+  optional Filter filter = 4; // Or delete by filter
+  bool wait = 5;
+}
+
+message DeleteResponse {
+  uint32 deleted_count = 1;
+  string status = 2;
+}
+
+// ============= Embedding Generation =============
+
+message EmbedRequest {
+  string text = 1;
+  EmbeddingProvider provider = 2;
+  EmbeddingModel model = 3;
+  optional uint32 custom_dimension = 4; // For CUSTOM model
+}
+
+message EmbedResponse {
+  repeated float embedding = 1;
+  uint32 dimension = 2;
+  uint32 tokens_used = 3;
+}
+
+message EmbedBatchRequest {
+  repeated string texts = 1;
+  EmbeddingProvider provider = 2;
+  EmbeddingModel model = 3;
+  optional uint32 custom_dimension = 4;
+}
+
+message EmbedBatchResponse {
+  repeated EmbeddingResult embeddings = 1;
+  uint32 total_tokens = 2;
+}
+
+message EmbeddingResult {
+  repeated float values = 1;
+  uint32 dimension = 2;
+}
+
+// ============= Combined Operations =============
+
+message UpsertWithEmbeddingRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  bytes id = 3; // Vector ID
+  string text = 4; // Text to embed
+  optional Payload payload = 5; // Metadata
+  EmbeddingProvider provider = 6;
+  EmbeddingModel model = 7;
+  bool wait = 8;
+}
+
+message SearchWithEmbeddingRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  string text = 3; // Query text to embed
+  uint32 limit = 4;
+  optional float score_threshold = 5;
+  optional Filter filter = 6;
+  bool with_vectors = 7;
+  bool with_payloads = 8;
+  EmbeddingProvider provider = 9;
+  EmbeddingModel model = 10;
+}
+
+// ============= Recommendations =============
+
+message RecommendRequest {
+  TenantContext tenant = 1;
+  string collection_name = 2;
+  repeated bytes positive_ids = 3; // IDs to find similar to
+  repeated bytes negative_ids = 4; // IDs to avoid
+  uint32 limit = 5;
+  optional float score_threshold = 6;
+  optional Filter filter = 7;
+  bool with_vectors = 8;
+  bool with_payloads = 9;
+}
+
+message RecommendResponse {
+  repeated SearchResult results = 1;
+  uint64 search_time_ms = 2;
+}

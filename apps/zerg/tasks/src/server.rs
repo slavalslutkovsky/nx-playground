@@ -2,35 +2,44 @@
 //!
 //! This module handles all server setup:
 //! - Tracing initialization
-//! - Database connection
+//! - Database connection (PostgreSQL for tasks)
+//! - Qdrant connection (for vector service)
 //! - Service creation
 //! - gRPC server configuration and startup
 //! - Health check service (grpc.health.v1.Health)
 
+use std::sync::Arc;
+
 use core_config::{Environment, FromEnv};
 use database::postgres::PostgresConfig;
 use domain_tasks::{PgTaskRepository, TaskService};
+use domain_vector::{OpenAIProvider, QdrantConfig, QdrantRepository, VectorService};
 use eyre::{Result, WrapErr};
-use rpc::tasks::tasks_service_server::{SERVICE_NAME, TasksServiceServer};
+use grpc_client::server::{GrpcServer, ServerConfig, create_health_service};
+use rpc::tasks::tasks_service_server::{SERVICE_NAME as TASKS_SERVICE, TasksServiceServer};
+use rpc::vector::v1::vector_service_server::{SERVICE_NAME as VECTOR_SERVICE, VectorServiceServer};
+use tonic::codec::CompressionEncoding;
 use tonic::transport::Server;
-use tonic_health::server::health_reporter;
 use tracing::info;
 
 use crate::service::TasksServiceImpl;
+use crate::vector_service::VectorServiceImpl;
 
 /// Run the gRPC server
 ///
 /// This is the main entry point for server initialization. It:
 /// 1. Sets up structured logging (env-aware: JSON for prod, pretty for dev)
-/// 2. Connects to the database with retry logic
-/// 3. Creates the repository and service layers
-/// 4. Starts the gRPC server with compression enabled
+/// 2. Connects to PostgreSQL (for tasks)
+/// 3. Connects to Qdrant (for vector service)
+/// 4. Creates the repository and service layers
+/// 5. Starts the gRPC server with compression enabled
 ///
 /// # Errors
 ///
 /// Returns an error if:
 /// - Database configuration is invalid
 /// - Database connection fails
+/// - Qdrant connection fails
 /// - Server binding fails
 /// - Server runtime encounters an error
 pub async fn run() -> Result<()> {
@@ -38,56 +47,60 @@ pub async fn run() -> Result<()> {
     let environment = Environment::from_env();
     core_config::tracing::init_tracing(&environment);
 
-    // Load database configuration from environment
-    let config = PostgresConfig::from_env().wrap_err("Failed to load database configuration")?;
+    // Load gRPC server configuration
+    let server_config = ServerConfig::from_env().wrap_err("Failed to load server configuration")?;
 
-    // Connect to a database with retry logic
-    info!("Connecting to database...");
-    let db = database::postgres::connect_from_config_with_retry(config, None)
+    // Connect to PostgreSQL
+    let db_config = PostgresConfig::from_env().wrap_err("Failed to load database configuration")?;
+    info!("Connecting to PostgreSQL...");
+    let db = database::postgres::connect_from_config_with_retry(db_config, None)
         .await
         .wrap_err("Failed to connect to database")?;
-    info!("Connected to database successfully");
+    info!("Connected to PostgreSQL");
 
-    // Create repository and service layers
-    let repository = PgTaskRepository::new(db);
-    let service = TaskService::new(repository);
+    // Connect to Qdrant
+    let qdrant_config = QdrantConfig::from_env().wrap_err("Failed to load Qdrant configuration")?;
+    info!("Connecting to Qdrant...");
+    let qdrant_repository = QdrantRepository::new(qdrant_config)
+        .await
+        .wrap_err("Failed to connect to Qdrant")?;
+    info!("Connected to Qdrant");
 
-    // Create gRPC service implementation
-    let tasks_service = TasksServiceImpl::new(service);
+    // Create tasks service
+    let task_repository = PgTaskRepository::new(db);
+    let task_service = TaskService::new(task_repository);
+    let tasks_grpc = TasksServiceServer::new(TasksServiceImpl::new(task_service))
+        .accept_compressed(CompressionEncoding::Zstd)
+        .send_compressed(CompressionEncoding::Zstd);
 
-    // Configure server address from environment or default
-    let host = std::env::var("GRPC_HOST").unwrap_or_else(|_| "[::1]".to_string());
-    let port = std::env::var("GRPC_PORT").unwrap_or_else(|_| "50051".to_string());
-    let addr_str = format!("{}:{}", host, port);
-    let addr = addr_str
-        .parse()
-        .wrap_err_with(|| format!("Failed to parse server address: {}", addr_str))?;
-    info!("TasksService listening on {}", addr);
-    info!("Using Zstd compression for optimal performance");
+    // Create vector service (with optional embedding provider)
+    let vector_service = VectorService::new(qdrant_repository);
+    let vector_service = if let Ok(provider) = OpenAIProvider::from_env() {
+        info!("OpenAI embedding provider configured");
+        vector_service.with_embedding_provider(Arc::new(provider))
+    } else {
+        info!("No embedding provider configured");
+        vector_service
+    };
+    let vector_grpc = VectorServiceServer::new(VectorServiceImpl::new(vector_service))
+        .accept_compressed(CompressionEncoding::Zstd)
+        .send_compressed(CompressionEncoding::Zstd);
 
-    // Create a health reporter for Kubernetes probes
-    let (health_reporter, health_service) = health_reporter();
+    // Create health service
+    let (health_reporter, health_service) = create_health_service();
+    let services = [TASKS_SERVICE, VECTOR_SERVICE];
+    GrpcServer::setup_health_multiple(&health_reporter, &services).await;
+    GrpcServer::log_startup_multiple(&server_config, &services);
 
-    // Mark tasks service as serving (for k8s readiness/liveness probes)
-    // Using the service name from the generated gRPC code
-    health_reporter
-        .set_service_status(SERVICE_NAME, tonic_health::ServingStatus::Serving)
-        .await;
-    // Also set an empty service name for generic health checks (what k8s uses by default)
-    health_reporter
-        .set_service_status("", tonic_health::ServingStatus::Serving)
-        .await;
-    info!("Health check service enabled (grpc.health.v1.Health)");
+    // Build and start server
+    let addr = server_config
+        .socket_addr()
+        .wrap_err("Invalid server address")?;
 
-    // Build and start the gRPC server with production settings
     Server::builder()
         .add_service(health_service)
-        .add_service(
-            TasksServiceServer::new(tasks_service)
-                // Enable zstd compression (3-5x faster than gzip, better compression ratio)
-                .accept_compressed(tonic::codec::CompressionEncoding::Zstd)
-                .send_compressed(tonic::codec::CompressionEncoding::Zstd),
-        )
+        .add_service(tasks_grpc)
+        .add_service(vector_grpc)
         .serve(addr)
         .await
         .wrap_err("gRPC server failed")?;

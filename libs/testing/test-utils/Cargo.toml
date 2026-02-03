@@ -7,9 +7,14 @@ edition = "2024"
 default = ["postgres"]
 postgres = ["dep:migration", "dep:sea-orm"]
 redis = ["dep:redis"]
-all = ["postgres", "redis"]
+nats = ["dep:async-nats", "dep:futures"]
+all = ["postgres", "redis", "nats"]
 
 [dependencies]
+# NATS dependencies (optional)
+async-nats = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
+
 # Postgres dependencies (optional, enabled by default)
 migration = { workspace = true, optional = true }
 
@@ -19,7 +24,7 @@ sea-orm = { workspace = true, optional = true }
 
 # Testcontainers (always available)
 testcontainers = { workspace = true }
-testcontainers-modules = { workspace = true, features = ["postgres", "redis"] }
+testcontainers-modules = { workspace = true, features = ["postgres", "redis", "nats"] }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }

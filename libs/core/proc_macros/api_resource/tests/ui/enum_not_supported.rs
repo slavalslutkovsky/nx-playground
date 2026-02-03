@@ -1,7 +1,7 @@
 use core_proc_macros::ApiResource;
 
 #[derive(ApiResource)]
-#[api_resource(unknown_attr = "value")]  // Invalid attribute should fail
+#[api_resource(unknown_attr = "value")]
 pub struct User {
     id: String,
 }

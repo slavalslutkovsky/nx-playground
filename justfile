@@ -310,3 +310,8 @@ local-restart:
 # Show environment status
 local-status:
     nu scripts/nu/mod.nu status
+# Just how to create a nx repo template
+create-nx-project:
+  npx create-nx-workspace@latest --e2eTestRunner playwright --unitTestRunner vitest ---aiAgents claude --workspaceType package-based --packageManager bun --ci github --preset @monodon/rust
+  bun nx generate @monodon/rust:library --name=rpc --no-interactive
+  nx add @nxext/solid

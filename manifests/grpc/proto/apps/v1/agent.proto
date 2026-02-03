@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package agent.v1;
+
+option go_package = "grpc/agent/v1";
+
+// AgentService - AI Agent invocation service
+// Supports both synchronous and streaming interactions with LangGraph agents
+service AgentService {
+  // Invoke an agent synchronously
+  rpc Invoke(InvokeRequest) returns (InvokeResponse) {}
+
+  // Stream responses from an agent (Server-Side Events style)
+  rpc Stream(InvokeRequest) returns (stream StreamChunk) {}
+
+  // Bidirectional conversation with an agent
+  rpc Converse(stream Message) returns (stream Message) {}
+
+  // List available agents
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {}
+
+  // Get agent info
+  rpc GetAgent(GetAgentRequest) returns (AgentInfo) {}
+
+  // Health check for a specific agent
+  rpc CheckHealth(CheckHealthRequest) returns (HealthResponse) {}
+}
+
+// ============= Message Types =============
+
+enum MessageRole {
+  MESSAGE_ROLE_UNSPECIFIED = 0;
+  MESSAGE_ROLE_USER = 1;
+  MESSAGE_ROLE_ASSISTANT = 2;
+  MESSAGE_ROLE_SYSTEM = 3;
+  MESSAGE_ROLE_TOOL = 4;
+}
+
+message Message {
+  MessageRole role = 1;
+  string content = 2;
+  optional string name = 3; // For tool messages
+  optional string tool_call_id = 4; // For tool responses
+}
+
+// ============= Invoke =============
+
+message InvokeRequest {
+  string agent_name = 1; // Agent to invoke (e.g., "rag-agent")
+  repeated Message messages = 2; // Conversation messages
+  optional AgentConfig config = 3; // Agent configuration
+  optional Metadata metadata = 4; // Request metadata
+}
+
+message AgentConfig {
+  // Common configuration
+  optional string user_id = 1; // User ID for multi-tenancy
+  optional string session_id = 2; // Session/thread ID for memory
+
+  // RAG-specific configuration
+  optional string retriever_provider = 10; // elastic, pinecone, mongodb
+  optional string embedding_model = 11; // openai/text-embedding-3-small
+  optional string response_model = 12; // anthropic/claude-3-5-sonnet
+
+  // General LLM configuration
+  optional float temperature = 20;
+  optional int32 max_tokens = 21;
+
+  // Additional configuration as JSON
+  optional string extra_json = 30;
+}
+
+message Metadata {
+  string trace_id = 1;
+  optional string span_id = 2;
+  optional string parent_span_id = 3;
+  map<string, string> tags = 4;
+}
+
+message InvokeResponse {
+  string request_id = 1;
+  string agent_name = 2;
+  repeated Message messages = 3; // Full conversation including response
+  optional ResponseMetadata response_metadata = 4;
+}
+
+message ResponseMetadata {
+  int64 latency_ms = 1;
+  optional int32 tokens_used = 2;
+  optional int32 retrieved_docs_count = 3;
+  repeated string queries = 4; // For RAG: queries used for retrieval
+}
+
+// ============= Streaming =============
+
+message StreamChunk {
+  oneof chunk {
+    string content = 1; // Text content chunk
+    ToolCall tool_call = 2; // Tool invocation
+    StreamEvent event = 3; // Lifecycle event
+  }
+  bool done = 10; // Final chunk indicator
+}
+
+message ToolCall {
+  string id = 1;
+  string name = 2;
+  string arguments = 3; // JSON arguments
+}
+
+message StreamEvent {
+  string event_type = 1; // "chain_start", "chain_end", "retrieval", etc.
+  optional string payload_json = 2; // Event-specific data
+}
+
+// ============= Agent Discovery =============
+
+message ListAgentsRequest {
+  optional string tag_filter = 1; // Filter by tag
+}
+
+message ListAgentsResponse {
+  repeated AgentInfo agents = 1;
+}
+
+message GetAgentRequest {
+  string agent_name = 1;
+}
+
+message AgentInfo {
+  string name = 1;
+  string description = 2;
+  string version = 3;
+  repeated string tags = 4;
+  repeated string capabilities = 5; // "streaming", "memory", "tools", etc.
+  AgentHealth health = 6;
+}
+
+// ============= Health =============
+
+message CheckHealthRequest {
+  string agent_name = 1;
+}
+
+message HealthResponse {
+  AgentHealth health = 1;
+}
+
+message AgentHealth {
+  HealthStatus status = 1;
+  optional string message = 2;
+  int64 last_check_ms = 3;
+}
+
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_UNHEALTHY = 2;
+  HEALTH_STATUS_UNKNOWN = 3;
+}

@@ -11,8 +11,12 @@ lint:
     - DIRECTORY_SAME_PACKAGE
     # Allow packages without a version suffix
     - PACKAGE_VERSION_SUFFIX
-    # Allow flexible RPC response naming
+    # Allow flexible RPC naming (streaming patterns, bidirectional)
     - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    # Allow enum values without a type prefix (LOW vs. PRIORITY_LOW)
+    - ENUM_VALUE_PREFIX
   ignore:
     - grpc/proto/google/type/datetime.proto
     - grpc/proto/commons.proto

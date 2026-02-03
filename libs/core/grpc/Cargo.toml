@@ -3,12 +3,17 @@ name = "grpc-client"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+server = ["dep:tonic-health"]
+
 [dependencies]
 
 # Conversions
 chrono = { workspace = true }
 eyre = { workspace = true }
 futures = { workspace = true }
+http = { workspace = true }
 prost = { workspace = true }
 
 # Error handling
@@ -18,6 +23,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 # Core gRPC dependencies
 tonic = { workspace = true }
+tonic-health = { workspace = true, optional = true }
 
 # Tracing
 tracing = { workspace = true }

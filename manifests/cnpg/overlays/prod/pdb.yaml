@@ -1,0 +1,30 @@
+# IMPROVEMENT: Added PodDisruptionBudget for production HA
+# Ensures at least 1 pod is available during voluntary disruptions
+# (node drain, cluster upgrade, etc.)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: zerg-db-pdb
+  namespace: zerg-prod
+  labels:
+    app.kubernetes.io/name: zerg-db
+    app.kubernetes.io/component: database
+spec:
+  # At least 1 replica must be available
+  minAvailable: 1
+  selector:
+    matchLabels:
+      cnpg.io/cluster: prod-zerg-db
+
+---
+# Alternative: Use maxUnavailable for larger clusters
+# apiVersion: policy/v1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: zerg-db-pdb-max
+#   namespace: zerg-prod
+# spec:
+#   maxUnavailable: 1
+#   selector:
+#     matchLabels:
+#       cnpg.io/cluster: prod-zerg-db

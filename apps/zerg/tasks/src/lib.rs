@@ -1,29 +1,31 @@
-//! Tasks gRPC Service
+//! Unified gRPC Service
 //!
-//! A microservice for managing tasks via gRPC.
+//! A microservice supporting multiple gRPC services (tasks, vector).
 //!
 //! ## Architecture
 //!
 //! ```text
 //! Client
 //!   ↓ (gRPC with Zstd compression)
-//! TasksServiceImpl (service.rs)
+//! Service Implementations (service.rs, vector_service.rs)
 //!   ↓ (proto ↔ domain conversions via From/TryFrom traits)
-//! TaskService (domain layer)
+//! Domain Services (domain layer)
 //!   ↓ (business logic)
-//! PgTaskRepository (persistence)
+//! Repositories (persistence)
 //!   ↓
-//! PostgreSQL
+//! PostgreSQL / Qdrant
 //! ```
 //!
 //! ## Modules
 //!
 //! - `server`: Server initialization and lifecycle
-//! - `service`: gRPC service implementation (TasksServiceImpl)
+//! - `service`: Tasks gRPC service implementation
+//! - `vector_service`: Vector gRPC service implementation
 
 pub mod server;
 pub mod service;
+pub mod vector_service;
 
-// Re-export for convenience
 pub use server::run;
 pub use service::TasksServiceImpl;
+pub use vector_service::VectorServiceImpl;

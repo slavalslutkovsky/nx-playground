@@ -1,5 +1,8 @@
 use axum_helpers::server::{create_production_app, health_router};
 use core_config::tracing::{init_tracing, install_color_eyre};
+use domain_vector::{OpenAIProvider, QdrantConfig, QdrantRepository, VectorService};
+use email::NotificationService;
+use std::sync::Arc;
 use std::time::Duration;
 use tracing::info;
 
@@ -43,11 +46,57 @@ async fn main() -> eyre::Result<()> {
             .map_err(|e| eyre::eyre!("Redis connection failed: {}", e))
     };
 
-    let (db, redis) = tokio::try_join!(postgres_future, redis_future)?;
+    // Initialize NATS connection for notifications
+    let nats_future = async {
+        info!("Connecting to NATS at {}", config.nats_url);
+        async_nats::connect(&config.nats_url)
+            .await
+            .map_err(|e| eyre::eyre!("NATS connection failed: {}", e))
+    };
+
+    let (db, redis, nats_client) = tokio::try_join!(postgres_future, redis_future, nats_future)?;
+
+    // Create JetStream context for notifications
+    let jetstream = async_nats::jetstream::new(nats_client);
+    let notifications = NotificationService::from_jetstream_default(jetstream);
+    info!("NotificationService initialized with NATS JetStream");
 
     // Initialize JWT + Redis authentication
     let jwt_auth = axum_helpers::JwtRedisAuth::new(redis.clone(), &config.jwt)
         .map_err(|e| eyre::eyre!("Failed to initialize JWT auth: {}", e))?;
+
+    // Initialize Qdrant/Vector service (optional)
+    let vector_service = match QdrantConfig::from_env() {
+        Ok(qdrant_config) => {
+            info!("Connecting to Qdrant...");
+            match QdrantRepository::new(qdrant_config).await {
+                Ok(qdrant_repo) => {
+                    info!("Connected to Qdrant");
+                    let service = VectorService::new(qdrant_repo);
+                    // Optionally add embedding provider
+                    let service = if let Ok(provider) = OpenAIProvider::from_env() {
+                        info!("OpenAI embedding provider configured");
+                        service.with_embedding_provider(Arc::new(provider))
+                    } else {
+                        info!("No embedding provider configured");
+                        service
+                    };
+                    Some(Arc::new(service))
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "Failed to connect to Qdrant (vector service disabled): {}",
+                        e
+                    );
+                    None
+                }
+            }
+        }
+        Err(_) => {
+            info!("Qdrant not configured - vector service disabled");
+            None
+        }
+    };
 
     // Initialize the application state with database connections
     let state = AppState {
@@ -56,6 +105,8 @@ async fn main() -> eyre::Result<()> {
         db,
         redis,
         jwt_auth,
+        notifications,
+        vector_service,
     };
 
     // Build router with API routes (pass reference, not ownership!)

@@ -7,9 +7,6 @@
     "build": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo check --package field-selector",
         "cwd": "{workspaceRoot}"
@@ -18,9 +15,6 @@
     "test": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo test --package field-selector",
         "cwd": "{workspaceRoot}"

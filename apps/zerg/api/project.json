@@ -7,9 +7,6 @@
     "build": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo build --package zerg_api",
         "cwd": "{workspaceRoot}"
@@ -23,9 +20,6 @@
     "test": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo test --package zerg_api",
         "cwd": "{workspaceRoot}"
@@ -56,15 +50,21 @@
       "options": {
         "file": "manifests/dockers/rust.Dockerfile",
         "context": ".",
-        "build-args": ["APP_NAME=zerg_api"],
-        "tags": ["$REGISTRY/zerg-api:latest"],
+        "build-args": [
+          "APP_NAME=zerg_api"
+        ],
+        "tags": [
+          "$REGISTRY/zerg-api:latest"
+        ],
         "push": false
       },
       "configurations": {
         "ci": {
           "push": true,
           "metadata": {
-            "images": ["$REGISTRY/zerg-api"],
+            "images": [
+              "$REGISTRY/zerg-api"
+            ],
             "tags": [
               "type=sha",
               "type=ref,event=branch",
@@ -78,7 +78,9 @@
     },
     "scan": {
       "executor": "nx:run-commands",
-      "dependsOn": ["container"],
+      "dependsOn": [
+        "container"
+      ],
       "options": {
         "command": "trivy image $REGISTRY/zerg-api:latest --severity CRITICAL,HIGH --exit-code 0",
         "cwd": "{workspaceRoot}"

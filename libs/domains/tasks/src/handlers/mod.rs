@@ -1,7 +1,7 @@
 mod direct;
 mod grpc;
 
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
 use rpc::tasks::tasks_service_client::TasksServiceClient;
 use std::sync::Arc;
 use tonic::transport::Channel;

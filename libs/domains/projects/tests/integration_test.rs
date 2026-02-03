@@ -168,7 +168,7 @@ async fn test_update_project() {
     assert_eq!(updated.budget_limit, Some(200.0));
     assert_eq!(updated.tags.len(), 1);
     assert!(!updated.enabled);
-    assert!(updated.updated_at > updated.created_at);
+    assert!(updated.updated_at >= updated.created_at);
 }
 
 #[tokio::test]

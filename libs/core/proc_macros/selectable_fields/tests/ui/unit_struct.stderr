@@ -1,13 +1,13 @@
 error[E0277]: the trait bound `Empty: serde::Serialize` is not satisfied
  --> tests/ui/unit_struct.rs:4:12
   |
-4 | pub struct Empty;  // Unit struct - should handle gracefully or fail
+4 | pub struct Empty;
   |            ^^^^^ unsatisfied trait bound
   |
 help: the trait `Serialize` is not implemented for `Empty`
  --> tests/ui/unit_struct.rs:4:1
   |
-4 | pub struct Empty;  // Unit struct - should handle gracefully or fail
+4 | pub struct Empty;
   | ^^^^^^^^^^^^^^^^
   = note: for local types consider adding `#[derive(serde::Serialize)]` to your `Empty` type
   = note: for types from other crates check whether the crate offers a `serde` feature flag

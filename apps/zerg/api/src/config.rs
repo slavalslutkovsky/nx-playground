@@ -28,6 +28,8 @@ pub struct Config {
     pub google_client_secret: String,
     pub github_client_id: String,
     pub github_client_secret: String,
+    // NATS configuration
+    pub nats_url: String,
 }
 
 impl Config {
@@ -51,6 +53,9 @@ impl Config {
         let github_client_id = core_config::env_required("GITHUB_CLIENT_ID")?;
         let github_client_secret = core_config::env_required("GITHUB_CLIENT_SECRET")?;
 
+        // NATS configuration
+        let nats_url = core_config::env_or_default("NATS_URL", "nats://localhost:4222");
+
         Ok(Self {
             app: app_info!(),
             database,
@@ -65,6 +70,7 @@ impl Config {
             google_client_secret,
             github_client_id,
             github_client_secret,
+            nats_url,
         })
     }
 }
