@@ -7,9 +7,6 @@
     "build": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo check --package sea_orm_resource",
         "cwd": "{workspaceRoot}"
@@ -18,9 +15,6 @@
     "test": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": [
-        "{workspaceRoot}/dist/target"
-      ],
       "options": {
         "command": "cargo test --package sea_orm_resource",
         "cwd": "{workspaceRoot}"
