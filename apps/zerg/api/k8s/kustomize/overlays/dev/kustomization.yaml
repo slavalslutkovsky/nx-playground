@@ -12,7 +12,7 @@ patches:
         path: /spec/template/spec/containers/0/env
         value:
           - name: APP_ENV
-            value: "production"
+            value: "development"
           - name: PORT
             value: "8080"
           - name: RUST_LOG
@@ -22,32 +22,51 @@ patches:
 
       #      value: "postgresql://postgres:QITJqw045jFur52jMRSdZTKodssq9ZNgQ7EvlcsdxOieU8OF7gXx3ZGMxbajzroZ@shared-postgres-rw.databases:5432/postgres"
           - name: NATS_URL
-      #      value: "nats://nats.dbs.svc.cluster.local:4222"
-            value: "nats://nats.nats-system.svc.cluster.local:4222"
+            value: "nats://nats.dbs.svc.cluster.local:4222"
+      #      value: "nats://nats.nats-system.svc.cluster.local:4222"
+      #      value: "nats://nats"
           - name: REDIS_HOST
             value: "redis://redis.dbs.svc.cluster.local"
           - name: CORS_ALLOWED_ORIGIN
-            value: "http://localhost:5206"
+            value: "http://localhost:5206,https://127.0.0.1.nip.io:8443"
           - name: REDIRECT_BASE_URL
-            value: "http://localhost:5201"
+            value: "http://localhost:5206"
           - name: FRONTEND_URL
             value: "http://localhost:5206"
           - name: OAUTH_AUTO_LINK_VERIFIED_EMAILS
             value: "true"
           - name: JWT_SECRET
-            value: "dev-secret-change-in-production-"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: jwt_secret
           - name: GOOGLE_CLIENT_ID
-            value: "your-google-client-id"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: google_client_id
           - name: GOOGLE_CLIENT_SECRET
-            value: "your-google-client-secret"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: google_client_secret
           - name: GITHUB_CLIENT_ID
-            value: "your-github-client-id"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: github_client_id
           - name: GITHUB_CLIENT_SECRET
-            value: "your-github-client-secret"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: github_client_secret
           - name: FLAGSMITH_API_URL
             value: "http://flagsmith-api.flagsmith.svc.cluster.local:8000/api/v1"
           - name: FLAGSMITH_ENVIRONMENT_KEY
-            value: "your-flagsmith-key"
+            valueFrom:
+              secretKeyRef:
+                name: zerg-api-secrets
+                key: flagsmith_environment_key
           - name: TASKS_SERVICE_ADDR
             value: "http://zerg-tasks.zerg.svc.cluster.local:50051"
           # DB Pool Optimization (keep low - postgres has 100 max connections shared across all pods)

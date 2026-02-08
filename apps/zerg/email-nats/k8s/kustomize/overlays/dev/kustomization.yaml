@@ -26,7 +26,7 @@ patches:
             value: "8081"
           # SMTP Settings (Mailpit in dev cluster)
           - name: SMTP_HOST
-            value: "mailpit.dbs.svc.cluster.local"
+            value: "mailhog.dbs.svc.cluster.local"
           - name: SMTP_PORT
             value: "1025"
           - name: SMTP_USERNAME

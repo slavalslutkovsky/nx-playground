@@ -464,6 +464,22 @@ fn extract_cookie_value(cookies: &str, name: &str) -> Option<String> {
     })
 }
 
+/// Derive the origin URL from request headers (X-Forwarded-Proto + Host)
+/// Returns None if headers are missing, allowing fallback to configured values
+fn derive_origin_url(headers: &axum::http::HeaderMap) -> Option<String> {
+    let host = headers
+        .get("x-forwarded-host")
+        .or_else(|| headers.get("host"))
+        .and_then(|v| v.to_str().ok())?;
+
+    let scheme = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("http");
+
+    Some(format!("{}://{}", scheme, host))
+}
+
 /// Query parameters for OAuth callback
 #[derive(Debug, Deserialize)]
 struct OAuthCallbackQuery {
@@ -545,12 +561,17 @@ fn get_provider(
 async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     Path(provider_name): Path<String>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Redirect, UserError> {
     let provider = get_provider(&provider_name, &state.oauth_config)?;
 
+    // Derive origin from request headers, fallback to configured redirect_base_url
+    let origin_url = derive_origin_url(&headers)
+        .unwrap_or_else(|| state.oauth_config.redirect_base_url.clone());
+
     let redirect_uri = format!(
         "{}/api/auth/oauth/{}/callback",
-        state.oauth_config.redirect_base_url,
+        origin_url,
         provider.name()
     );
     tracing::info!("{} OAuth redirect URI: {}", provider_name, redirect_uri);
@@ -566,6 +587,7 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
         nonce: None,
         redirect_uri: redirect_uri.clone(),
         provider: provider.name().to_string(),
+        origin_url: Some(origin_url),
     };
     state.oauth_state_manager.store_state(&oauth_state).await?;
 
@@ -755,7 +777,11 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     );
 
     // Redirect to frontend with cookies set
-    let redirect_url = format!("{}/tasks", state.oauth_config.frontend_url);
+    // Use the origin from the OAuth state (where the user started) or fall back to configured frontend_url
+    let frontend_base = oauth_state
+        .origin_url
+        .unwrap_or_else(|| state.oauth_config.frontend_url.clone());
+    let redirect_url = format!("{}/tasks", frontend_base);
 
     let access_cookie_header = HeaderValue::from_str(&access_cookie)
         .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;

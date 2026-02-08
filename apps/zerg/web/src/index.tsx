@@ -33,10 +33,6 @@ function Layout() {
             </div>
             <div class="flex items-center">
               <UserMenu />
-              <div>as</div>
-              <div>as</div>
-              <div>as</div>
-              <div>as</div>
             </div>
           </div>
         </div>
