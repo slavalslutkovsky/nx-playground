@@ -1,5 +1,4 @@
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
-use sea_orm_migration::MigratorTrait;
 use std::time::Duration;
 use tracing::{info, log::LevelFilter};
 
@@ -151,31 +150,9 @@ pub async fn connect_from_config_with_retry(
     }
 }
 
-/// Run database migrations using the provided Migrator
-///
-/// This is a generic function that works with any app's Migrator.
-/// The migration files remain in the app, but the running logic is here.
-///
-/// # Arguments
-/// * `db` - Database connection
-/// * `app_name` - Name of the app for logging (e.g., "zerg_api")
-///
-/// # Example
-/// ```ignore
-/// use my_app::migrator::Migrator;
-/// use database::postgres::run_migrations;
-///
-/// run_migrations::<Migrator>(&db, "my_app").await?;
-/// ```
-pub async fn run_migrations<M: MigratorTrait>(
-    db: &DatabaseConnection,
-    app_name: &str,
-) -> Result<(), DbErr> {
-    info!("Running {} database migrations...", app_name);
-    M::up(db, None).await?;
-    info!("Migrations completed successfully for {}", app_name);
-    Ok(())
-}
+// Note: Migrations are now managed by Atlas CLI
+// See manifests/migrations/ for SQL migration files
+// Run `just migrate` to apply migrations
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mydatabase-staging
+
+resources:
+  - ../../base
+  - ../../base/cnpg
+
+namePrefix: staging-
+
+# Staging-specific patches
+patches:
+  # CNPG Cluster: 2 instances for staging (test HA)
+  - patch: |-
+      - op: replace
+        path: /spec/instances
+        value: 2
+      - op: replace
+        path: /spec/storage/size
+        value: 10Gi
+      - op: add
+        path: /spec/bootstrap/initdb/secret
+        value:
+          name: staging-mydatabase-db-credentials
+    target:
+      kind: Cluster
+      name: mydatabase-db
+
+  # AtlasMigration: update references to match namePrefix
+  - patch: |-
+      - op: replace
+        path: /spec/urlFrom/secretKeyRef/name
+        value: staging-mydatabase-db-app
+      - op: replace
+        path: /spec/dir/configMapRef/name
+        value: staging-mydatabase-migrations
+    target:
+      kind: AtlasMigration
+      name: mydatabase-migration
+
+# Staging secret (use external-secrets in real staging)
+secretGenerator:
+  - name: mydatabase-db-credentials
+    type: kubernetes.io/basic-auth
+    literals:
+      - username=mydatabase
+      - password=staging-password-change-me
+
+generatorOptions:
+  disableNameSuffixHash: true

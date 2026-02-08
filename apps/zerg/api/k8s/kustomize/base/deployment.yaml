@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: zerg-api
     app.kubernetes.io/component: api-server
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: zerg-api
@@ -37,12 +37,25 @@ spec:
               value: "8080"
             - name: RUST_LOG
               value: "info"
+#              valueFrom:
+#                configMapKeyRef:
+#                  key: RUST_LOG
+#                  name: zerg-api-config
+#                secretKeyRef:
+#                  key: RUST_LOG
             - name: DATABASE_URL
               value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
             - name: REDIS_HOST
               value: "redis://redis.dbs.svc.cluster.local"
             - name: CORS_ALLOWED_ORIGIN
               value: "http://localhost:3000"
+#            - name: JWT_SECRET
+#              valueFrom:
+#                configMapKeyRef:
+#                  key: JWT_SECRET
+#                secretKeyRef:
+#                  name: zerg-api-jwt-secret
+#                  key: JWT_SECRET
           # Startup probe: allows up to 30s for container to start (6 * 5s)
           startupProbe:
             httpGet:

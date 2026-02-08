@@ -56,6 +56,7 @@ pub mod service;
 
 // Re-export commonly used types
 pub use error::{CloudResourceError, CloudResourceResult};
+pub use handlers::ApiDoc;
 pub use models::{
     CloudResource, CloudResourceFilter, CreateCloudResource, ResourceStatus, ResourceType, Tag,
     UpdateCloudResource,

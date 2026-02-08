@@ -20,9 +20,12 @@ async fn test_create_and_get_project() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("create_and_get");
 
+    // Create test user first (required for foreign key constraint)
+    let user_id = db.create_test_user(builder.user_id()).await;
+
     let input = CreateProject {
         name: builder.name("project", "main"),
-        user_id: builder.user_id(),
+        user_id,
         description: "Integration test project".to_string(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -58,7 +61,7 @@ async fn test_duplicate_name_constraint() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("duplicate_name");
 
-    let user_id = builder.user_id();
+    let user_id = db.create_test_user(builder.user_id()).await;
     let name = builder.name("project", "duplicate");
 
     let input = CreateProject {
@@ -91,8 +94,8 @@ async fn test_duplicate_name_different_users() {
     let builder = TestDataBuilder::from_test_name("duplicate_diff_users");
 
     let name = builder.name("project", "shared");
-    let user1 = Uuid::now_v7();
-    let user2 = Uuid::now_v7();
+    let user1 = db.create_test_user(Uuid::now_v7()).await;
+    let user2 = db.create_test_user(Uuid::now_v7()).await;
 
     let input1 = CreateProject {
         name: name.clone(),
@@ -130,9 +133,11 @@ async fn test_update_project() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("update");
 
+    let user_id = db.create_test_user(builder.user_id()).await;
+
     let input = CreateProject {
         name: builder.name("project", "original"),
-        user_id: builder.user_id(),
+        user_id,
         description: "Original description".to_string(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -177,9 +182,11 @@ async fn test_delete_project() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("delete");
 
+    let user_id = db.create_test_user(builder.user_id()).await;
+
     let input = CreateProject {
         name: builder.name("project", "to-delete"),
-        user_id: builder.user_id(),
+        user_id,
         description: String::new(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -209,7 +216,7 @@ async fn test_list_projects_with_filters() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("list_filters");
 
-    let user_id = builder.user_id();
+    let user_id = db.create_test_user(builder.user_id()).await;
 
     // Create multiple projects with different attributes
     let projects = vec![
@@ -327,10 +334,12 @@ async fn test_service_validation() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("service_validation");
 
+    let user_id = db.create_test_user(builder.user_id()).await;
+
     // Test: Empty name should fail
     let input = CreateProject {
         name: "".to_string(),
-        user_id: builder.user_id(),
+        user_id,
         description: String::new(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -348,7 +357,7 @@ async fn test_service_validation() {
     // Test: Name too long should fail
     let input = CreateProject {
         name: "a".repeat(101),
-        user_id: builder.user_id(),
+        user_id,
         description: String::new(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -366,7 +375,7 @@ async fn test_service_validation() {
     // Test: Invalid characters should fail
     let input = CreateProject {
         name: "invalid name!@#".to_string(),
-        user_id: builder.user_id(),
+        user_id,
         description: String::new(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -384,7 +393,7 @@ async fn test_service_validation() {
     // Test: Negative budget should fail
     let input = CreateProject {
         name: builder.name("project", "valid"),
-        user_id: builder.user_id(),
+        user_id,
         description: String::new(),
         cloud_provider: CloudProvider::Aws,
         region: "us-east-1".to_string(),
@@ -407,8 +416,8 @@ async fn test_service_authorization() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("authorization");
 
-    let owner = Uuid::now_v7();
-    let other_user = Uuid::now_v7();
+    let owner = db.create_test_user(Uuid::now_v7()).await;
+    let other_user = db.create_test_user(Uuid::now_v7()).await;
 
     let input = CreateProject {
         name: builder.name("project", "owned"),
@@ -464,7 +473,7 @@ async fn test_concurrent_creates() {
     let repo = PgProjectRepository::new(db.connection());
     let builder = TestDataBuilder::from_test_name("concurrent");
 
-    let user_id = builder.user_id();
+    let user_id = db.create_test_user(builder.user_id()).await;
 
     // Spawn multiple concurrent create operations
     let mut handles = vec![];
@@ -523,7 +532,7 @@ async fn test_free_tier_can_create_3_projects() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("free_tier_3_projects");
 
-    let user_id = builder.user_id();
+    let user_id = db.create_test_user(builder.user_id()).await;
 
     // Create 3 projects (the free tier limit)
     for i in 0..3 {
@@ -550,7 +559,7 @@ async fn test_free_tier_cannot_create_4th_project() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("free_tier_4th_project");
 
-    let user_id = builder.user_id();
+    let user_id = db.create_test_user(builder.user_id()).await;
 
     // Create 3 projects
     for i in 0..3 {
@@ -601,8 +610,8 @@ async fn test_free_tier_limit_per_user() {
     let service = ProjectService::new(repo);
     let builder = TestDataBuilder::from_test_name("free_tier_per_user");
 
-    let user1 = Uuid::now_v7();
-    let user2 = Uuid::now_v7();
+    let user1 = db.create_test_user(Uuid::now_v7()).await;
+    let user2 = db.create_test_user(Uuid::now_v7()).await;
 
     // User 1 creates 3 projects
     for i in 0..3 {

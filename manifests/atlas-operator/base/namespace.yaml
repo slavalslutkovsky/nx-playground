@@ -1,0 +1,7 @@
+# Atlas Operator Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: atlas-operator
+  labels:
+    app.kubernetes.io/name: atlas-operator

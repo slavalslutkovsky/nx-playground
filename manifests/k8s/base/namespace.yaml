@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zerg
+  labels:
+    postgres.shared/enabled: "true"
+    istio-discovery: enabled
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: zerg
+data:
+  RUST_LOG: "info"
+  APP_ENV: "development"
+  TASKS_SERVICE_ADDR: "tasks:8080"
+  VECTOR_SERVICE_ADDR: "vector:8080"
+  PROJECTS_SERVICE_ADDR: "projects:8080"
+  DATABASE_URL: "postgresql://postgres:QITJqw045jFur52jMRSdZTKodssq9ZNgQ7EvlcsdxOieU8OF7gXx3ZGMxbajzroZ@shared-postgres-rw.databases:5432/postgres"
+#  DATABASE_URL: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+#  NATS_URL: "nats://nats:4222"
+#  RUST_ENV: "development"

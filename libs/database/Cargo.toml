@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 default = ["postgres", "redis"]
-postgres = ["dep:sea-orm", "dep:sea-orm-migration"]
+postgres = ["dep:sea-orm"]
 redis = ["dep:redis"]
 config = ["dep:core_config"]
 all = ["postgres", "redis", "config"]
@@ -21,8 +21,8 @@ core_config = { workspace = true, optional = true }
 redis = { workspace = true, optional = true }
 
 # PostgreSQL dependencies (optional)
+# Note: Migrations are managed by Atlas CLI, not sea-orm-migration
 sea-orm = { workspace = true, optional = true }
-sea-orm-migration = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

@@ -9,6 +9,7 @@ import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [devtools(), solidPlugin(), tailwindcss()],
+  // base: '/web/',
   server: {
     port: 3000,
   },

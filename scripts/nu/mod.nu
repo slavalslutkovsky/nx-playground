@@ -82,7 +82,7 @@ export def "main up" [
 
     # Step 1: Create Kind cluster
     info $"Step 1/6: Creating Kind cluster '($name)' with ($workers) workers..."
-    ^nu ($SCRIPT_DIR | path dirname | path join "cluster.nu") create -n $name -w $workers --ingress
+    ^nu ($SCRIPT_DIR | path dirname | path join "cluster.nu") create -n $name -w $workers --ingress -d 1
 
     # Step 2: Create app namespaces
     info "Step 2/6: Creating app namespaces..."
@@ -106,12 +106,12 @@ export def "main up" [
     }
 
     # Step 5: Deploy observability (optional)
-    if not $skip_obs {
-        info "Step 5/6: Deploying observability stack..."
-        do { ^nu ($SCRIPT_DIR | path dirname | path join "cluster.nu") observability --target dev } | complete
-    } else {
-        info "Step 5/6: Skipping observability stack"
-    }
+    #if not $skip_obs {
+    #    info "Step 5/6: Deploying observability stack..."
+    #    do { ^nu ($SCRIPT_DIR | path dirname | path join "cluster.nu") observability --target dev } | complete
+    #} else {
+    #    info "Step 5/6: Skipping observability stack"
+    #}
 
     # Step 6: Bootstrap Flux (optional)
     if $flux {

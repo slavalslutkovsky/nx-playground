@@ -11,8 +11,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sea_orm::SqlxError;
-use sea_orm_migration::DbErr;
+use sea_orm::{DbErr, SqlxError};
 use serde::Serialize;
 use thiserror::Error;
 use utoipa::ToSchema;

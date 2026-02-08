@@ -2,7 +2,6 @@
 [workspace]
 resolver = '2'
 members = [
-    'apps/utils/schema-gen',
     'apps/zerg/api',
     'apps/zerg/email-nats',
     'apps/zerg/tasks',
@@ -21,7 +20,6 @@ members = [
     'libs/domains/tasks',
     'libs/domains/users',
     'libs/domains/vector',
-    'libs/migration',
     'libs/notifications/email',
     'libs/rpc',
     'libs/testing/test-utils',
@@ -66,7 +64,7 @@ lettre = { version = '0.11.19', default-features = false, features = ['tokio1-ru
 messaging = { path = 'libs/core/messaging' }
 metrics = '0.24.3'
 metrics-exporter-prometheus = '0.18.1'
-migration = { path = 'libs/migration' }
+# migration crate removed - using Atlas for migrations
 mockall = '0.14.0'
 #mongodb = '3.4.1'
 # nats-worker is now part of messaging with feature = "nats"

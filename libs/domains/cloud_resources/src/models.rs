@@ -1,11 +1,14 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 /// Cloud resource type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, ToSchema,
+)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum ResourceType {
@@ -20,7 +23,17 @@ pub enum ResourceType {
 
 /// Resource status
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString, Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    EnumString,
+    Default,
+    ToSchema,
 )]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -35,7 +48,7 @@ pub enum ResourceStatus {
 }
 
 /// Cloud resource entity
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CloudResource {
     pub id: Uuid,
     pub project_id: Uuid,
@@ -54,14 +67,14 @@ pub struct CloudResource {
 }
 
 /// Key-value tag for resource organization
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct Tag {
     pub key: String,
     pub value: String,
 }
 
 /// DTO for creating a new cloud resource
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct CreateCloudResource {
     pub project_id: Uuid,
     #[validate(length(min = 1, max = 255))]
@@ -78,7 +91,7 @@ pub struct CreateCloudResource {
 }
 
 /// DTO for updating an existing cloud resource
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct UpdateCloudResource {
     #[validate(length(min = 1, max = 255))]
     pub name: Option<String>,
@@ -94,7 +107,7 @@ pub struct UpdateCloudResource {
 }
 
 /// Query filters for listing cloud resources
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, ToSchema, utoipa::IntoParams)]
 pub struct CloudResourceFilter {
     pub project_id: Option<Uuid>,
     pub resource_type: Option<ResourceType>,

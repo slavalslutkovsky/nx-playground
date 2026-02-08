@@ -1,0 +1,70 @@
+{
+  "name": "kcl_ci",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "scripts/kcl/ci",
+  "targets": {
+    "build": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/**/*.k", "{projectRoot}/kcl.mod", "{projectRoot}/kcl.mod.lock"],
+      "options": {
+        "command": "kcl run scripts/kcl/ci/main.k",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "test": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/**/*.k", "{projectRoot}/kcl.mod", "{projectRoot}/kcl.mod.lock"],
+      "options": {
+        "command": "kcl test",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    },
+    "lint": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/**/*.k", "{projectRoot}/kcl.mod"],
+      "options": {
+        "command": "kcl lint",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    },
+    "fmt": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "kcl fmt",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    },
+    "pkg": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "dependsOn": ["test", "lint"],
+      "inputs": ["{projectRoot}/**/*.k", "{projectRoot}/kcl.mod", "{projectRoot}/kcl.mod.lock"],
+      "outputs": ["{projectRoot}/*.tar"],
+      "options": {
+        "command": "kcl mod pkg --target .",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["test", "lint"],
+      "options": {
+        "command": "kcl mod push oci://$KCL_REGISTRY/kcl-ci",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    },
+    "nx-release-publish": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["test", "lint"],
+      "options": {
+        "command": "kcl mod push oci://$KCL_REGISTRY/kcl-ci",
+        "cwd": "{workspaceRoot}/scripts/kcl/ci"
+      }
+    }
+  },
+  "tags": ["scope:infra", "lang:kcl"]
+}

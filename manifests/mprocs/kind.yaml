@@ -1,0 +1,20 @@
+# Kind/Kubernetes development workflow
+# Usage: just dev-kind (or: mprocs -c manifests/mprocs/kind.yaml)
+# For local docker workflow: just dev
+
+procs:
+  # =============================================================================
+  # Kind/Kubernetes Development (CNPG + Tilt)
+  # Prerequisites: just kind-cnpg-setup
+  # =============================================================================
+
+  dev:
+    shell: |
+      echo "Waiting for CNPG cluster to be ready..."
+      kubectl wait --for=condition=Ready cluster/dev-mydatabase-db -n mydatabase-dev --timeout=300s 2>/dev/null || true
+      echo "Starting port-forward (PostgreSQL on localhost:5433)..."
+      kubectl port-forward -n mydatabase-dev svc/dev-mydatabase-db-rw 5433:5432 &
+      sleep 2
+      echo "Starting Tilt..."
+      tilt up
+    stop: "SIGTERM"

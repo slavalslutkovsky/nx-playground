@@ -41,6 +41,10 @@ spec:
             - name: ENVIRONMENT
               value: "Development"
             - name: RUST_LOG
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: RUST_LOG
               value: "info"
             - name: NATS_URL
               value: "nats://nats.dbs.svc.cluster.local:4222"

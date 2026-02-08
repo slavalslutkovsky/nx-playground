@@ -4,7 +4,6 @@ GitHub Actions workflow generator.
 
 import github_workflow as gh
 import ...schemas.config as cfg
-import ...schemas.common as c
 import .steps
 
 # =============================================================================

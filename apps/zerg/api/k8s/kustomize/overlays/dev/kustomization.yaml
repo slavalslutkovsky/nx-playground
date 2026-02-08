@@ -19,6 +19,11 @@ patches:
             value: "info"
           - name: DATABASE_URL
             value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+
+      #      value: "postgresql://postgres:QITJqw045jFur52jMRSdZTKodssq9ZNgQ7EvlcsdxOieU8OF7gXx3ZGMxbajzroZ@shared-postgres-rw.databases:5432/postgres"
+          - name: NATS_URL
+      #      value: "nats://nats.dbs.svc.cluster.local:4222"
+            value: "nats://nats.nats-system.svc.cluster.local:4222"
           - name: REDIS_HOST
             value: "redis://redis.dbs.svc.cluster.local"
           - name: CORS_ALLOWED_ORIGIN

@@ -8,9 +8,10 @@ use axum::{
 use axum_helpers::{ACCESS_TOKEN_TTL, JwtRedisAuth, REFRESH_TOKEN_TTL, ValidatedJson};
 use serde::Deserialize;
 use std::sync::Arc;
+use utoipa::OpenApi;
 
 use crate::error::UserError;
-use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
+use crate::models::{LoginRequest, LoginResponse, RegisterRequest, UserResponse};
 use crate::oauth::providers::OAuthProvider;
 use crate::oauth::providers::github::GithubProvider;
 use crate::oauth::providers::google::GoogleProvider;
@@ -20,6 +21,30 @@ use crate::oauth::{
 };
 use crate::repository::UserRepository;
 use crate::service::UserService;
+
+/// OpenAPI documentation for Auth API
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        register,
+        login,
+        logout,
+        me,
+        authorize,
+    ),
+    components(
+        schemas(
+            RegisterRequest,
+            LoginRequest,
+            LoginResponse,
+            UserResponse
+        )
+    ),
+    tags(
+        (name = "auth", description = "Authentication endpoints")
+    )
+)]
+pub struct AuthApiDoc;
 
 /// OAuth configuration
 #[derive(Clone)]
@@ -53,6 +78,18 @@ fn is_development() -> bool {
 }
 
 /// Register a new user
+#[utoipa::path(
+    post,
+    path = "/register",
+    tag = "auth",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "Registration successful", body = LoginResponse),
+        (status = 400, description = "Validation error"),
+        (status = 409, description = "Email already exists"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn register<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     ValidatedJson(input): ValidatedJson<RegisterRequest>,
@@ -171,6 +208,18 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Login with email/password
+#[utoipa::path(
+    post,
+    path = "/login",
+    tag = "auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful", body = LoginResponse),
+        (status = 400, description = "Validation error"),
+        (status = 401, description = "Invalid credentials"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn login<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     ValidatedJson(input): ValidatedJson<LoginRequest>,
@@ -257,6 +306,15 @@ async fn login<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Logout
+#[utoipa::path(
+    post,
+    path = "/logout",
+    tag = "auth",
+    responses(
+        (status = 204, description = "Logout successful"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn logout<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
@@ -323,6 +381,16 @@ async fn logout<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Get current user from JWT claims
+#[utoipa::path(
+    get,
+    path = "/me",
+    tag = "auth",
+    responses(
+        (status = 200, description = "Current user info", body = UserResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn me<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
@@ -461,6 +529,19 @@ fn get_provider(
 }
 
 /// Initiate OAuth flow for any provider
+#[utoipa::path(
+    get,
+    path = "/oauth/{provider}",
+    tag = "auth",
+    params(
+        ("provider" = String, Path, description = "OAuth provider name (google, github)")
+    ),
+    responses(
+        (status = 302, description = "Redirect to OAuth provider"),
+        (status = 400, description = "Unsupported provider"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     Path(provider_name): Path<String>,

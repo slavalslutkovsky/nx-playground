@@ -16,7 +16,12 @@ use utoipa::OpenApi;
     ),
     nest(
         (path = "/tasks", api = domain_tasks::GrpcApiDoc),
-        (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc)
+        (path = "/tasks-direct", api = domain_tasks::DirectApiDoc),
+        (path = domain_projects::entity::Model::URL, api = domain_projects::ApiDoc),
+        (path = "/users", api = domain_users::ApiDoc),
+        (path = "/auth", api = domain_users::AuthApiDoc),
+        (path = "/cloud-resources", api = domain_cloud_resources::ApiDoc),
+        (path = "/vector", api = domain_vector::VectorApiDoc)
     )
 )]
 pub struct ApiDoc;

@@ -26,11 +26,12 @@ async fn json_body<T: serde::de::DeserializeOwned>(body: Body) -> T {
 #[tokio::test]
 async fn test_create_project_handler_returns_201() {
     let db = TestDatabase::new().await;
+    let builder = TestDataBuilder::from_test_name("handler_create_201");
+    db.create_test_user(builder.user_id()).await;
+
     let repo = PgProjectRepository::new(db.connection());
     let service = ProjectService::new(repo);
     let app = handlers::router(service);
-
-    let builder = TestDataBuilder::from_test_name("handler_create_201");
 
     let request = Request::builder()
         .method("POST")
@@ -94,11 +95,12 @@ async fn test_create_project_handler_validates_input() {
 #[tokio::test]
 async fn test_create_project_handler_enforces_free_tier_limit() {
     let db = TestDatabase::new().await;
+    let builder = TestDataBuilder::from_test_name("handler_free_tier");
+    let user_id = builder.user_id();
+    db.create_test_user(user_id).await;
+
     let repo = PgProjectRepository::new(db.connection());
     let service = ProjectService::new(repo);
-    let builder = TestDataBuilder::from_test_name("handler_free_tier");
-
-    let user_id = builder.user_id();
 
     // Create 3 projects directly via service
     for i in 0..3 {
@@ -146,9 +148,11 @@ async fn test_create_project_handler_enforces_free_tier_limit() {
 #[tokio::test]
 async fn test_get_project_handler_returns_200() {
     let db = TestDatabase::new().await;
+    let builder = TestDataBuilder::from_test_name("handler_get_200");
+    db.create_test_user(builder.user_id()).await;
+
     let repo = PgProjectRepository::new(db.connection());
     let service = ProjectService::new(repo);
-    let builder = TestDataBuilder::from_test_name("handler_get_200");
 
     // Create a project
     let input = CreateProject {
@@ -204,11 +208,12 @@ async fn test_get_project_handler_returns_404_for_missing() {
 #[tokio::test]
 async fn test_list_projects_handler_with_filters() {
     let db = TestDatabase::new().await;
+    let builder = TestDataBuilder::from_test_name("handler_list_filters");
+    let user_id = builder.user_id();
+    db.create_test_user(user_id).await;
+
     let repo = PgProjectRepository::new(db.connection());
     let service = ProjectService::new(repo);
-    let builder = TestDataBuilder::from_test_name("handler_list_filters");
-
-    let user_id = builder.user_id();
 
     // Create 2 AWS and 1 GCP project
     for i in 0..2 {
@@ -262,9 +267,11 @@ async fn test_list_projects_handler_with_filters() {
 #[tokio::test]
 async fn test_delete_project_handler_returns_204() {
     let db = TestDatabase::new().await;
+    let builder = TestDataBuilder::from_test_name("handler_delete");
+    db.create_test_user(builder.user_id()).await;
+
     let repo = PgProjectRepository::new(db.connection());
     let service = ProjectService::new(repo);
-    let builder = TestDataBuilder::from_test_name("handler_delete");
 
     // Create a project
     let input = CreateProject {
