@@ -138,12 +138,12 @@ jobs:
         run: curl -fsSL https://kcl-lang.io/script/install-cli.sh | /bin/bash
 
 #       Free up disk space before testing
-      - name: Clean up disk space
-        run: |
-          df -h
-          rm -rf dist/target
-          docker system prune -af || true
-          df -h
+#      - name: Clean up disk space
+#        run: |
+#          df -h
+#          rm -rf dist/target
+#          docker system prune -af || true
+#          df -h
 
       # Run tests
       - run: bun nx affected -t test
