@@ -45,6 +45,16 @@ local_resource(
         exec=exec_action(['sh', '-c', 'nc -z localhost 8080'])
     )
 )
+
+local_resource(
+    'kiali',
+    serve_cmd='kubectl port-forward -n istio-system svc/kiali 20001:20001',
+    labels=['port-forward'],
+    readiness_probe=probe(
+        period_secs=5,
+        exec=exec_action(['sh', '-c', 'nc -z localhost 20001'])
+    )
+)
 # =============================================================================
 # Schema ConfigMap Generation
 # Regenerates and applies the schema ConfigMap when schema.sql changes
@@ -65,13 +75,16 @@ local_resource(
 local_resource(
     'db-seed',
     cmd='''
+        echo "Applying schema..."
+        kubectl exec -i -n dbs deployment/postgres -- psql -U myuser -d mydatabase < manifests/schemas/schema.sql
         echo "Applying seed data..."
         kubectl exec -i -n dbs deployment/postgres -- psql -U myuser -d mydatabase < manifests/schemas/seed.sql
-        echo "Seed data applied!"
+        echo "Schema + seed data applied!"
     ''',
     labels=['migrations'],
-    resource_deps=['postgres-port-forward'],
+    resource_deps=['postgres'],
     deps=[
+        'manifests/schemas/schema.sql',
         'manifests/schemas/seed.sql',
     ],
 )
@@ -79,6 +92,7 @@ local_resource(
 # =============================================================================
 # Applications
 # =============================================================================
+include('./apps/zerg/shared/Tiltfile')
 include('./apps/zerg/api/Tiltfile')
 include('./apps/zerg/tasks/Tiltfile')
 include('./apps/zerg/web/Tiltfile')

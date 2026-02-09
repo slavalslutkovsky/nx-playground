@@ -25,24 +25,16 @@ export def "main create" [
     info $"Creating Kind cluster: ($name) [workers: ($workers), db-workers: ($db_workers), ingress: ($ingress)]"
 
     # Generate cluster config using KCL
-    let kcl_path = "scripts/kcl/cluster/main.k"
-    let cluster_container = "oci://europe-west1-docker.pkg.dev/yk-artifact-registry/kcl/cluster:0.0.1"
-
-    #if not ($kcl_path | path exists) {
-     #   warn "KCL cluster config not found, using default Kind config"
-    #    kind create cluster --name $name
-    #} else {
     let tmp = (tmpfile $"kind-config-($name)")
-    let kcl_response = (kcl run $cluster_container -D workers=($workers) -D db_workers=($db_workers) -D ingress=($ingress) -D name=($name) | lines | skip while {|l| not ($l | str starts-with "items:")} | str join "\n" | from yaml)
-    #let kcl_response = (kcl run $kcl_path -D workers=($workers) -D db_workers=($db_workers) -D ingress=($ingress) -D name=($name) | from yaml)
-    let config = $kcl_response | get items.0
 
+    let cluster_kcl_package = "oci://europe-west1-docker.pkg.dev/yk-artifact-registry/kcl/cluster:0.0.1"
+    let kcl_response = (kcl run $cluster_kcl_package -D workers=($workers) -D db_workers=($db_workers) -D ingress=($ingress) -D name=($name) | lines | skip while {|l| not ($l | str starts-with "items:")} | str join "\n" | from yaml)
+    let config = $kcl_response | get items.0
     $config | to yaml | save -f $tmp --force
 
     kind create cluster --name $name --config $tmp
 
     rm -f $tmp
-    #}
 
     if $env.LAST_EXIT_CODE? == 1 {
         error "Failed to create cluster"
@@ -141,7 +133,9 @@ export def "main setup" [
         if ($compose_file | path exists) {
             do { kubectl create namespace dbs } | complete
             let manifests = (kompose convert --file $compose_file --namespace dbs --stdout)
-            # Patch deployments to tolerate and target db-worker nodes
+            # Patch manifests for node placement and Istio protocol detection
+            # Port names must use tcp-* prefix so the client-side Istio sidecar
+            # (in zerg namespace) treats non-HTTP traffic as raw TCP passthrough.
             let patched = ($manifests
                 | split row "---"
                 | where {|s| ($s | str trim) != ""}
@@ -153,6 +147,11 @@ export def "main setup" [
                             value: "database"
                             effect: "NoSchedule"
                         }] | upsert spec.template.spec.nodeSelector { dedicated: "database" }
+                    } else if ($doc.kind? == "Service") {
+                        let svc_name = ($doc.metadata.name? | default "unknown")
+                        $doc | upsert spec.ports ($doc.spec.ports | each {|p|
+                            $p | upsert name $"tcp-($svc_name)-($p.port)"
+                        })
                     } else {
                         $doc
                     } | to yaml

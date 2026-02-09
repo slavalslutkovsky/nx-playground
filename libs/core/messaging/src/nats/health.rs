@@ -82,6 +82,16 @@ impl HealthState {
         inner.last_error = error;
     }
 
+    /// Check if alive (for liveness).
+    ///
+    /// Only checks processor_healthy, not stream_connected.
+    /// A temporary NATS disconnection should not trigger a pod restart;
+    /// only a fatal processor error should.
+    pub async fn is_alive(&self) -> bool {
+        let inner = self.inner.read().await;
+        inner.processor_healthy
+    }
+
     /// Check if healthy (for readiness).
     pub async fn is_healthy(&self) -> bool {
         let inner = self.inner.read().await;
@@ -177,9 +187,16 @@ impl HealthServer {
 }
 
 /// Liveness probe handler.
-async fn health_handler() -> impl IntoResponse {
-    // Liveness just checks if the process is running
-    (StatusCode::OK, Json(serde_json::json!({"status": "ok"})))
+///
+/// Checks `processor_healthy` — returns 503 only on fatal processor errors,
+/// not on transient NATS disconnections (K8s failureThreshold provides grace period).
+async fn health_handler(State(state): State<HealthState>) -> impl IntoResponse {
+    let status = state.status().await;
+    if state.is_alive().await {
+        (StatusCode::OK, Json(status))
+    } else {
+        (StatusCode::SERVICE_UNAVAILABLE, Json(status))
+    }
 }
 
 /// Readiness probe handler.

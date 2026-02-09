@@ -6,25 +6,16 @@ namespace: zerg
 resources:
   - ../../base
 
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: zerg-tasks-config
+    literals:
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=50051
+
 patches:
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env
-        value:
-          - name: GRPC_HOST
-            value: "0.0.0.0"
-          - name: GRPC_PORT
-            value: "50051"
-          - name: RUST_LOG
-            value: "info"
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: DATABASE_URL
-    target:
-      kind: Deployment
-      name: zerg-tasks
   - patch: |-
       - op: replace
         path: /spec/replicas

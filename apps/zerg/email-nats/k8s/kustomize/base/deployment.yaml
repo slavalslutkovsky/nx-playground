@@ -38,18 +38,16 @@ spec:
               name: http
               protocol: TCP
           env:
-            - name: ENVIRONMENT
-              value: "Development"
-            - name: RUST_LOG
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: RUST_LOG
+            - name: APP_ENV
               value: "info"
-            - name: NATS_URL
-              value: "nats://nats.dbs.svc.cluster.local:4222"
-            - name: HEALTH_PORT
-              value: "8081"
+          envFrom:
+            - configMapRef:
+                name: zerg-shared-config
+            - configMapRef:
+                name: zerg-email-nats-config
+            - secretRef:
+                name: zerg-email-nats-secrets
+                optional: true
           # Startup probe: allows up to 30s for container to start
           startupProbe:
             httpGet:

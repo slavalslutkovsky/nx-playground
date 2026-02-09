@@ -5,20 +5,29 @@ metadata:
   labels:
     postgres.shared/enabled: "true"
     secrets.external-secrets.io/enabled: "true"
-    istio-discovery: enabled
+    istio-injection: enabled
 ---
-apiVersion: v1
-kind: ConfigMap
+# Allow intra-namespace traffic (zerg-api → zerg-tasks, etc.)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
 metadata:
-  name: app-config
+  name: allow-zerg-internal
   namespace: zerg
-data:
-  RUST_LOG: "info"
-  APP_ENV: "development"
-  TASKS_SERVICE_ADDR: "tasks:8080"
-  VECTOR_SERVICE_ADDR: "vector:8080"
-  PROJECTS_SERVICE_ADDR: "projects:8080"
-#  DATABASE_URL: "postgresql://postgres:QITJqw045jFur52jMRSdZTKodssq9ZNgQ7EvlcsdxOieU8OF7gXx3ZGMxbajzroZ@shared-postgres-rw.databases:5432/postgres"
-  DATABASE_URL: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-  NATS_URL: "nats://nats:4222"
-#  RUST_ENV: "development"
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["zerg"]
+---
+# Disable mTLS for traffic to dbs namespace (no sidecars there)
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: dbs-no-mtls
+  namespace: zerg
+spec:
+  host: "*.dbs.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

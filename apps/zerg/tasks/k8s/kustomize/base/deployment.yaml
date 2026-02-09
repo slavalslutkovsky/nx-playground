@@ -6,6 +6,7 @@ metadata:
     app: zerg-tasks
     app.kubernetes.io/name: zerg-tasks
     app.kubernetes.io/component: grpc-server
+    app.kubernetes.io/part-of: zerg
 spec:
   replicas: 2
   selector:
@@ -17,6 +18,10 @@ spec:
         app: zerg-tasks
         app.kubernetes.io/name: zerg-tasks
         app.kubernetes.io/component: grpc-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "50051"
+        prometheus.io/path: "/metrics"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -32,17 +37,17 @@ spec:
             - containerPort: 50051
               name: grpc
               protocol: TCP
-          env:
-            - name: APP_ENV
-              value: "production"
-            - name: GRPC_HOST
-              value: "0.0.0.0"
-            - name: GRPC_PORT
-              value: "50051"
-            - name: RUST_LOG
-              value: "info"
-            - name: DATABASE_URL
-              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
+          envFrom:
+            - configMapRef:
+                name: zerg-shared-config
+            - configMapRef:
+                name: zerg-tasks-config
+            - secretRef:
+                name: zerg-shared-secrets
+                optional: true
+            - secretRef:
+                name: zerg-tasks-secrets
+                optional: true
           # Startup probe: allows up to 30s for container to start (6 * 5s)
           startupProbe:
             grpc:

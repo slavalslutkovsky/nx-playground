@@ -6,34 +6,11 @@ namespace: zerg
 resources:
   - ../../base
 
-patches:
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env
-        value:
-          - name: APP_ENV
-            value: "development"
-          - name: GRPC_HOST
-            value: "0.0.0.0"
-          - name: GRPC_PORT
-            value: "50051"
-          - name: RUST_LOG
-            value: "info,zerg_tasks=debug"
-          - name: DATABASE_URL
-            value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-          # DB Pool Optimization (keep low - postgres has 100 max connections shared across all pods)
-          - name: DB_MAX_CONNECTIONS
-            value: "10"
-          - name: DB_MIN_CONNECTIONS
-            value: "2"
-          - name: DB_ACQUIRE_TIMEOUT_SECS
-            value: "5"
-          - name: DB_IDLE_TIMEOUT_SECS
-            value: "300"
-          - name: DB_MAX_LIFETIME_SECS
-            value: "1800"
-          - name: DB_SQLX_LOGGING
-            value: "false"
-    target:
-      kind: Deployment
-      name: zerg-tasks
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: zerg-tasks-config
+    literals:
+      - GRPC_HOST=0.0.0.0
+      - GRPC_PORT=50051
