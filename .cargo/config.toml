@@ -3,7 +3,6 @@
 [build]
 target-dir = 'dist/target'
 rustc-wrapper = "sccache"
-#jobs = 8
 
 [env]
 # Default export directory for ts-rs (relative to each crate root)
