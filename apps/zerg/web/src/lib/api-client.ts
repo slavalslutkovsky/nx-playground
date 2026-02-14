@@ -1,9 +1,8 @@
 import type { CreateTask, Task, UpdateTask } from '@domain/tasks';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = '/api';
 
-// Helper to check if response is 401 and redirect to login
+// Helper to check if the response is 401 and redirect to login
 function checkAuth(response: Response): Response {
   if (response.status === 401) {
     // Redirect to login page if not authenticated

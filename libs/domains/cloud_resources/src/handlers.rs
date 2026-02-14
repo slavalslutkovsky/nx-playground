@@ -5,17 +5,65 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
-use axum_helpers::{AuditEvent, AuditOutcome, extract_ip_from_headers, extract_user_agent};
+use axum_helpers::{
+    AuditEvent, AuditOutcome,
+    errors::responses::{
+        BadRequestUuidResponse, BadRequestValidationResponse, InternalServerErrorResponse,
+        NotFoundResponse,
+    },
+    extract_ip_from_headers, extract_user_agent,
+};
+use serde::Serialize;
 use serde_json::json;
 use std::sync::Arc;
+use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
 use crate::{
     error::CloudResourceResult,
-    models::{CloudResourceFilter, CreateCloudResource, UpdateCloudResource},
+    models::{CloudResource, CloudResourceFilter, CreateCloudResource, UpdateCloudResource},
     repository::CloudResourceRepository,
     service::CloudResourceService,
 };
+
+/// OpenAPI documentation for Cloud Resources API
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        create_cloud_resource,
+        get_cloud_resource,
+        list_cloud_resources,
+        list_by_project,
+        update_cloud_resource,
+        delete_cloud_resource,
+        soft_delete_cloud_resource,
+    ),
+    components(
+        schemas(
+            CloudResource,
+            CreateCloudResource,
+            UpdateCloudResource,
+            CloudResourceFilter,
+            MessageResponse
+        ),
+        responses(
+            NotFoundResponse,
+            BadRequestValidationResponse,
+            BadRequestUuidResponse,
+            InternalServerErrorResponse
+        )
+    ),
+    tags(
+        (name = "cloud-resources", description = "Cloud resource management endpoints")
+    )
+)]
+pub struct ApiDoc;
+
+/// Message response for delete operations
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MessageResponse {
+    pub message: String,
+}
 
 /// Create Axum router for cloud resource endpoints
 pub fn router<R>(service: CloudResourceService<R>) -> Router
@@ -37,7 +85,18 @@ where
         .with_state(service)
 }
 
-/// POST /cloud-resources - Create a new cloud resource
+/// Create a new cloud resource
+#[utoipa::path(
+    post,
+    path = "",
+    tag = "cloud-resources",
+    request_body = CreateCloudResource,
+    responses(
+        (status = 201, description = "Cloud resource created successfully", body = CloudResource),
+        (status = 400, response = BadRequestValidationResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn create_cloud_resource<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     headers: HeaderMap,
@@ -68,7 +127,21 @@ where
     Ok((StatusCode::CREATED, Json(resource)))
 }
 
-/// GET /cloud-resources/:id - Get cloud resource by ID
+/// Get a cloud resource by ID
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    tag = "cloud-resources",
+    params(
+        ("id" = Uuid, Path, description = "Cloud resource ID")
+    ),
+    responses(
+        (status = 200, description = "Cloud resource found", body = CloudResource),
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn get_cloud_resource<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     Path(id): Path<Uuid>,
@@ -80,7 +153,17 @@ where
     Ok(Json(resource))
 }
 
-/// GET /cloud-resources - List cloud resources with filters
+/// List cloud resources with optional filters
+#[utoipa::path(
+    get,
+    path = "",
+    tag = "cloud-resources",
+    params(CloudResourceFilter),
+    responses(
+        (status = 200, description = "List of cloud resources", body = Vec<CloudResource>),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn list_cloud_resources<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     Query(filter): Query<CloudResourceFilter>,
@@ -92,7 +175,20 @@ where
     Ok(Json(resources))
 }
 
-/// GET /cloud-resources/project/:project_id - List cloud resources by project
+/// List cloud resources by project ID
+#[utoipa::path(
+    get,
+    path = "/project/{project_id}",
+    tag = "cloud-resources",
+    params(
+        ("project_id" = Uuid, Path, description = "Project ID")
+    ),
+    responses(
+        (status = 200, description = "List of cloud resources for project", body = Vec<CloudResource>),
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn list_by_project<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     Path(project_id): Path<Uuid>,
@@ -104,7 +200,22 @@ where
     Ok(Json(resources))
 }
 
-/// PUT /cloud-resources/:id - Update cloud resource
+/// Update a cloud resource
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    tag = "cloud-resources",
+    params(
+        ("id" = Uuid, Path, description = "Cloud resource ID")
+    ),
+    request_body = UpdateCloudResource,
+    responses(
+        (status = 200, description = "Cloud resource updated successfully", body = CloudResource),
+        (status = 400, response = BadRequestValidationResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn update_cloud_resource<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     Path(id): Path<Uuid>,
@@ -117,7 +228,21 @@ where
     Ok(Json(resource))
 }
 
-/// DELETE /cloud-resources/:id - Delete cloud resource (hard delete)
+/// Delete a cloud resource (hard delete)
+#[utoipa::path(
+    delete,
+    path = "/{id}",
+    tag = "cloud-resources",
+    params(
+        ("id" = Uuid, Path, description = "Cloud resource ID")
+    ),
+    responses(
+        (status = 200, description = "Cloud resource deleted successfully", body = MessageResponse),
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn delete_cloud_resource<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     headers: HeaderMap,
@@ -141,11 +266,27 @@ where
 
     Ok((
         StatusCode::OK,
-        Json(json!({ "message": "Cloud resource deleted successfully" })),
+        Json(MessageResponse {
+            message: "Cloud resource deleted successfully".to_string(),
+        }),
     ))
 }
 
-/// POST /cloud-resources/:id/soft-delete - Soft delete cloud resource
+/// Soft delete a cloud resource
+#[utoipa::path(
+    post,
+    path = "/{id}/soft-delete",
+    tag = "cloud-resources",
+    params(
+        ("id" = Uuid, Path, description = "Cloud resource ID")
+    ),
+    responses(
+        (status = 200, description = "Cloud resource soft deleted successfully", body = MessageResponse),
+        (status = 400, response = BadRequestUuidResponse),
+        (status = 404, response = NotFoundResponse),
+        (status = 500, response = InternalServerErrorResponse)
+    )
+)]
 async fn soft_delete_cloud_resource<R>(
     State(service): State<Arc<CloudResourceService<R>>>,
     Path(id): Path<Uuid>,
@@ -156,6 +297,8 @@ where
     service.soft_delete(id).await?;
     Ok((
         StatusCode::OK,
-        Json(json!({ "message": "Cloud resource soft deleted successfully" })),
+        Json(MessageResponse {
+            message: "Cloud resource soft deleted successfully".to_string(),
+        }),
     ))
 }

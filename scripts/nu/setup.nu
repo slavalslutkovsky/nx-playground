@@ -203,7 +203,7 @@ export def "main k8s-setup" [] {
     info "Setting up Kubernetes resources..."
 
     # Create namespace
-    kubectl create namespace zerg --dry-run=client -o yaml | kubectl apply -f -
+    #kubectl create namespace zerg --dry-run=client -o yaml | kubectl apply -f -
 
     # Install External Secrets Operator
     let eso_installed = (do { kubectl get deployment -n external-secrets external-secrets } | complete).exit_code == 0

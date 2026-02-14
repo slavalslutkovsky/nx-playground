@@ -9,12 +9,24 @@ import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [devtools(), solidPlugin(), tailwindcss()],
+  // base: '/web/',
   server: {
     port: 3000,
   },
   build: {
     target: 'esnext',
   },
+  // test: {
+  //   watch: false,
+  //   globals: true,
+  //   environment: 'jsdom',
+  //   include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+  //   reporters: ['default'],
+  //   coverage: {
+  //     reportsDirectory: '../../../coverage/apps/playground/my-solid-app',
+  //     provider: 'v8',
+  //   },
+  // },
   resolve: {
     conditions: ['development', 'browser'],
     alias: {

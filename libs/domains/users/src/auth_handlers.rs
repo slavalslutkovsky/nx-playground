@@ -8,9 +8,10 @@ use axum::{
 use axum_helpers::{ACCESS_TOKEN_TTL, JwtRedisAuth, REFRESH_TOKEN_TTL, ValidatedJson};
 use serde::Deserialize;
 use std::sync::Arc;
+use utoipa::OpenApi;
 
 use crate::error::UserError;
-use crate::models::{LoginRequest, LoginResponse, RegisterRequest};
+use crate::models::{LoginRequest, LoginResponse, RegisterRequest, UserResponse};
 use crate::oauth::providers::OAuthProvider;
 use crate::oauth::providers::github::GithubProvider;
 use crate::oauth::providers::google::GoogleProvider;
@@ -20,6 +21,30 @@ use crate::oauth::{
 };
 use crate::repository::UserRepository;
 use crate::service::UserService;
+
+/// OpenAPI documentation for Auth API
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        register,
+        login,
+        logout,
+        me,
+        authorize,
+    ),
+    components(
+        schemas(
+            RegisterRequest,
+            LoginRequest,
+            LoginResponse,
+            UserResponse
+        )
+    ),
+    tags(
+        (name = "auth", description = "Authentication endpoints")
+    )
+)]
+pub struct AuthApiDoc;
 
 /// OAuth configuration
 #[derive(Clone)]
@@ -53,6 +78,18 @@ fn is_development() -> bool {
 }
 
 /// Register a new user
+#[utoipa::path(
+    post,
+    path = "/register",
+    tag = "auth",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "Registration successful", body = LoginResponse),
+        (status = 400, description = "Validation error"),
+        (status = 409, description = "Email already exists"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn register<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     ValidatedJson(input): ValidatedJson<RegisterRequest>,
@@ -171,6 +208,18 @@ async fn register<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Login with email/password
+#[utoipa::path(
+    post,
+    path = "/login",
+    tag = "auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login successful", body = LoginResponse),
+        (status = 400, description = "Validation error"),
+        (status = 401, description = "Invalid credentials"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn login<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     ValidatedJson(input): ValidatedJson<LoginRequest>,
@@ -257,6 +306,15 @@ async fn login<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Logout
+#[utoipa::path(
+    post,
+    path = "/logout",
+    tag = "auth",
+    responses(
+        (status = 204, description = "Logout successful"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn logout<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
@@ -323,6 +381,16 @@ async fn logout<R: UserRepository, O: OAuthAccountRepository>(
 }
 
 /// Get current user from JWT claims
+#[utoipa::path(
+    get,
+    path = "/me",
+    tag = "auth",
+    responses(
+        (status = 200, description = "Current user info", body = UserResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn me<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     headers: axum::http::HeaderMap,
@@ -396,6 +464,22 @@ fn extract_cookie_value(cookies: &str, name: &str) -> Option<String> {
     })
 }
 
+/// Derive the origin URL from request headers (X-Forwarded-Proto + Host)
+/// Returns None if headers are missing, allowing fallback to configured values
+fn derive_origin_url(headers: &axum::http::HeaderMap) -> Option<String> {
+    let host = headers
+        .get("x-forwarded-host")
+        .or_else(|| headers.get("host"))
+        .and_then(|v| v.to_str().ok())?;
+
+    let scheme = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("http");
+
+    Some(format!("{}://{}", scheme, host))
+}
+
 /// Query parameters for OAuth callback
 #[derive(Debug, Deserialize)]
 struct OAuthCallbackQuery {
@@ -461,15 +545,33 @@ fn get_provider(
 }
 
 /// Initiate OAuth flow for any provider
+#[utoipa::path(
+    get,
+    path = "/oauth/{provider}",
+    tag = "auth",
+    params(
+        ("provider" = String, Path, description = "OAuth provider name (google, github)")
+    ),
+    responses(
+        (status = 302, description = "Redirect to OAuth provider"),
+        (status = 400, description = "Unsupported provider"),
+        (status = 500, description = "Internal server error")
+    )
+)]
 async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
     State(state): State<AuthState<R, O>>,
     Path(provider_name): Path<String>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Redirect, UserError> {
     let provider = get_provider(&provider_name, &state.oauth_config)?;
 
+    // Derive origin from request headers, fallback to configured redirect_base_url
+    let origin_url = derive_origin_url(&headers)
+        .unwrap_or_else(|| state.oauth_config.redirect_base_url.clone());
+
     let redirect_uri = format!(
         "{}/api/auth/oauth/{}/callback",
-        state.oauth_config.redirect_base_url,
+        origin_url,
         provider.name()
     );
     tracing::info!("{} OAuth redirect URI: {}", provider_name, redirect_uri);
@@ -485,6 +587,7 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
         nonce: None,
         redirect_uri: redirect_uri.clone(),
         provider: provider.name().to_string(),
+        origin_url: Some(origin_url),
     };
     state.oauth_state_manager.store_state(&oauth_state).await?;
 
@@ -674,7 +777,11 @@ async fn callback<R: UserRepository, O: OAuthAccountRepository>(
     );
 
     // Redirect to frontend with cookies set
-    let redirect_url = format!("{}/tasks", state.oauth_config.frontend_url);
+    // Use the origin from the OAuth state (where the user started) or fall back to configured frontend_url
+    let frontend_base = oauth_state
+        .origin_url
+        .unwrap_or_else(|| state.oauth_config.frontend_url.clone());
+    let redirect_url = format!("{}/tasks", frontend_base);
 
     let access_cookie_header = HeaderValue::from_str(&access_cookie)
         .map_err(|e| UserError::Internal(format!("Failed to create cookie: {}", e)))?;

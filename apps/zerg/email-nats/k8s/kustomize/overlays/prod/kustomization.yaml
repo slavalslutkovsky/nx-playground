@@ -6,37 +6,18 @@ namespace: zerg
 resources:
   - ../../base
   - scaledobject.yaml
+  - external-secret.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: zerg-email-nats-config
+    literals:
+      - HEALTH_PORT=8081
+      - SENDGRID_FROM_NAME=Zerg
 
 patches:
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env
-        value:
-          - name: ENVIRONMENT
-            value: "Production"
-          - name: RUST_LOG
-            value: "info"
-          - name: NATS_URL
-            value: "nats://nats.dbs.svc.cluster.local:4222"
-          - name: HEALTH_PORT
-            value: "8081"
-          # SendGrid for production
-          - name: SENDGRID_API_KEY
-            valueFrom:
-              secretKeyRef:
-                name: email-secrets
-                key: sendgrid-api-key
-          - name: SENDGRID_FROM_EMAIL
-            valueFrom:
-              secretKeyRef:
-                name: email-secrets
-                key: sendgrid-from-email
-          - name: SENDGRID_FROM_NAME
-            value: "Zerg"
-    target:
-      kind: Deployment
-      name: zerg-email-nats
-  # Increase resources for production
   - patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/resources

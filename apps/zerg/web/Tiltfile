@@ -2,7 +2,7 @@ local_resource(
     'build-zerg-web',
     dir="../../..",
     cmd='bun nx run zerg-web:build',
-    deps=['apps/zerg/web/src', 'apps/zerg/web/project.json'],
+    deps=['apps/zerg/web/src', 'apps/zerg/web/project.json', 'apps/zerg/web/vite.config.ts'],
     ignore=["k8s"],
     labels=['bun'],
     resource_deps=[],

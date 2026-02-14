@@ -7,6 +7,7 @@ use crate::nats::config::WorkerConfig;
 use crate::nats::consumer::{NatsConsumer, NatsMessage, StreamInfo};
 use crate::nats::dlq::DlqManager;
 use crate::nats::error::NatsError;
+use crate::nats::health::HealthState;
 use crate::nats::metrics::NatsMetrics;
 use crate::{ErrorCategory, Job, ProcessingError, Processor};
 use async_nats::jetstream::Context;
@@ -22,6 +23,7 @@ pub struct NatsWorker<J: Job, P: Processor<J>> {
     processor: Arc<P>,
     config: WorkerConfig,
     metrics: Arc<NatsMetrics>,
+    health_state: Option<HealthState>,
     _marker: std::marker::PhantomData<J>,
 }
 
@@ -51,8 +53,18 @@ impl<J: Job, P: Processor<J> + 'static> NatsWorker<J, P> {
             processor: Arc::new(processor),
             config,
             metrics,
+            health_state: None,
             _marker: std::marker::PhantomData,
         })
+    }
+
+    /// Set the health state for K8s probe updates.
+    ///
+    /// When set, the worker updates `stream_connected` on batch success/failure
+    /// so readiness probes reflect actual NATS connectivity.
+    pub fn with_health_state(mut self, state: HealthState) -> Self {
+        self.health_state = Some(state);
+        self
     }
 
     /// Run the worker loop.
@@ -84,9 +96,21 @@ impl<J: Job, P: Processor<J> + 'static> NatsWorker<J, P> {
 
                 // Main processing loop
                 result = self.process_batch() => {
-                    if let Err(e) = result {
-                        error!(error = %e, "Error processing batch");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
+                    match result {
+                        Ok(()) => {
+                            if let Some(ref state) = self.health_state {
+                                state.set_stream_connected(true).await;
+                                state.set_error(None).await;
+                            }
+                        }
+                        Err(e) => {
+                            error!(error = %e, "Error processing batch");
+                            if let Some(ref state) = self.health_state {
+                                state.set_stream_connected(false).await;
+                                state.set_error(Some(e.to_string())).await;
+                            }
+                            tokio::time::sleep(Duration::from_secs(1)).await;
+                        }
                     }
                 }
             }

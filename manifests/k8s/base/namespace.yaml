@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zerg
+  labels:
+    postgres.shared/enabled: "true"
+    secrets.external-secrets.io/enabled: "true"
+    istio-injection: enabled
+---
+# Allow intra-namespace traffic (zerg-api → zerg-tasks, etc.)
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-zerg-internal
+  namespace: zerg
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["zerg"]
+---
+# Disable mTLS for traffic to dbs namespace (no sidecars there)
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: dbs-no-mtls
+  namespace: zerg
+spec:
+  host: "*.dbs.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

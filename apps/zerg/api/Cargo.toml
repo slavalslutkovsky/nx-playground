@@ -19,7 +19,7 @@ domain_vector = { workspace = true }
 email = { workspace = true }
 eyre = { workspace = true }
 grpc-client = { workspace = true }
-migration = { workspace = true }
+# migration crate removed - using Atlas for migrations
 oauth2 = { workspace = true }
 redis = { workspace = true }
 #reqwest = { workspace = true }

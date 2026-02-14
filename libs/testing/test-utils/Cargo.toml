@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 default = ["postgres"]
-postgres = ["dep:migration", "dep:sea-orm"]
+postgres = ["dep:sea-orm"]
 redis = ["dep:redis"]
 nats = ["dep:async-nats", "dep:futures"]
 all = ["postgres", "redis", "nats"]
@@ -15,11 +15,11 @@ all = ["postgres", "redis", "nats"]
 async-nats = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 
-# Postgres dependencies (optional, enabled by default)
-migration = { workspace = true, optional = true }
-
 # Redis dependencies (optional)
 redis = { workspace = true, optional = true }
+
+# Postgres dependencies (optional, enabled by default)
+# Note: Uses Atlas SQL migrations from manifests/migrations/mydatabase/
 sea-orm = { workspace = true, optional = true }
 
 # Testcontainers (always available)

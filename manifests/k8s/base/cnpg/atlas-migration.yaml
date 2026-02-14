@@ -1,0 +1,41 @@
+# Atlas Migration for CNPG Database
+# Uses the Atlas Kubernetes Operator to manage versioned migrations
+#
+# Prerequisites:
+#   1. Install Atlas Operator:
+#      helm install atlas-operator oci://ghcr.io/ariga/charts/atlas-operator \
+#        --namespace atlas-operator --create-namespace
+#
+#   2. CNPG cluster must be running (creates zerg-db-app secret automatically)
+#
+# The operator will:
+#   - Watch for changes to the migration ConfigMap
+#   - Automatically apply pending migrations
+#   - Track migration status in the resource status field
+#
+apiVersion: db.atlasgo.io/v1alpha1
+kind: AtlasMigration
+metadata:
+  name: mydatabase-migration
+  labels:
+    app.kubernetes.io/name: mydatabase-migration
+    app.kubernetes.io/component: migration
+    app.kubernetes.io/part-of: zerg
+spec:
+  # Database connection from CNPG-generated secret
+  # CNPG auto-creates: mydatabase-db-app with keys: uri, username, password, etc.
+  urlFrom:
+    secretKeyRef:
+      name: mydatabase-db-app
+      key: uri
+
+  # Migration directory from ConfigMap
+  dir:
+    configMapRef:
+      name: mydatabase-migrations
+
+  # Optional: baseline version for existing databases
+  # baseline: "20240204000001"
+
+  # Optional: custom revision table schema
+  # revisionSchema: atlas_schema_revisions

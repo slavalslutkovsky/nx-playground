@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: zerg
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: zerg-shared-config
+    literals:
+      - APP_ENV=development
+      - RUST_LOG=info
+      - NATS_URL=nats://nats.dbs.svc.cluster.local:4222
+      - REDIS_HOST=redis://redis.dbs.svc.cluster.local
+      - DB_MAX_CONNECTIONS=10
+      - DB_MIN_CONNECTIONS=2
+      - DB_ACQUIRE_TIMEOUT_SECS=5
+      - DB_IDLE_TIMEOUT_SECS=300
+      - DB_MAX_LIFETIME_SECS=1800
+      - DB_SQLX_LOGGING=false
+
+secretGenerator:
+  - name: zerg-shared-secrets
+    literals:
+      - DATABASE_URL=postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase

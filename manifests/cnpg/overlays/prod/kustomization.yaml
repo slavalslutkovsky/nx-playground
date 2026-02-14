@@ -1,17 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: zerg-prod
+namespace: mydatabase-prod
 
 resources:
   - ../../base
-  - pdb.yaml  # IMPROVEMENT: Added PodDisruptionBudget
+  - pdb.yaml
 
 namePrefix: prod-
 
 # Production-specific patches
 patches:
-  # 3 instances for HA
+  # CNPG Cluster: 3 instances for HA
   - patch: |-
       - op: replace
         path: /spec/instances
@@ -40,13 +40,32 @@ patches:
       - op: replace
         path: /spec/postgresql/parameters/max_connections
         value: "200"
+      - op: replace
+        path: /spec/bootstrap/initdb/secret/name
+        value: prod-mydatabase-db-credentials
     target:
       kind: Cluster
-      name: zerg-db
+      name: mydatabase-db
 
-# Production should use external secrets management
-# Uncomment when using external-secrets or sealed-secrets
-# secretGenerator:
-#   - name: zerg-db-credentials
-#     behavior: replace
-#     literals: []  # Managed by external-secrets
+  # AtlasMigration: update references to match namePrefix
+  - patch: |-
+      - op: replace
+        path: /spec/urlFrom/secretKeyRef/name
+        value: prod-mydatabase-db-app
+      - op: replace
+        path: /spec/dir/configMapRef/name
+        value: prod-mydatabase-migrations
+    target:
+      kind: AtlasMigration
+      name: mydatabase-migration
+
+# Production should use external secrets management (external-secrets, sealed-secrets, etc.)
+# The secret 'prod-mydatabase-db-credentials' must be created separately with:
+#   - username: database username
+#   - password: strong randomly generated password
+#
+# Example with kubectl (NOT recommended for real prod):
+#   kubectl create secret generic prod-mydatabase-db-credentials \
+#     --from-literal=username=mydatabase \
+#     --from-literal=password=$(openssl rand -base64 32) \
+#     -n mydatabase-prod

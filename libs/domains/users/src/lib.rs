@@ -57,7 +57,9 @@ pub mod repository;
 pub mod service;
 
 // Re-export commonly used types
+pub use auth_handlers::AuthApiDoc;
 pub use error::{UserError, UserResult};
+pub use handlers::ApiDoc;
 pub use models::{CreateUser, LoginRequest, Role, UpdateUser, User, UserFilter, UserResponse};
 pub use oauth::{AccountLinkingService, OAuthStateManager, PostgresOAuthAccountRepository};
 pub use postgres_repository_impl::PostgresUserRepository;

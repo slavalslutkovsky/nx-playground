@@ -76,6 +76,7 @@ pub mod service;
 // Re-export commonly used types
 pub use embedding::{EmbeddingProvider, OpenAIProvider, VertexAIProvider};
 pub use error::{VectorError, VectorResult};
+pub use handlers::VectorApiDoc;
 pub use models::{
     CollectionInfo, CollectionStatus, CreateCollection, DistanceMetric, EmbeddingModel,
     EmbeddingProviderType, EmbeddingResult, HnswConfig, RecommendQuery, SearchFilter, SearchQuery,

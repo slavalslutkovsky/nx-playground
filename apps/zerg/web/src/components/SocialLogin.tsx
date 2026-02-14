@@ -7,7 +7,7 @@ export function SocialLogin() {
   const handleOAuthLogin = (provider: 'google' | 'github') => {
     setIsLoading(provider);
     // Redirect to OAuth endpoint
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/auth/oauth/${provider}`;
+    window.location.href = `/api/auth/oauth/${provider}`;
   };
 
   return (

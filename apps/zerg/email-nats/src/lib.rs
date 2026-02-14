@@ -32,9 +32,10 @@ use email::{
 };
 use eyre::{Result, WrapErr};
 use messaging::nats::{HealthServer, NatsWorker, WorkerConfig};
+use std::time::Duration;
 use tokio::signal;
 use tokio::sync::watch;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 /// Run the email worker
 ///
@@ -80,11 +81,39 @@ pub async fn run() -> Result<()> {
     let nats_url =
         std::env::var("NATS_URL").unwrap_or_else(|_| "nats://localhost:4222".to_string());
 
-    // Connect to NATS
+    // Connect to NATS with retry (exponential backoff: 500ms, 1s, 2s, 4s, 8s, 10s cap)
     info!(url = %nats_url, "Connecting to NATS...");
-    let nats_client = async_nats::connect(&nats_url)
-        .await
-        .wrap_err_with(|| format!("Failed to connect to NATS at {}", nats_url))?;
+    let nats_client = {
+        let max_retries: u32 = 10;
+        let base_delay = Duration::from_millis(500);
+        let max_delay = Duration::from_secs(10);
+        let mut attempt = 0u32;
+        loop {
+            match async_nats::connect(&nats_url).await {
+                Ok(client) => break client,
+                Err(e) => {
+                    attempt += 1;
+                    if attempt >= max_retries {
+                        return Err(eyre::eyre!(
+                            "Failed to connect to NATS at {} after {} attempts: {}",
+                            nats_url, max_retries, e
+                        ));
+                    }
+                    let delay = base_delay
+                        .saturating_mul(2u32.saturating_pow(attempt - 1))
+                        .min(max_delay);
+                    warn!(
+                        attempt,
+                        max_retries,
+                        delay_ms = delay.as_millis() as u64,
+                        error = %e,
+                        "Failed to connect to NATS, retrying..."
+                    );
+                    tokio::time::sleep(delay).await;
+                }
+            }
+        }
+    };
     info!("Connected to NATS successfully");
 
     // Create JetStream context
@@ -119,6 +148,7 @@ pub async fn run() -> Result<()> {
 
     // Start health server in background
     let health_server = HealthServer::new(health_port).with_metrics(metrics_handle);
+    let health_state = health_server.state();
     tokio::spawn(async move {
         if let Err(e) = health_server.run().await {
             error!(error = %e, "Health server failed");
@@ -135,7 +165,8 @@ pub async fn run() -> Result<()> {
                     let worker =
                         NatsWorker::<EmailJob, _>::new(jetstream, processor, worker_config)
                             .await
-                            .wrap_err("Failed to create NATS worker")?;
+                            .wrap_err("Failed to create NATS worker")?
+                            .with_health_state(health_state);
 
                     info!("NATS worker created, starting processing...");
                     worker
@@ -160,7 +191,8 @@ pub async fn run() -> Result<()> {
                     let worker =
                         NatsWorker::<EmailJob, _>::new(jetstream, processor, worker_config)
                             .await
-                            .wrap_err("Failed to create NATS worker")?;
+                            .wrap_err("Failed to create NATS worker")?
+                            .with_health_state(health_state);
 
                     info!("NATS worker created, starting processing...");
                     worker

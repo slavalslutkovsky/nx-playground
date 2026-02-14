@@ -10,41 +10,20 @@ replicas:
   - name: zerg-email-nats
     count: 1
 
-patches:
-  # IMPROVEMENT: Removed REDIS_URL - this is NATS-only
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env
-        value:
-          - name: ENVIRONMENT
-            value: "Development"
-          - name: RUST_LOG
-            value: "info,zerg_email_nats=debug,messaging=debug"
-          - name: NATS_URL
-            value: "nats://nats.dbs.svc.cluster.local:4222"
-          - name: HEALTH_PORT
-            value: "8081"
-          # SMTP Settings (Mailpit in dev cluster)
-          - name: SMTP_HOST
-            value: "mailpit.dbs.svc.cluster.local"
-          - name: SMTP_PORT
-            value: "1025"
-          - name: SMTP_USERNAME
-            value: ""
-          - name: SMTP_PASSWORD
-            value: ""
-          - name: EMAIL_FROM_ADDRESS
-            value: "noreply@zerg.local"
-          - name: EMAIL_FROM_NAME
-            value: "Zerg Dev"
-    target:
-      kind: Deployment
-      name: zerg-email-nats
-  # Single replica for dev
-  - patch: |-
-      - op: replace
-        path: /spec/replicas
-        value: 1
-    target:
-      kind: Deployment
-      name: zerg-email-nats
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: zerg-email-nats-config
+    literals:
+      - HEALTH_PORT=8081
+      - SMTP_HOST=mailhog.dbs.svc.cluster.local
+      - SMTP_PORT=1025
+      - EMAIL_FROM_ADDRESS=noreply@zerg.local
+      - EMAIL_FROM_NAME=Zerg Dev
+
+secretGenerator:
+  - name: zerg-email-nats-secrets
+    literals:
+      - SMTP_USERNAME=
+      - SMTP_PASSWORD=

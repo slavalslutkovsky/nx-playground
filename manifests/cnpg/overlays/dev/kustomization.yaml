@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: zerg-dev
+namespace: mydatabase-dev
 
 resources:
   - ../../base
@@ -10,7 +10,7 @@ namePrefix: dev-
 
 # Dev-specific patches
 patches:
-  # Single instance for dev
+  # CNPG Cluster: single instance for dev
   - patch: |-
       - op: replace
         path: /spec/instances
@@ -26,24 +26,17 @@ patches:
         value: 512Mi
     target:
       kind: Cluster
-      name: zerg-db
+      name: mydatabase-db
 
-  # Use local migration image for dev
+  # AtlasMigration: update references to match namePrefix
+  # CNPG auto-creates: dev-mydatabase-db-app secret
   - patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: zerg-migration:local
+        path: /spec/urlFrom/secretKeyRef/name
+        value: dev-mydatabase-db-app
       - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: Never
+        path: /spec/dir/configMapRef/name
+        value: dev-mydatabase-migrations
     target:
-      kind: Job
-      name: zerg-migrate
-
-# Dev secret (for local development only - NOT for production!)
-secretGenerator:
-  - name: zerg-db-credentials
-    type: kubernetes.io/basic-auth
-    literals:
-      - username=zerg
-      - password=dev-password-change-me
+      kind: AtlasMigration
+      name: mydatabase-migration

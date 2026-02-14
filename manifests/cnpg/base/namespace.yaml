@@ -1,6 +1,6 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: zerg
+  name: mydatabase
   labels:
-    app.kubernetes.io/part-of: zerg
+    app.kubernetes.io/part-of: mydatabase

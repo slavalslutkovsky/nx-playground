@@ -6,8 +6,9 @@ metadata:
     app: zerg-api
     app.kubernetes.io/name: zerg-api
     app.kubernetes.io/component: api-server
+    app.kubernetes.io/part-of: zerg
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: zerg-api
@@ -17,6 +18,10 @@ spec:
         app: zerg-api
         app.kubernetes.io/name: zerg-api
         app.kubernetes.io/component: api-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -32,17 +37,17 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
-          env:
-            - name: PORT
-              value: "8080"
-            - name: RUST_LOG
-              value: "info"
-            - name: DATABASE_URL
-              value: "postgres://myuser:mypassword@postgres.dbs.svc.cluster.local/mydatabase"
-            - name: REDIS_HOST
-              value: "redis://redis.dbs.svc.cluster.local"
-            - name: CORS_ALLOWED_ORIGIN
-              value: "http://localhost:3000"
+          envFrom:
+            - configMapRef:
+                name: zerg-shared-config
+            - configMapRef:
+                name: zerg-api-config
+            - secretRef:
+                name: zerg-shared-secrets
+                optional: true
+            - secretRef:
+                name: zerg-api-secrets
+                optional: true
           # Startup probe: allows up to 30s for container to start (6 * 5s)
           startupProbe:
             httpGet:

@@ -6,7 +6,6 @@ import k8s.apimachinery.pkg.apis.meta.v1 as metav1
 import .schemas
 import .tasks
 import ...schemas.config as cfg
-import ...schemas.common as c
 
 # =============================================================================
 # PIPELINE BUILDERS

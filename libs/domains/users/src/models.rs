@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 /// User roles
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Role {
     #[default]
@@ -37,7 +38,7 @@ impl std::str::FromStr for Role {
 }
 
 /// User entity - matches SQL schema
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct User {
     /// Unique identifier
     pub id: Uuid,
@@ -75,7 +76,7 @@ pub struct User {
 }
 
 /// User response DTO (without password_hash)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserResponse {
     pub id: Uuid,
     pub email: String,
@@ -105,7 +106,7 @@ impl From<User> for UserResponse {
 }
 
 /// DTO for creating a new user
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct CreateUser {
     #[validate(email, length(max = 255))]
     pub email: String,
@@ -117,7 +118,7 @@ pub struct CreateUser {
 }
 
 /// DTO for updating an existing user
-#[derive(Debug, Clone, Default, Deserialize, Validate)]
+#[derive(Debug, Clone, Default, Deserialize, Validate, ToSchema)]
 pub struct UpdateUser {
     #[validate(email, length(max = 255))]
     pub email: Option<String>,
@@ -129,7 +130,7 @@ pub struct UpdateUser {
 }
 
 /// Query filters for listing users
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, ToSchema, utoipa::IntoParams)]
 pub struct UserFilter {
     pub email: Option<String>,
     pub role: Option<String>,
@@ -145,7 +146,7 @@ fn default_limit() -> usize {
 }
 
 /// DTO for user login
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct LoginRequest {
     #[validate(email, length(max = 255))]
     pub email: String,
@@ -153,7 +154,7 @@ pub struct LoginRequest {
 }
 
 /// DTO for user registration
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[validate(email, length(max = 255))]
     pub email: String,
@@ -163,7 +164,7 @@ pub struct RegisterRequest {
 }
 
 /// Response after successful login/register
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct LoginResponse {
     pub user: UserResponse,
 }

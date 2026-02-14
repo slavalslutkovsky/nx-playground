@@ -1,148 +1,205 @@
-# NxPlayground
+# NX Playground
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Nx monorepo with Rust backend services, a React frontend, and Kubernetes-native deployment. Uses Tilt for local dev orchestration and KCL for CI/CD generation.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Prerequisites
 
-Run `npx nx graph` to visually explore what got created. Now, let's get you up to speed!
+| Tool | Purpose | Install |
+|------|---------|---------|
+| [Rust](https://rustup.rs/) (stable) | Backend services | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| [Bun](https://bun.sh/) | Package manager, Nx runner | `curl -fsSL https://bun.sh/install \| bash` |
+| [Docker](https://docs.docker.com/get-docker/) | Container builds | Desktop or CLI |
+| [kubectl](https://kubernetes.io/docs/tasks/tools/) | Kubernetes CLI | `brew install kubectl` |
+| [Tilt](https://tilt.dev/) | Local k8s dev environment | `brew install tilt` |
+| [just](https://github.com/casey/just) | Command runner | `brew install just` |
+| [Atlas](https://atlasgo.io/) | Database schema management | `brew install ariga/tap/atlas` |
+| [KCL](https://kcl-lang.io/) | CI/CD config generation | `brew install kcl-lang/tap/kcl` |
+| [cargo-nextest](https://nexte.st/) | Fast Rust test runner | `cargo install cargo-nextest` |
+| [direnv](https://direnv.net/) | Auto-load env vars | `brew install direnv` |
 
-## Finish your CI setup
+### Optional
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/4NCocrYDY9)
+- [sccache](https://github.com/mozilla/sccache) - Shared compilation cache (used in CI with GCS backend)
+- [bacon](https://github.com/Canop/bacon) - Background Rust code checker (`just run`)
+- [Istio](https://istio.io/) - Service mesh (for gateway / observability)
+- [Kind](https://kind.sigs.k8s.io/) / [k3d](https://k3d.io/) - Local Kubernetes cluster
 
+## Quick Start
 
-## Run tasks
-
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-For example:
-
-```sh
-npx nx build myproject
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
-
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Project Setup
-
-### Environment Variables
-
-This project uses `direnv` for automatic environment variable loading.
-
-**Setup:**
 ```bash
-# 1. Install direnv
-brew install direnv  # macOS
-# or
-apt install direnv   # Ubuntu/Debian
+# Install JS dependencies
+bun install
 
-# 2. Add to your shell (~/.zshrc or ~/.bashrc)
+# Run full quality checks (fmt + lint + test + audit)
+just check
+
+# Start local k8s dev environment (requires a running cluster)
+tilt up
+
+# Or run services without k8s
+just _docker-up        # Start Postgres, Redis, NATS via Docker Compose
+cargo run -p api       # Start the API service
+just web               # Start the web frontend
+```
+
+## Environment Variables
+
+This project uses `direnv` for automatic environment variable loading:
+
+```bash
+# Add to your shell (~/.zshrc or ~/.bashrc)
 eval "$(direnv hook zsh)"  # or bash
 
-# 3. Copy environment template
+# Copy env template and edit
 cp .env.example .env
-
-# 4. Edit .env with your actual values
 vim .env
 
-# 5. Allow direnv
+# Allow direnv
 direnv allow
 ```
 
-Now environment variables automatically load when you `cd` into the project!
+## Project Structure
 
-### Database Migrations
+```
+apps/zerg/
+  api/              # REST + gRPC API service (Axum)
+  tasks/            # Background task processor
+  email-nats/       # NATS-based email worker
+  web/              # React frontend (TanStack Router, Vite)
+  shared/           # Shared k8s ConfigMaps & Tiltfile
 
-This project uses [SeaORM](https://www.sea-ql.org/SeaORM/) with `sea-orm-cli` for database migrations.
+libs/
+  core/
+    axum-helpers/   # Axum middleware, error handling, extractors
+    config/         # Environment configuration
+    field-selector/ # Dynamic field selection for queries
+    grpc/           # gRPC client utilities
+    messaging/      # NATS connection, health, worker patterns
+    proc_macros/    # Derive macros (api_resource, sea_orm_resource, selectable_fields)
+  database/         # PostgreSQL connection (SeaORM + SQLx)
+  domains/
+    cloud_resources/  # Cloud resource domain
+    projects/         # Projects domain
+    tasks/            # Tasks domain
+    users/            # Users domain
+    vector/           # Vector/embedding domain (Qdrant)
+  notifications/
+    email/          # Email templates (Handlebars + Lettre)
+  rpc/              # Protobuf/gRPC definitions
+  testing/
+    test-utils/     # Shared test utilities & testcontainers
 
-**Quick Start:**
-```bash
-# Install sea-orm-cli
-cargo install sea-orm-cli
+scripts/kcl/ci/     # KCL-based CI pipeline generator (GitHub Actions + Tekton)
 
-# Run migrations (with direnv setup)
-sea-orm-cli migrate up
-
-# Or without direnv
-DATABASE_URL=postgres://user:pass@localhost/db \
-  sea-orm-cli migrate -d libs/migration up
+manifests/
+  k8s/              # Kustomize base + overlays (dev/prod)
+  schemas/          # Database schema (HCL, SQL, DBML) + seed data
+  migrations/       # Atlas migration files
 ```
 
-**Common Commands:**
-```bash
-sea-orm-cli migrate up              # Run pending migrations
-sea-orm-cli migrate down            # Rollback last migration
-sea-orm-cli migrate status          # Check migration status
-sea-orm-cli migrate fresh           # Drop all & re-run (dev only!)
-```
+## Local Development
 
-**Create New Migration:**
-```bash
-cd libs/migration
-sea-orm-cli migrate -d . generate <migration_name>
-```
-
-For complete documentation, see [libs/migration/README.md](libs/migration/README.md)
-
-### Running the API
+### With Kubernetes (Tilt)
 
 ```bash
-# Development (with auto-migration)
-RUN_MIGRATIONS=true cargo run -p zerg_api
-
-# Production (run migrations separately first)
-sea-orm-cli migrate up
-cargo run -p zerg_api
+tilt up
 ```
 
-## Useful links
+Tilt manages port-forwards automatically:
 
-Learn more:
+| Service | Port | Notes |
+|---------|------|-------|
+| PostgreSQL | `localhost:5432` | User: `myuser` / DB: `mydatabase` |
+| Redis | `localhost:6379` | |
+| Mailhog | `localhost:8025` | Email testing UI |
+| Istio Gateway | `localhost:8080` | API gateway |
+| Kiali | `localhost:20001` | Service mesh dashboard |
 
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Tilt also handles schema ConfigMap regeneration, database seeding, and auto-rebuild of all zerg apps on code changes.
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Database Schema (Atlas)
+
+```bash
+just schema-validate         # Validate HCL schema
+just schema-sql              # Generate SQL from HCL
+just schema-apply            # Apply schema to local DB
+just migrate-diff <name>     # Generate migration from schema diff
+just migrate-apply           # Apply pending migrations
+```
+
+## Nx Commands
+
+```bash
+bun nx affected -t lint      # Lint affected projects
+bun nx affected -t test      # Test affected projects
+bun nx affected -t build     # Build affected projects
+bun nx graph                 # Visualize dependency graph
+```
+
+### KCL CI Package
+
+```bash
+bun nx run kcl_ci:lint       # Lint KCL files
+bun nx run kcl_ci:test       # Test KCL files
+bun nx run kcl_ci:build      # Generate CI pipeline output
+```
+
+## Quality Checks
+
+```bash
+just check          # Full: fmt + lint + test + audit
+just check-quick    # Compile + lint only (no tests)
+just fmt            # Format all Rust code
+just lint           # Run Clippy
+just test           # Run tests with nextest
+just audit          # Security audit + cargo deny
+just outdated       # Show outdated dependencies
+```
+
+## Architecture
+
+The backend follows a **modular monolith** pattern with 4 layers per domain:
+
+```
+Models -> Repository -> Service -> Handlers
+```
+
+Each domain (users, projects, tasks, cloud_resources) is a self-contained library with clear boundaries, designed for easy extraction to microservices if needed.
+
+## Documentation
+
+### Architecture & Design
+
+- [Modular Monolith Architecture](docs/modular-monolith-architecture.md) - Domain structure, layer responsibilities, and migration path to microservices
+- [Code Reuse Patterns](docs/code-reuse-patterns.md) - Generic repositories, service composition, macros, and error mapping
+- [Repository Pattern Comparison](docs/repository-comparison.md) - SqlMethods trait extension vs BasePgRepository composition
+- [SQLx vs Sea-ORM](docs/sqlx-vs-seaorm.md) - ORM comparison with benchmarks and migration path
+
+### Communication
+
+- [gRPC Guide](docs/grpc.md) - Communication patterns (unary, streaming, bidirectional) with Rust examples
+- [gRPC Optimization Results](docs/grpc-optimization-results.md) - 10.3x throughput improvement from binary schema optimizations
+- [gRPC Serialization Optimization](docs/grpc-serialization-optimization.md) - Protocol Buffers optimization reducing wire format by 64%
+- [Messaging Patterns](docs/messaging-patterns.md) - Decision guide for gRPC vs Redis Streams vs RabbitMQ vs Kafka
+
+### Operations & Testing
+
+- [Testing Guide](docs/TESTING_GUIDE.md) - Testing pyramid, patterns, and CI integration
+- [HPA Local Testing](docs/hpa-local-testing.md) - Horizontal Pod Autoscaler setup with Kind cluster
+- [Tasks API Improvements](docs/tasks-api-improvements.md) - Proposed optimizations: compression, caching, batch ops, streaming
+- [Development Tools](docs/DEVELOPMENT_TOOLS.md) - AI tools, security scanners, linters, and recommended toolchains
+
+## CI/CD
+
+CI runs on GitHub Actions (`.github/workflows/ci-optimized.yml`) with parallel jobs:
+
+| Job | What it does |
+|-----|-------------|
+| **lint** | `nx affected -t lint` (Clippy, ESLint, KCL lint) |
+| **test** | `nx affected -t test` (nextest, Vitest, KCL test) |
+| **build** | `nx affected -t build` (cargo, Vite, KCL run) |
+| **container** | Docker build + push + Trivy security scan |
+
+Features: Nx Cloud caching, sccache with GCS backend, Workload Identity Federation, SARIF upload to GitHub Security.
+
+The CI pipeline configuration is generated from KCL in `scripts/kcl/ci/`.

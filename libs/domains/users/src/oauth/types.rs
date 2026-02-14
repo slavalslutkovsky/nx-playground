@@ -43,6 +43,8 @@ pub struct OAuthState {
     pub nonce: Option<String>,
     pub redirect_uri: String,
     pub provider: String,
+    /// The origin URL the user started the OAuth flow from (e.g. https://127.0.0.1.nip.io:8443)
+    pub origin_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
