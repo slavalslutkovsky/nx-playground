@@ -492,7 +492,7 @@ struct OAuthCallbackQuery {
 /// Generate a secure random password that meets all validation requirements
 #[allow(dead_code)]
 fn generate_oauth_password() -> String {
-    use rand::Rng;
+    use rand::RngExt;
     const CHARSET_LOWER: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
     const CHARSET_UPPER: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const CHARSET_DIGIT: &[u8] = b"0123456789";

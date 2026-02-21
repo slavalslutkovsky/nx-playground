@@ -29,6 +29,7 @@ RUN cargo build --release -p ${APP_NAME} --target x86_64-unknown-linux-musl
 FROM scratch AS rust
 ARG APP_NAME
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/${APP_NAME} /app
 
 # Environment

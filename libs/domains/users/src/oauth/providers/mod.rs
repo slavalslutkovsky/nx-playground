@@ -87,7 +87,7 @@ pub trait OAuthProvider: Send + Sync {
         let token_result = client
             .exchange_code(AuthorizationCode::new(code.to_string()))
             .set_pkce_verifier(pkce_verifier)
-            .request_async(self.http_client())
+            .request_async(&oauth2::reqwest::Client::default())
             .await
             .map_err(|e| {
                 crate::error::UserError::OAuth(format!("Failed to exchange code: {}", e))
