@@ -105,10 +105,11 @@ impl NotificationService {
 
     /// Generate a secure random token (64 alphanumeric characters).
     pub fn generate_token() -> String {
+        use rand::RngExt;
         use std::iter;
         let mut rng = rand::rng();
         iter::repeat_with(|| {
-            let idx = rand::Rng::random_range(&mut rng, 0..62);
+            let idx = rng.random_range(0..62);
             match idx {
                 0..=9 => (b'0' + idx) as char,
                 10..=35 => (b'a' + idx - 10) as char,
