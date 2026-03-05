@@ -151,39 +151,6 @@ impl RateLimiter {
         Self { redis, config }
     }
 
-    /// Check if a request identified by `key` should be allowed.
-    ///
-    /// Returns `Ok(RateLimitResult)` on success, or `Err` if Redis is unavailable.
-    pub async fn check(&self, key: &str) -> Result<RateLimitResult, redis::RedisError> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock before epoch")
-            .as_secs();
-
-        let window = self.config.window_secs;
-        let current_window = (now / window) * window;
-        let previous_window = current_window - window;
-
-        let curr_key = format!("rl:{}:{}", key, current_window);
-        let prev_key = format!("rl:{}:{}", key, previous_window);
-
-        let mut conn = self.redis.clone();
-        let result: Vec<i64> = redis::Script::new(SLIDING_WINDOW_SCRIPT)
-            .key(curr_key)
-            .key(prev_key)
-            .arg(self.config.requests_per_window)
-            .arg(window)
-            .arg(now)
-            .invoke_async(&mut conn)
-            .await?;
-
-        Ok(RateLimitResult {
-            allowed: result[0] == 1,
-            remaining: result[1] as u64,
-            reset_at: result[2] as u64,
-        })
-    }
-
     /// Check if a request should be allowed using per-call overrides.
     ///
     /// Uses the provided `tier_name` as a key prefix, and the given
@@ -226,10 +193,5 @@ impl RateLimiter {
     /// Whether rate limiting is enabled.
     pub fn is_enabled(&self) -> bool {
         self.config.enabled
-    }
-
-    /// The configured limit per window.
-    pub fn limit(&self) -> u64 {
-        self.config.requests_per_window
     }
 }

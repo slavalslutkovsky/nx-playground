@@ -1,5 +1,6 @@
 use super::{RateLimitTier, RateLimiter};
 use crate::auth::jwt::JwtClaims;
+use crate::errors::AppError;
 use axum::{
     extract::{ConnectInfo, Request, State},
     http::{HeaderMap, HeaderValue},
@@ -100,17 +101,9 @@ pub async fn rate_limit_middleware(
                     .as_secs();
                 let retry_after = result.reset_at.saturating_sub(now);
 
-                let body = serde_json::json!({
-                    "code": 1012,
-                    "error": "RATE_LIMIT_EXCEEDED",
-                    "message": "Rate limit exceeded",
-                });
-
-                let mut response = (
-                    axum::http::StatusCode::TOO_MANY_REQUESTS,
-                    axum::Json(body),
-                )
-                    .into_response();
+                let mut response =
+                    AppError::TooManyRequests("Rate limit exceeded".to_string())
+                        .into_response();
 
                 let headers = response.headers_mut();
                 insert_rate_limit_headers(headers, limit, 0, result.reset_at);
