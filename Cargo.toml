@@ -67,7 +67,7 @@ pluralizer = '0.5.0'
 proc-macro2 = "1.0.106"
 prost = '0.14.3'
 qdrant-client = "1.17.0"
-quote = '1.0.44'
+quote = '1.0.45'
 rand = "0.10.0"
 redis = { version = "1.0.4", features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 regex = "1.12.3"
@@ -88,7 +88,7 @@ test-utils = { path = 'libs/testing/test-utils' }
 testcontainers = "0.27.1"
 testcontainers-modules = { version = "0.15.0", features = ['postgres', 'mongo', 'redis'] }
 thiserror = '2.0.18'
-tokio = { version = "1.49.0", features = ['full'] }
+tokio = { version = "1.50.0", features = ['full'] }
 tokio-stream = { version = '0.1.18', features = ['sync'] }
 tonic = { version = "0.14.5", features = ['zstd'] }
 tonic-health = "0.14.5"

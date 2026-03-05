@@ -51,6 +51,7 @@ fn extract_key(request: &Request) -> String {
         return format!("ip:{}", connect_info.0.ip());
     }
 
+    tracing::warn!("Could not determine client IP for rate limiting - using shared 'ip:unknown' key");
     "ip:unknown".to_string()
 }
 
@@ -135,5 +136,67 @@ fn insert_rate_limit_headers(headers: &mut HeaderMap, limit: u64, remaining: u64
     }
     if let Ok(val) = HeaderValue::from_str(&reset_at.to_string()) {
         headers.insert("x-ratelimit-reset", val);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::extract::ConnectInfo;
+    use axum::http::Request as HttpRequest;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    fn make_request() -> Request {
+        HttpRequest::builder()
+            .uri("/test")
+            .body(axum::body::Body::empty())
+            .unwrap()
+    }
+
+    #[test]
+    fn test_extract_key_jwt_claims() {
+        let mut req = make_request();
+        req.extensions_mut().insert(JwtClaims {
+            sub: "user-123".to_string(),
+            email: "test@example.com".to_string(),
+            name: "Test".to_string(),
+            roles: vec![],
+            exp: 0,
+            iat: 0,
+            jti: "jti-1".to_string(),
+        });
+        assert_eq!(extract_key(&req), "user:user-123");
+    }
+
+    #[test]
+    fn test_extract_key_x_real_ip() {
+        let mut req = make_request();
+        req.headers_mut()
+            .insert("x-real-ip", HeaderValue::from_static("10.0.0.1"));
+        assert_eq!(extract_key(&req), "ip:10.0.0.1");
+    }
+
+    #[test]
+    fn test_extract_key_x_forwarded_for_rightmost() {
+        let mut req = make_request();
+        req.headers_mut().insert(
+            "x-forwarded-for",
+            HeaderValue::from_static("spoofed, 192.168.1.1"),
+        );
+        assert_eq!(extract_key(&req), "ip:192.168.1.1");
+    }
+
+    #[test]
+    fn test_extract_key_connect_info() {
+        let mut req = make_request();
+        let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(172, 16, 0, 5)), 12345);
+        req.extensions_mut().insert(ConnectInfo(addr));
+        assert_eq!(extract_key(&req), "ip:172.16.0.5");
+    }
+
+    #[test]
+    fn test_extract_key_fallback() {
+        let req = make_request();
+        assert_eq!(extract_key(&req), "ip:unknown");
     }
 }

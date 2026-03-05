@@ -464,6 +464,13 @@ fn extract_cookie_value(cookies: &str, name: &str) -> Option<String> {
     })
 }
 
+/// Extract host from a URL string (e.g. "https://example.com:3000/path" -> "example.com")
+fn extract_host(url: &str) -> Option<&str> {
+    let after_scheme = url.split("://").nth(1)?;
+    let host_port = after_scheme.split('/').next()?;
+    Some(host_port.split(':').next().unwrap_or(host_port))
+}
+
 /// Derive the origin URL from request headers (X-Forwarded-Proto + Host)
 /// Returns None if headers are missing, allowing fallback to configured values
 fn derive_origin_url(headers: &axum::http::HeaderMap) -> Option<String> {
@@ -567,7 +574,11 @@ async fn authorize<R: UserRepository, O: OAuthAccountRepository>(
 
     // Origin URL from request headers — used for post-login redirect to the frontend.
     // OAuth callback URI always uses redirect_base_url (must match Google Console config).
+    // Validate that derived host matches frontend_url to prevent open redirect attacks.
     let origin_url = derive_origin_url(&headers)
+        .filter(|derived| {
+            extract_host(derived) == extract_host(&state.oauth_config.frontend_url)
+        })
         .unwrap_or_else(|| state.oauth_config.frontend_url.clone());
 
     let redirect_uri = format!(

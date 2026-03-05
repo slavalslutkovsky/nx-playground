@@ -15,6 +15,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
+        changeOrigin: true,
         headers: {
           'x-forwarded-host': 'localhost:3000',
           'x-forwarded-proto': 'http',
