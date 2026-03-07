@@ -1,5 +1,4 @@
-use axum::response::{IntoResponse, Response};
-use axum_helpers::AppError;
+use axum_helpers::{AppError, impl_into_response_via_app_error};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -20,7 +19,6 @@ pub enum TaskError {
 
 pub type TaskResult<T> = Result<T, TaskError>;
 
-/// Convert TaskError to AppError for standardized error responses
 impl From<TaskError> for AppError {
     fn from(err: TaskError) -> Self {
         match err {
@@ -34,15 +32,8 @@ impl From<TaskError> for AppError {
     }
 }
 
-impl IntoResponse for TaskError {
-    fn into_response(self) -> Response {
-        // Convert to AppError for the standardized error response format
-        let app_error: AppError = self.into();
-        app_error.into_response()
-    }
-}
+impl_into_response_via_app_error!(TaskError);
 
-/// Implement From for sea_orm::DbErr
 impl From<sea_orm::DbErr> for TaskError {
     fn from(err: sea_orm::DbErr) -> Self {
         TaskError::Database(err.to_string())

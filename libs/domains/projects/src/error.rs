@@ -1,5 +1,4 @@
-use axum::response::{IntoResponse, Response};
-use axum_helpers::AppError;
+use axum_helpers::{AppError, impl_into_response_via_app_error};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -23,7 +22,6 @@ pub enum ProjectError {
 
 pub type ProjectResult<T> = Result<T, ProjectError>;
 
-/// Convert ProjectError to AppError for standardized error responses
 impl From<ProjectError> for AppError {
     fn from(err: ProjectError) -> Self {
         match err {
@@ -40,10 +38,4 @@ impl From<ProjectError> for AppError {
     }
 }
 
-impl IntoResponse for ProjectError {
-    fn into_response(self) -> Response {
-        // Convert to AppError for the standardized error response format
-        let app_error: AppError = self.into();
-        app_error.into_response()
-    }
-}
+impl_into_response_via_app_error!(ProjectError);

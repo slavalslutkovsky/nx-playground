@@ -496,40 +496,6 @@ struct OAuthCallbackQuery {
     state: String,
 }
 
-/// Generate a secure random password that meets all validation requirements
-#[allow(dead_code)]
-fn generate_oauth_password() -> String {
-    use rand::RngExt;
-    const CHARSET_LOWER: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
-    const CHARSET_UPPER: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const CHARSET_DIGIT: &[u8] = b"0123456789";
-    const CHARSET_SPECIAL: &[u8] = b"!@#$%^&*()_+-=[]{}|;:,.<>?";
-
-    let mut rng = rand::rng();
-    let mut password = String::new();
-
-    // Ensure at least one of each required character type
-    password.push(CHARSET_UPPER[rng.random_range(0..CHARSET_UPPER.len())] as char);
-    password.push(CHARSET_LOWER[rng.random_range(0..CHARSET_LOWER.len())] as char);
-    password.push(CHARSET_DIGIT[rng.random_range(0..CHARSET_DIGIT.len())] as char);
-    password.push(CHARSET_SPECIAL[rng.random_range(0..CHARSET_SPECIAL.len())] as char);
-
-    // Add remaining random characters (total 20 chars)
-    let all_chars = [CHARSET_LOWER, CHARSET_UPPER, CHARSET_DIGIT, CHARSET_SPECIAL].concat();
-    for _ in 0..16 {
-        password.push(all_chars[rng.random_range(0..all_chars.len())] as char);
-    }
-
-    // Shuffle to avoid predictable pattern
-    let mut chars: Vec<char> = password.chars().collect();
-    for i in (1..chars.len()).rev() {
-        let j = rng.random_range(0..=i);
-        chars.swap(i, j);
-    }
-
-    chars.into_iter().collect()
-}
-
 /// Get OAuth provider by name
 fn get_provider(
     provider_name: &str,

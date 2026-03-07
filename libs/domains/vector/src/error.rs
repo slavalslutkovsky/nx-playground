@@ -1,5 +1,4 @@
-use axum::response::{IntoResponse, Response};
-use axum_helpers::AppError;
+use axum_helpers::{AppError, impl_into_response_via_app_error};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -100,9 +99,4 @@ impl From<VectorError> for AppError {
     }
 }
 
-impl IntoResponse for VectorError {
-    fn into_response(self) -> Response {
-        let app_error: AppError = self.into();
-        app_error.into_response()
-    }
-}
+impl_into_response_via_app_error!(VectorError);

@@ -19,8 +19,6 @@ pub struct Config {
     pub environment: Environment,
     // Auth configuration (using library config structs)
     pub jwt: JwtConfig,
-    #[allow(dead_code)] // Will be used for CORS configuration
-    pub cors_allowed_origin: String,
     pub frontend_url: String,
     pub redirect_base_url: String,
     // OAuth configuration
@@ -48,9 +46,6 @@ impl Config {
         let redis = RedisConfig::from_env()?; // Required - will fail if not set
         let jwt = JwtConfig::from_env()?; // Required - validates min 32 chars
 
-        // Other auth configuration
-        let cors_allowed_origin =
-            core_config::env_or_default("CORS_ALLOWED_ORIGIN", "http://localhost:3000");
         let frontend_url = core_config::env_or_default("FRONTEND_URL", "http://localhost:3000");
         let redirect_base_url =
             core_config::env_or_default("REDIRECT_BASE_URL", "http://localhost:8080");
@@ -94,7 +89,6 @@ impl Config {
             server,
             environment,
             jwt,
-            cors_allowed_origin,
             frontend_url,
             redirect_base_url,
             google_client_id,

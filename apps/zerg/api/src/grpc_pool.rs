@@ -26,15 +26,3 @@ pub async fn create_optimized_tasks_client(
 
     Ok(client)
 }
-
-// /// Creates a pool of gRPC clients for better concurrency
-// pub async fn create_client_pool(addr: String, pool_size: usize) -> eyre::Result<Vec<TasksServiceClient<Channel>>> {
-//     let mut clients = Vec::with_capacity(pool_size);
-//
-//     for _ in 0..pool_size {
-//         let client = create_optimized_tasks_client(addr.clone()).await?;
-//         clients.push(client);
-//     }
-//
-//     Ok(clients)
-// }
