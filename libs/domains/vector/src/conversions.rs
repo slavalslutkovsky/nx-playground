@@ -172,7 +172,10 @@ impl From<Vector> for ProtoVector {
             id: vector.id.as_bytes().to_vec(),
             values: vector.values,
             payload: vector.payload.map(|p| ProtoPayload {
-                json: serde_json::to_vec(&p).unwrap_or_default(),
+                json: serde_json::to_vec(&p).unwrap_or_else(|e| {
+                    tracing::warn!("Failed to serialize vector payload to proto: {e}");
+                    Vec::new()
+                }),
             }),
             sparse: None,
         }
@@ -187,7 +190,10 @@ impl From<SearchResult> for ProtoSearchResult {
             id: result.id.as_bytes().to_vec(),
             score: result.score,
             payload: result.payload.map(|p| ProtoPayload {
-                json: serde_json::to_vec(&p).unwrap_or_default(),
+                json: serde_json::to_vec(&p).unwrap_or_else(|e| {
+                    tracing::warn!("Failed to serialize search result payload to proto: {e}");
+                    Vec::new()
+                }),
             }),
             vector: result.vector.map(|values| ProtoVector {
                 id: result.id.as_bytes().to_vec(),

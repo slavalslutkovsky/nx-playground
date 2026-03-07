@@ -1,14 +1,10 @@
-use axum::{
-    Json,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
-use serde_json::json;
+use axum_helpers::{AppError, impl_into_response_via_app_error};
+use thiserror::Error;
 use uuid::Uuid;
 
 pub type CloudResourceResult<T> = Result<T, CloudResourceError>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum CloudResourceError {
     #[error("Cloud resource not found: {0}")]
     NotFound(Uuid),
@@ -26,31 +22,23 @@ pub enum CloudResourceError {
     Internal(String),
 }
 
-impl IntoResponse for CloudResourceError {
-    fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            Self::NotFound(id) => (
-                StatusCode::NOT_FOUND,
-                format!("Cloud resource {} not found", id),
-            ),
-            Self::ProjectNotFound(id) => {
-                (StatusCode::NOT_FOUND, format!("Project {} not found", id))
+impl From<CloudResourceError> for AppError {
+    fn from(err: CloudResourceError) -> Self {
+        match err {
+            CloudResourceError::NotFound(id) => {
+                AppError::NotFound(format!("Cloud resource {} not found", id))
             }
-            Self::DuplicateName(name) => (
-                StatusCode::CONFLICT,
-                format!(
-                    "Cloud resource with name '{}' already exists in this project",
-                    name
-                ),
-            ),
-            Self::InvalidStatusTransition(msg) => (StatusCode::BAD_REQUEST, msg),
-            Self::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
-        };
-
-        let body = Json(json!({
-            "error": error_message,
-        }));
-
-        (status, body).into_response()
+            CloudResourceError::ProjectNotFound(id) => {
+                AppError::NotFound(format!("Project {} not found", id))
+            }
+            CloudResourceError::DuplicateName(name) => AppError::Conflict(format!(
+                "Cloud resource with name '{}' already exists in this project",
+                name
+            )),
+            CloudResourceError::InvalidStatusTransition(msg) => AppError::BadRequest(msg),
+            CloudResourceError::Internal(msg) => AppError::InternalServerError(msg),
+        }
     }
 }
+
+impl_into_response_via_app_error!(CloudResourceError);

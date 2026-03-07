@@ -34,8 +34,10 @@ impl ActiveModelBehavior for ActiveModel {}
 // Conversion from Sea-ORM Model to domain Project
 impl From<Model> for crate::models::Project {
     fn from(model: Model) -> Self {
-        // Parse tags from JSON
-        let tags: Vec<Tag> = serde_json::from_value(model.tags.clone()).unwrap_or_default();
+        let tags: Vec<Tag> = serde_json::from_value(model.tags.clone()).unwrap_or_else(|e| {
+            tracing::warn!("Failed to parse project tags from JSON: {e}");
+            Vec::new()
+        });
 
         Self {
             id: model.id,

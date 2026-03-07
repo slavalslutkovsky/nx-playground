@@ -559,6 +559,31 @@ fn map_sqlx_error(
     }
 }
 
+/// Macro to generate `IntoResponse` for domain error types that implement `Into<AppError>`.
+///
+/// This eliminates the repetitive 4-line `IntoResponse` impl that every domain error needs.
+/// The domain still needs to implement `From<DomainError> for AppError` with its own mapping logic.
+///
+/// # Example
+///
+/// ```ignore
+/// use axum_helpers::impl_into_response_via_app_error;
+///
+/// impl From<ProjectError> for AppError { /* ... */ }
+/// impl_into_response_via_app_error!(ProjectError);
+/// ```
+#[macro_export]
+macro_rules! impl_into_response_via_app_error {
+    ($error_type:ty) => {
+        impl ::axum::response::IntoResponse for $error_type {
+            fn into_response(self) -> ::axum::response::Response {
+                let app_error: $crate::AppError = self.into();
+                app_error.into_response()
+            }
+        }
+    };
+}
+
 /// Helper function to create error responses.
 ///
 /// # Example

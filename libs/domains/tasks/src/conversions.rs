@@ -170,8 +170,14 @@ impl TryFrom<CreateResponse> for Task {
             description: proto.description,
             completed: proto.completed,
             project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
-            priority: proto.priority.try_into().unwrap_or_default(),
-            status: proto.status.try_into().unwrap_or_default(),
+            priority: proto.priority.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid priority in CreateResponse, defaulting: {e}");
+                Default::default()
+            }),
+            status: proto.status.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid status in CreateResponse, defaulting: {e}");
+                Default::default()
+            }),
             due_date: opt_timestamp_to_datetime(proto.due_date),
             created_at: timestamp_to_datetime(proto.created_at),
             updated_at: timestamp_to_datetime(proto.updated_at),
@@ -189,8 +195,14 @@ impl TryFrom<GetByIdResponse> for Task {
             description: proto.description,
             completed: proto.completed,
             project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
-            priority: proto.priority.try_into().unwrap_or_default(),
-            status: proto.status.try_into().unwrap_or_default(),
+            priority: proto.priority.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid priority in GetByIdResponse, defaulting: {e}");
+                Default::default()
+            }),
+            status: proto.status.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid status in GetByIdResponse, defaulting: {e}");
+                Default::default()
+            }),
             due_date: opt_timestamp_to_datetime(proto.due_date),
             created_at: timestamp_to_datetime(proto.created_at),
             updated_at: timestamp_to_datetime(proto.updated_at),
@@ -208,8 +220,14 @@ impl TryFrom<UpdateByIdResponse> for Task {
             description: proto.description,
             completed: proto.completed,
             project_id: opt_bytes_to_uuid(proto.project_id).ok().flatten(),
-            priority: proto.priority.try_into().unwrap_or_default(),
-            status: proto.status.try_into().unwrap_or_default(),
+            priority: proto.priority.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid priority in UpdateByIdResponse, defaulting: {e}");
+                Default::default()
+            }),
+            status: proto.status.try_into().unwrap_or_else(|e| {
+                tracing::warn!("Invalid status in UpdateByIdResponse, defaulting: {e}");
+                Default::default()
+            }),
             due_date: opt_timestamp_to_datetime(proto.due_date),
             created_at: timestamp_to_datetime(proto.created_at),
             updated_at: timestamp_to_datetime(proto.updated_at),
