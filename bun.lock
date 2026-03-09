@@ -5,14 +5,14 @@
     "": {
       "name": "@nx-playground/source",
       "dependencies": {
-        "@monodon/rust": "latest",
+        "@monodon/rust": "2.3.0",
       },
       "devDependencies": {
-        "@biomejs/biome": "latest",
-        "@nx-tools/nx-container": "latest",
-        "@nx/workspace": "latest",
-        "@types/node": "latest",
-        "nx": "latest",
+        "@biomejs/biome": "2.4.4",
+        "@nx-tools/nx-container": "^7.2.1",
+        "@nx/workspace": "22.5.2",
+        "@types/node": "25.3.0",
+        "nx": "22.5.2",
       },
     },
     "apps/zerg/web": {
