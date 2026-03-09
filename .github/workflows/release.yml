@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      force_all:
+        description: 'Build all apps instead of only affected'
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.sha }}
@@ -31,10 +36,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - name: Derive SHAs for nx affected
         uses: nrwl/nx-set-shas@v4
+
+      - name: Install Rust toolchain
+        run: rustup toolchain install stable --profile minimal
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -45,8 +53,12 @@ jobs:
       - name: Determine affected apps
         id: affected
         run: |
-          # Get affected projects that have a container target
-          AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || true)
+          if [ "${{ inputs.force_all }}" = "true" ]; then
+            AFFECTED=$(bun nx show projects --with-target container 2>/dev/null || true)
+            echo "Force building all apps with container target"
+          else
+            AFFECTED=$(bun nx show projects --affected --with-target container 2>/dev/null || true)
+          fi
 
           if [ -z "$AFFECTED" ]; then
             echo "No affected apps with container target"
@@ -103,7 +115,7 @@ jobs:
         run: |
           MATRIX='${{ steps.affected.outputs.matrix }}'
 
-          echo "$MATRIX" | jq -c '.include[]' | while read -r item; do
+          while IFS= read -r item; do
             APP=$(echo "$item" | jq -r '.app')
             VERSION=$(echo "$item" | jq -r '.version')
             ROOT=$(echo "$item" | jq -r '.root')
@@ -113,10 +125,11 @@ jobs:
               sed -i "s/^version = \"$CURRENT\"/version = \"$VERSION\"/" "$ROOT/Cargo.toml"
               echo "Bumped $APP Cargo.toml: $CURRENT -> $VERSION"
             elif [ -f "$ROOT/package.json" ]; then
-              jq --arg v "$VERSION" '.version = $v' "$ROOT/package.json" > tmp.json && mv tmp.json "$ROOT/package.json"
+              TMP=$(mktemp)
+              jq --arg v "$VERSION" '.version = $v' "$ROOT/package.json" > "$TMP" && mv "$TMP" "$ROOT/package.json"
               echo "Bumped $APP package.json -> $VERSION"
             fi
-          done
+          done < <(echo "$MATRIX" | jq -c '.include[]')
 
       - name: Update Cargo.lock
         if: steps.affected.outputs.has_apps == 'true'
@@ -136,21 +149,18 @@ jobs:
           MATRIX='${{ steps.affected.outputs.matrix }}'
           BODY=$(echo "$MATRIX" | jq -r '.include[] | "- \(.app)@\(.version)"')
 
-          git commit -m "$(cat <<EOF
-          chore: release version bumps [skip ci]
+          git commit -m "chore: release version bumps [skip ci]
 
-          $BODY
-          EOF
-          )"
+$BODY"
 
-          # Create per-app tags (use for loop to avoid subshell)
-          for item in $(echo "$MATRIX" | jq -c '.include[]'); do
+          # Create per-app tags
+          while IFS= read -r item; do
             APP=$(echo "$item" | jq -r '.app')
             VERSION=$(echo "$item" | jq -r '.version')
             TAG="$APP@$VERSION"
             git tag -a "$TAG" -m "$APP release $VERSION"
             echo "Created tag: $TAG"
-          done
+          done < <(echo "$MATRIX" | jq -c '.include[]')
 
           git push origin main --follow-tags
           echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
