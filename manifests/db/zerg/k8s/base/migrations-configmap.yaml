@@ -7,6 +7,28 @@ metadata:
     app.kubernetes.io/component: migration
     app.kubernetes.io/name: zerg-migrations
 data:
+  20260424191816_initial.down.sql: |
+    -- Revert initial schema
+
+    DROP TABLE IF EXISTS cloud_resources CASCADE;
+    DROP TABLE IF EXISTS tasks CASCADE;
+    DROP TABLE IF EXISTS projects CASCADE;
+    DROP TABLE IF EXISTS oauth_accounts CASCADE;
+    DROP TABLE IF EXISTS users CASCADE;
+
+    DROP TYPE IF EXISTS resource_status;
+    DROP TYPE IF EXISTS resource_type;
+    DROP TYPE IF EXISTS project_status;
+    DROP TYPE IF EXISTS environment;
+    DROP TYPE IF EXISTS cloud_provider;
+    DROP TYPE IF EXISTS task_status;
+    DROP TYPE IF EXISTS task_priority;
+
+    DROP FUNCTION IF EXISTS util.touch_updated_at();
+    DROP SCHEMA IF EXISTS util;
+
+    -- Extensions are intentionally left in place (pgcrypto, hstore) — they may be
+    -- used by other schemas or applications sharing the database.
   20260424191816_initial.up.sql: |
     -- Initial schema (mirrors manifests/db/schema.sql)
     -- PostgreSQL 18 (uuidv7() is a built-in function, no extension required)
@@ -167,3 +189,7 @@ data:
       BEFORE UPDATE ON cloud_resources
       FOR EACH ROW
       EXECUTE FUNCTION util.touch_updated_at();
+  atlas.sum: |
+    h1:B0FWwlOpn72Mr0dJOvm620Aj7d+l7OG/3XMQoBNFAvY=
+    20260424191816_initial.down.sql h1:FzhQrzkGCbWE83o8yvuHFnZvFYu2BhvocFjEanligTE=
+    20260424191816_initial.up.sql h1:OBP0lrfZbQSPw9N84ZElFRT86VI+hkaDiZ2kHPUs1Ko=

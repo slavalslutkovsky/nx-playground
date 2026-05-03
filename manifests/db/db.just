@@ -234,9 +234,14 @@ gen-schema-configmap db:
       --name {{ db }}-schema \
       -o manifests/db/{{ db }}/k8s/base/schema-configmap.yaml
 
+# Recompute the Atlas checksum manifest (atlas.sum) for <db>'s migrations dir.
+# Run after any edit/add/delete of migration files; required by Atlas Operator.
+migrate-hash db:
+    atlas migrate hash --dir "file://manifests/db/{{ db }}/migrations"
+
 # Generate migrations ConfigMap for <db> (used by AtlasMigration versioned mode)
-# Includes only .up.sql and plain .sql files (excludes .down.sql)
-gen-migrations-configmap db:
+# Always re-hashes first so atlas.sum is consistent with the SQL files.
+gen-migrations-configmap db: (migrate-hash db)
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p manifests/db/{{ db }}/k8s/base
