@@ -99,30 +99,22 @@ reset-db:
 # =============================================================================
 # sqlx tracks applied migrations in _sqlx_migrations table per database.
 
-# Create a new reversible migration (up + down files) for <db>
+# Create a new forward-only migration for <db>
+# (Single .up.sql per migration — Atlas Operator can't disambiguate up/down pairs.
+#  For local rollback during dev, use `just db-fresh <db>` to reset from schema.sql.)
 migrate-add db name:
     #!/usr/bin/env bash
     set -euo pipefail
     timestamp=$(date -u +%Y%m%d%H%M%S)
     mkdir -p manifests/db/{{ db }}/migrations
-    up="manifests/db/{{ db }}/migrations/${timestamp}_{{ name }}.up.sql"
-    down="manifests/db/{{ db }}/migrations/${timestamp}_{{ name }}.down.sql"
-    echo "-- Migration: {{ name }}" > "$up"
-    echo "-- Revert: {{ name }}" > "$down"
-    echo "Created:"
-    echo "  $up"
-    echo "  $down"
-    echo "Edit both files, then run: just migrate {{ db }}"
+    f="manifests/db/{{ db }}/migrations/${timestamp}_{{ name }}.up.sql"
+    echo "-- Migration: {{ name }}" > "$f"
+    echo "Created: $f"
+    echo "Edit, then run: just migrate {{ db }}"
 
 # Apply pending migrations for <db> (local)
 migrate db:
     sqlx migrate run \
-      --source manifests/db/{{ db }}/migrations \
-      --database-url "$(just _db-url {{ db }} local)"
-
-# Revert last migration for <db> (local)
-migrate-revert db:
-    sqlx migrate revert \
       --source manifests/db/{{ db }}/migrations \
       --database-url "$(just _db-url {{ db }} local)"
 
