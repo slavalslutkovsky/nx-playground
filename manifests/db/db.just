@@ -228,22 +228,22 @@ migrate-validate db:
 gen-schema-configmap db:
     #!/usr/bin/env bash
     set -euo pipefail
-    mkdir -p manifests/db/{{ db }}/k8s
+    mkdir -p manifests/db/{{ db }}/k8s/base
     pg-cli configmap schema \
       --schema manifests/db/{{ db }}/schema.sql \
       --name {{ db }}-schema \
-      -o manifests/db/{{ db }}/k8s/schema-configmap.yaml
+      -o manifests/db/{{ db }}/k8s/base/schema-configmap.yaml
 
 # Generate migrations ConfigMap for <db> (used by AtlasMigration versioned mode)
 # Includes only .up.sql and plain .sql files (excludes .down.sql)
 gen-migrations-configmap db:
     #!/usr/bin/env bash
     set -euo pipefail
-    mkdir -p manifests/db/{{ db }}/k8s
+    mkdir -p manifests/db/{{ db }}/k8s/base
     pg-cli configmap migrations \
       --migrations-dir manifests/db/{{ db }}/migrations \
       --name {{ db }}-migrations \
-      -o manifests/db/{{ db }}/k8s/migrations-configmap.yaml
+      -o manifests/db/{{ db }}/k8s/base/migrations-configmap.yaml
 
 # Regenerate ConfigMaps for every DB under manifests/db/
 gen-all-configmaps:

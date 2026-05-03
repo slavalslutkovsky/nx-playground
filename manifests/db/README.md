@@ -15,9 +15,13 @@ manifests/db/
     │   ├── <ts>_<name>.up.sql
     │   └── <ts>_<name>.down.sql
     └── k8s/                                    # cluster artifacts (Atlas Operator)
-        ├── migrations-configmap.yaml          # generated from migrations/ (committed)
-        ├── atlas-migration.yaml                # AtlasMigration CR (hand-written)
-        └── kustomization.yaml                  # bundles configmap + CR
+        ├── base/
+        │   ├── kustomization.yaml              # bundles configmap + CR
+        │   ├── migrations-configmap.yaml       # generated from migrations/ (committed)
+        │   └── atlas-migration.yaml             # AtlasMigration CR (hand-written)
+        └── overlays/
+            ├── dev/kustomization.yaml          # for local kind / dev cluster
+            └── prod/kustomization.yaml         # what Flux applies to clusters
 ```
 
 Currently registered DBs: `zerg`. Add `protos` (or any other DB) by creating a sibling folder with the same shape.
@@ -56,19 +60,20 @@ Currently registered DBs: `zerg`. Add `protos` (or any other DB) by creating a s
 ### Adding a new database
 
 ```
-mkdir -p manifests/db/<db>/{migrations,k8s}
-$EDITOR manifests/db/<db>/schema.sql           # write canonical schema
-just migrate-add <db> initial                   # creates timestamped up/down stubs
+mkdir -p manifests/db/<db>/{migrations,k8s/base,k8s/overlays/dev,k8s/overlays/prod}
+$EDITOR manifests/db/<db>/schema.sql                  # write canonical schema
+just migrate-add <db> initial                          # creates timestamped up/down stubs
 $EDITOR manifests/db/<db>/migrations/<ts>_initial.up.sql
 $EDITOR manifests/db/<db>/migrations/<ts>_initial.down.sql
-just gen-migrations-configmap <db>              # generates k8s/migrations-configmap.yaml
+just gen-migrations-configmap <db>                     # generates k8s/base/migrations-configmap.yaml
 ```
 
 Then:
 - Append `<db>-local` and `<db>-cluster` lines to the `_db-url` case in `db.just`.
-- Hand-write `manifests/db/<db>/k8s/atlas-migration.yaml` (copy from `zerg/`, swap names + secret reference).
-- Hand-write `manifests/db/<db>/k8s/kustomization.yaml` (copy from `zerg/`).
-- Add a Flux Kustomization in the gitops-v1 repo pointing at `./manifests/db/<db>/k8s` (copy `zerg-migrations-dev`).
+- Hand-write `manifests/db/<db>/k8s/base/atlas-migration.yaml` (copy from `zerg/`, swap names + secret reference).
+- Hand-write `manifests/db/<db>/k8s/base/kustomization.yaml` (copy from `zerg/`).
+- Hand-write `manifests/db/<db>/k8s/overlays/{dev,prod}/kustomization.yaml` (copy from `zerg/` — they just reference `../../base`).
+- Add a Flux Kustomization in the gitops-v1 repo pointing at `./manifests/db/<db>/k8s/overlays/prod` (copy `zerg-migrations-dev`).
 
 No edits required outside the new folder.
 
