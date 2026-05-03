@@ -11,12 +11,14 @@ metadata:
   namespace: dbs
 spec:
   ports:
-    - name: "1025"
+    - name: tcp-smtp
       port: 1025
       targetPort: 1025
-    - name: "8025"
+      protocol: TCP
+    - name: http-ui
       port: 8025
       targetPort: 8025
+      protocol: TCP
   selector:
     io.kompose.service: mailhog
 
