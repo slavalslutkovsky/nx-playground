@@ -94,8 +94,6 @@ spec:
               drop:
                 - ALL
           volumeMounts:
-            - name: nginx-config
-              mountPath: /etc/nginx/templates
             - name: nginx-conf-d
               mountPath: /etc/nginx/conf.d
             - name: nginx-cache
@@ -105,12 +103,6 @@ spec:
             - name: tmp
               mountPath: /tmp
       volumes:
-        - name: nginx-config
-          configMap:
-            name: nginx-config
-        - name: proxy-envs
-          configMap:
-            name: proxy-envs
         - name: nginx-conf-d
           emptyDir: {}
         - name: nginx-cache
