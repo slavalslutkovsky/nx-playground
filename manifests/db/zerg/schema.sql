@@ -2,7 +2,7 @@
 -- Local dev: `just db-fresh` applies this directly via psql
 -- K8s dev:   `just migrate` applies migrations via sqlx (port-forwarded)
 -- K8s prod:  Atlas Operator applies migrations via ConfigMaps
--- PostgreSQL 17+ required for uuidv7()
+-- PostgreSQL 18 (uuidv7() is a built-in function, no extension required)
 
 -- =============================================================================
 -- Extensions
@@ -57,11 +57,15 @@ CREATE TABLE users (
   failed_login_attempts INTEGER NOT NULL DEFAULT 0,
   locked_until TIMESTAMPTZ,
   last_login_at TIMESTAMPTZ,
+  google_id VARCHAR(255),
+  github_id VARCHAR(255),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE UNIQUE INDEX idx_users_email ON users(email);
+CREATE UNIQUE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_users_github_id ON users(github_id) WHERE github_id IS NOT NULL;
 
 -- OAuth accounts table
 CREATE TABLE oauth_accounts (

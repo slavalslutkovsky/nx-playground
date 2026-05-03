@@ -1,117 +1,150 @@
 # =============================================================================
-# Database Management
+# Database Management (multi-DB)
 # =============================================================================
-# Source of truth: manifests/db/schema.sql
-# Seed data:      manifests/db/seed.sql
-# Migrations:     manifests/db/migrations/ (plain SQL, applied via sqlx)
-# K8s prod:       Atlas Operator (consumes same migration SQL files via ConfigMaps)
+# Layout: manifests/db/<db>/{schema.sql, seed.sql, migrations/, k8s/}
+# Source of truth: schema.sql per DB
+# Migrations: plain SQL applied via sqlx (local) and Atlas Operator (cluster)
 #
 # Workflow:
-#   1. Edit schema.sql (source of truth)
-#   2. just migrate-add <name>  → creates .up.sql + .down.sql
+#   1. Edit manifests/db/<db>/schema.sql (source of truth)
+#   2. just migrate-add <db> <name>   → creates .up.sql + .down.sql
 #   3. Write ALTER/CREATE in .up.sql, reversal in .down.sql
-#   4. just migrate             → apply to local/cluster DB
-#   5. just migrate-validate    → verify schema.sql matches migration result
+#   4. just migrate <db>               → apply locally
+#   5. just migrate-validate <db>      → verify schema.sql == migrations result
+#   6. just gen-migrations-configmap <db>  → regenerate cluster ConfigMap
 #
-# Works with both docker-compose and k8s (port-forwarded) postgres.
-# Auto-detects which is running via _pg_cmd helper.
+# Local: docker-compose postgres on :5432 with super-user `myuser`.
+# Cluster: kind/CNPG via port-forward on :5433.
 
-db_dir := "manifests/db"
-db_url_local := "postgres://myuser:mypassword@localhost:5432/mydatabase"
-db_url_cluster := "postgres://myuser:mypassword@localhost:5433/mydatabase"
+# =============================================================================
+# Helpers
+# =============================================================================
 
-# Helper: run psql via docker-compose or kubectl (whichever is available)
-# Usage in bash scripts: $($PG_CMD) -d mydatabase -c "SELECT 1"
-#         with stdin:    $($PG_CMD) -d mydatabase < file.sql
+# Run psql via docker-compose or kubectl (whichever is available)
 [private]
 _pg_cmd := "if docker exec dockers-postgres-1 true 2>/dev/null; then echo 'docker exec -i dockers-postgres-1 psql -U myuser'; else echo 'kubectl exec -i -n dbs deployment/postgres -- psql -U myuser'; fi"
+
+# Per-DB connection URL. Add new (db, env) pairs as you onboard databases.
+# env is one of: local, cluster
+[private]
+_db-url db env="local":
+    #!/usr/bin/env bash
+    case "{{ db }}-{{ env }}" in
+      zerg-local)    echo "postgres://myuser:mypassword@localhost:5432/zerg?sslmode=disable" ;;
+      zerg-cluster)  echo "postgres://zerg:zerg@localhost:5433/zerg?sslmode=disable" ;;
+      *)
+        echo "unknown db/env: {{ db }}/{{ env }} — add it to _db-url in manifests/db/db.just" >&2
+        exit 1
+        ;;
+    esac
+
+# =============================================================================
+# Discovery
+# =============================================================================
+
+# List all configured databases (folders under manifests/db/)
+db-list:
+    @ls -d manifests/db/*/ 2>/dev/null | xargs -n1 basename
 
 # =============================================================================
 # Local Development
 # =============================================================================
 
-# Reset DB from schema.sql + seed.sql
-db-fresh:
+# Reset <db> from schema.sql + seed.sql (local docker-compose)
+db-fresh db:
     #!/usr/bin/env bash
     set -euo pipefail
     PG=$({{ _pg_cmd }})
-    echo "Terminating existing connections..."
+    echo "Terminating existing connections to {{ db }}..."
     $PG -d postgres -c \
-      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'mydatabase' AND pid <> pg_backend_pid();" > /dev/null 2>&1 || true
-    echo "Resetting mydatabase..."
-    $PG -d postgres -c "DROP DATABASE IF EXISTS mydatabase;"
-    $PG -d postgres -c "CREATE DATABASE mydatabase;"
+      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{{ db }}' AND pid <> pg_backend_pid();" > /dev/null 2>&1 || true
+    echo "Resetting {{ db }}..."
+    $PG -d postgres -c "DROP DATABASE IF EXISTS {{ db }};"
+    $PG -d postgres -c "CREATE DATABASE {{ db }};"
     echo "Applying schema..."
-    $PG -d mydatabase < {{ db_dir }}/schema.sql
-    echo "Applying seed data..."
-    $PG -d mydatabase < {{ db_dir }}/seed.sql
+    $PG -d {{ db }} < manifests/db/{{ db }}/schema.sql
+    if [ -f manifests/db/{{ db }}/seed.sql ]; then
+      echo "Applying seed data..."
+      $PG -d {{ db }} < manifests/db/{{ db }}/seed.sql
+    fi
     echo "Done!"
 
-# Apply seed data only
-db-seed:
+# Apply seed data only for <db>
+db-seed db:
     #!/usr/bin/env bash
     PG=$({{ _pg_cmd }})
-    $PG -d mydatabase < {{ db_dir }}/seed.sql
+    $PG -d {{ db }} < manifests/db/{{ db }}/seed.sql
 
-# Nuke docker + volumes + rebuild everything from scratch (docker-compose only)
+# Inspect live <db> schema (SQL output)
+db-inspect db:
+    #!/usr/bin/env bash
+    PG=$({{ _pg_cmd }})
+    ${PG/psql/pg_dump} -d {{ db }} --schema-only --no-owner --no-privileges
+
+# Nuke docker + volumes + rebuild from scratch (docker-compose only); reapplies all DBs
 reset-db:
+    #!/usr/bin/env bash
+    set -euo pipefail
     just docker-down
     docker volume prune -af
     docker compose -f manifests/dockers/compose.yaml up -d
-    @echo "Waiting for PostgreSQL..."
-    @until docker exec dockers-postgres-1 pg_isready -U myuser -q 2>/dev/null; do sleep 1; done
-    just db-fresh
-
-# Inspect live database schema (SQL output)
-db-inspect:
-    #!/usr/bin/env bash
-    PG=$({{ _pg_cmd }})
-    # pg_dump needs to run on the postgres host
-    ${PG/psql/pg_dump} -d mydatabase --schema-only --no-owner --no-privileges
+    echo "Waiting for PostgreSQL..."
+    until docker exec dockers-postgres-1 pg_isready -U myuser -q 2>/dev/null; do sleep 1; done
+    for d in manifests/db/*/; do
+      just db-fresh "$(basename "$d")"
+    done
 
 # =============================================================================
-# Migrations (sqlx)
+# Migrations (sqlx) — per DB
 # =============================================================================
-# sqlx tracks applied migrations in _sqlx_migrations table
+# sqlx tracks applied migrations in _sqlx_migrations table per database.
 
-# Create a new reversible migration (up + down files)
-migrate-add name:
+# Create a new reversible migration (up + down files) for <db>
+migrate-add db name:
     #!/usr/bin/env bash
     set -euo pipefail
     timestamp=$(date -u +%Y%m%d%H%M%S)
-    up="{{ db_dir }}/migrations/${timestamp}_{{ name }}.up.sql"
-    down="{{ db_dir }}/migrations/${timestamp}_{{ name }}.down.sql"
+    mkdir -p manifests/db/{{ db }}/migrations
+    up="manifests/db/{{ db }}/migrations/${timestamp}_{{ name }}.up.sql"
+    down="manifests/db/{{ db }}/migrations/${timestamp}_{{ name }}.down.sql"
     echo "-- Migration: {{ name }}" > "$up"
     echo "-- Revert: {{ name }}" > "$down"
     echo "Created:"
     echo "  $up"
     echo "  $down"
-    echo "Edit both files, then run: just migrate"
+    echo "Edit both files, then run: just migrate {{ db }}"
 
-# Apply pending migrations (local)
-migrate:
-    sqlx migrate run --source {{ db_dir }}/migrations --database-url "{{ db_url_local }}?sslmode=disable"
+# Apply pending migrations for <db> (local)
+migrate db:
+    sqlx migrate run \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "$(just _db-url {{ db }} local)"
 
-# Revert last migration (local)
-migrate-revert:
-    sqlx migrate revert --source {{ db_dir }}/migrations --database-url "{{ db_url_local }}?sslmode=disable"
+# Revert last migration for <db> (local)
+migrate-revert db:
+    sqlx migrate revert \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "$(just _db-url {{ db }} local)"
 
-# Apply migrations (kind cluster via port-forward on 5433)
-migrate-cluster:
-    sqlx migrate run --source {{ db_dir }}/migrations --database-url "{{ db_url_cluster }}?sslmode=disable"
+# Apply migrations for <db> against kind cluster (port-forwarded :5433)
+migrate-cluster db:
+    sqlx migrate run \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "$(just _db-url {{ db }} cluster)"
 
-# Check migration status
-migrate-status:
-    sqlx migrate info --source {{ db_dir }}/migrations --database-url "{{ db_url_local }}?sslmode=disable"
+# Show migration status for <db>
+migrate-status db:
+    sqlx migrate info \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "$(just _db-url {{ db }} local)"
 
-# Mark existing migrations as applied without running them
-# Use when DB was created via db-fresh and you want to start using migrations
-migrate-baseline:
+# Mark existing migrations as applied without running them (use after db-fresh)
+migrate-baseline db:
     #!/usr/bin/env bash
     set -euo pipefail
     PG=$({{ _pg_cmd }})
-    echo "Baselining migrations..."
-    $PG -d mydatabase -q -c "
+    echo "Baselining {{ db }} migrations..."
+    $PG -d {{ db }} -q -c "
       CREATE TABLE IF NOT EXISTS _sqlx_migrations (
         version BIGINT PRIMARY KEY,
         description TEXT NOT NULL,
@@ -121,100 +154,118 @@ migrate-baseline:
         execution_time BIGINT NOT NULL DEFAULT 0
       );
     "
-    for f in {{ db_dir }}/migrations/*.sql; do
+    for f in manifests/db/{{ db }}/migrations/*.sql; do
       [ -f "$f" ] || continue
       [[ "$(basename "$f")" == *.down.sql ]] && continue
       basename=$(basename "$f")
       version=$(echo "$basename" | grep -oE '^[0-9]+')
       description=$(echo "$basename" | sed -E 's/^[0-9]+_//' | sed -E 's/\.(up\.)?sql$//' | tr '_' ' ')
       checksum=$(cat "$f" | shasum -a 384 | awk '{print $1}')
-      $PG -d mydatabase -q -c "
+      $PG -d {{ db }} -q -c "
         INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time)
         VALUES ($version, '$description', true, '\x$checksum', 0)
         ON CONFLICT (version) DO UPDATE SET checksum = '\x$checksum';
       "
       echo "  Baselined: $basename"
     done
-    echo "Done! Run 'just migrate-status' to verify."
+    echo "Done! Run 'just migrate-status {{ db }}' to verify."
 
-# Test migration path: drop DB → create → migrate → seed (validates prod path)
-migrate-test:
+# Test migration path for <db>: drop → create → migrate → seed
+migrate-test db:
     #!/usr/bin/env bash
     set -euo pipefail
     PG=$({{ _pg_cmd }})
-    echo "Testing migration path..."
+    echo "Testing {{ db }} migration path..."
     $PG -d postgres -c \
-      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'mydatabase' AND pid <> pg_backend_pid();" > /dev/null 2>&1 || true
-    $PG -d postgres -c "DROP DATABASE IF EXISTS mydatabase;"
-    $PG -d postgres -c "CREATE DATABASE mydatabase;"
-    sqlx migrate run --source {{ db_dir }}/migrations --database-url "{{ db_url_local }}?sslmode=disable"
-    $PG -d mydatabase < {{ db_dir }}/seed.sql
-    echo "Migration test passed!"
+      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{{ db }}' AND pid <> pg_backend_pid();" > /dev/null 2>&1 || true
+    $PG -d postgres -c "DROP DATABASE IF EXISTS {{ db }};"
+    $PG -d postgres -c "CREATE DATABASE {{ db }};"
+    sqlx migrate run \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "$(just _db-url {{ db }} local)"
+    if [ -f manifests/db/{{ db }}/seed.sql ]; then
+      $PG -d {{ db }} < manifests/db/{{ db }}/seed.sql
+    fi
+    echo "{{ db }} migration test passed!"
 
-# Validate that schema.sql matches the result of running all migrations
-migrate-validate:
+# Verify schema.sql matches the result of running all migrations for <db>
+migrate-validate db:
     #!/usr/bin/env bash
     set -euo pipefail
     PG=$({{ _pg_cmd }})
     PG_DUMP=${PG/psql/pg_dump}
-    echo "Validating schema.sql matches migrations..."
-    # Create temp DB, apply migrations
-    $PG -d postgres -c "DROP DATABASE IF EXISTS migrate_validate;" > /dev/null 2>&1
-    $PG -d postgres -c "CREATE DATABASE migrate_validate;"
-    sqlx migrate run --source {{ db_dir }}/migrations \
-      --database-url "postgres://myuser:mypassword@localhost:5432/migrate_validate?sslmode=disable"
-    # Create another temp DB, apply schema.sql
-    $PG -d postgres -c "DROP DATABASE IF EXISTS schema_validate;" > /dev/null 2>&1
-    $PG -d postgres -c "CREATE DATABASE schema_validate;"
-    $PG -d schema_validate < {{ db_dir }}/schema.sql
-    # Dump both and diff (exclude _sqlx_migrations table and comments)
-    migrate_dump=$($PG_DUMP -d migrate_validate --schema-only --no-owner --no-privileges --no-comments \
+    mig_db="{{ db }}_migrate_validate"
+    sch_db="{{ db }}_schema_validate"
+    echo "Validating {{ db }}/schema.sql matches migrations..."
+    $PG -d postgres -c "DROP DATABASE IF EXISTS $mig_db;" > /dev/null 2>&1
+    $PG -d postgres -c "CREATE DATABASE $mig_db;"
+    sqlx migrate run \
+      --source manifests/db/{{ db }}/migrations \
+      --database-url "postgres://myuser:mypassword@localhost:5432/$mig_db?sslmode=disable"
+    $PG -d postgres -c "DROP DATABASE IF EXISTS $sch_db;" > /dev/null 2>&1
+    $PG -d postgres -c "CREATE DATABASE $sch_db;"
+    $PG -d $sch_db < manifests/db/{{ db }}/schema.sql
+    migrate_dump=$($PG_DUMP -d $mig_db --schema-only --no-owner --no-privileges --no-comments \
       --exclude-table='_sqlx_migrations' | grep -v '^--' | grep -v '^$' | grep -vE '^\\(restrict|unrestrict)')
-    schema_dump=$($PG_DUMP -d schema_validate --schema-only --no-owner --no-privileges --no-comments \
+    schema_dump=$($PG_DUMP -d $sch_db --schema-only --no-owner --no-privileges --no-comments \
       | grep -v '^--' | grep -v '^$' | grep -vE '^\\(restrict|unrestrict)')
-    # Cleanup
-    $PG -d postgres -c "DROP DATABASE migrate_validate;" > /dev/null 2>&1
-    $PG -d postgres -c "DROP DATABASE schema_validate;" > /dev/null 2>&1
-    # Compare
+    $PG -d postgres -c "DROP DATABASE $mig_db;" > /dev/null 2>&1
+    $PG -d postgres -c "DROP DATABASE $sch_db;" > /dev/null 2>&1
     if diff <(echo "$migrate_dump") <(echo "$schema_dump") > /dev/null 2>&1; then
-      echo "PASS: schema.sql and migrations produce identical schemas"
+      echo "PASS: {{ db }} schema.sql and migrations produce identical schemas"
     else
-      echo "FAIL: schema.sql and migrations diverge!"
+      echo "FAIL: {{ db }} schema.sql and migrations diverge!"
       echo ""
       diff <(echo "$migrate_dump") <(echo "$schema_dump") || true
       exit 1
     fi
 
 # =============================================================================
-# K8s / CNPG (cluster) — Atlas Operator (free, no login required)
+# K8s ConfigMap generation (Atlas Operator) — per DB
 # =============================================================================
 
-# Generate schema ConfigMap for AtlasSchema operator (Tilt/dev)
-gen-schema-configmap:
+# Generate schema ConfigMap for <db> (used by AtlasSchema declarative mode)
+gen-schema-configmap db:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p manifests/db/{{ db }}/k8s
     pg-cli configmap schema \
-      --schema {{ db_dir }}/schema.sql \
-      -o manifests/k8s/overlays/dev/schema-configmap.yaml
+      --schema manifests/db/{{ db }}/schema.sql \
+      --name {{ db }}-schema \
+      -o manifests/db/{{ db }}/k8s/schema-configmap.yaml
 
-# Generate migrations ConfigMap for AtlasMigration operator (prod/staging)
-# Only includes .up.sql and plain .sql files (excludes .down.sql)
-gen-migrations-configmap:
+# Generate migrations ConfigMap for <db> (used by AtlasMigration versioned mode)
+# Includes only .up.sql and plain .sql files (excludes .down.sql)
+gen-migrations-configmap db:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p manifests/db/{{ db }}/k8s
     pg-cli configmap migrations \
-      --migrations-dir {{ db_dir }}/migrations \
-      -o manifests/k8s/base/cnpg/migrations-configmap.yaml \
-      -o manifests/cnpg/base/migrations-configmap.yaml
+      --migrations-dir manifests/db/{{ db }}/migrations \
+      --name {{ db }}-migrations \
+      -o manifests/db/{{ db }}/k8s/migrations-configmap.yaml
 
-# Deploy CNPG + migrations to cluster
-cnpg-deploy env="dev":
-    just gen-migrations-configmap
-    kubectl apply -k manifests/cnpg/overlays/{{ env }}
+# Regenerate ConfigMaps for every DB under manifests/db/
+gen-all-configmaps:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for d in manifests/db/*/; do
+      [[ -d "$d/migrations" ]] || continue
+      db=$(basename "$d")
+      just gen-migrations-configmap "$db"
+    done
 
-# Check CNPG cluster status
+# =============================================================================
+# Cluster status (CNPG)
+# =============================================================================
+
+# Show CNPG cluster status (cluster-wide, not per-DB)
 cnpg-status ns="dbs":
     kubectl get clusters -n {{ ns }}
     kubectl get pods -n {{ ns }} -l cnpg.io/cluster
     @echo ""
-    kubectl get atlasmigration -n {{ ns }} -o wide 2>/dev/null || echo "No AtlasMigration resources found"
+    kubectl get atlasmigration -A -o wide 2>/dev/null || echo "No AtlasMigration resources found"
 
-# View CNPG logs
+# Tail CNPG logs
 cnpg-logs ns="dbs":
     kubectl logs -n {{ ns }} -l cnpg.io/cluster --tail=100 -f
