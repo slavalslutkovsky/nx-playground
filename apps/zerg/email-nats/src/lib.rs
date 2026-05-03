@@ -53,9 +53,10 @@ use tracing::{error, info, warn};
 /// - Email provider configuration is invalid
 /// - Worker encounters a fatal error
 pub async fn run() -> Result<()> {
-    // Initialize tracing (env-aware: JSON for prod, pretty for dev)
+    // Initialize tracing (env-aware: JSON for prod, pretty for dev).
+    // Guard must outlive run() so OTEL spans flush before the tokio runtime drops.
     let environment = Environment::from_env();
-    core_config::tracing::init_tracing(&environment);
+    let _tracing_guard = core_config::tracing::init_tracing(&environment, core_config::app_info!());
 
     // Initialize Prometheus metrics
     let metrics_handle = messaging::nats::metrics::init_metrics();
