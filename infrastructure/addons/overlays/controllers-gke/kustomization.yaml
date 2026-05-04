@@ -5,3 +5,4 @@ resources:
   - ../../external-secrets/controller/gke
   - ../../crossplane/controller/base
   - ../../kyverno/controller/base
+  - ../../testkube/controller/base

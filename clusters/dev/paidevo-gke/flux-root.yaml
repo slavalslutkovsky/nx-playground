@@ -34,6 +34,10 @@ spec:
       kind: Deployment
       name: kyverno-admission-controller
       namespace: kyverno
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: testkube-api-server
+      namespace: testkube
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
