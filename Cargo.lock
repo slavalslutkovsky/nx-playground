@@ -7098,7 +7098,7 @@ dependencies = [
 
 [[package]]
 name = "zerg_api"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-nats",
  "axum 0.8.9",
@@ -7133,7 +7133,7 @@ dependencies = [
 
 [[package]]
 name = "zerg_email_nats"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-nats",
  "axum 0.8.9",
@@ -7148,7 +7148,7 @@ dependencies = [
 
 [[package]]
 name = "zerg_tasks"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "core_config",
