@@ -81,7 +81,7 @@ web:
 
 # Start local dev (docker-compose + migrations + apps)
 dev:
-    mprocs -c manifests/mprocs/zerg.yaml
+    mprocs -c manifests/mprocs/local.yaml
 
 # Start Kind dev (port-forward + tilt)
 dev-kind:
