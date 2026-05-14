@@ -144,12 +144,13 @@ impl TestDatabase {
                     let trimmed = line.trim();
                     trimmed.is_empty() || trimmed.starts_with("--")
                 });
-                if !statement.is_empty() && !is_comment_only {
-                    if let Err(e) = connection.execute_unprepared(statement).await {
-                        // Log but don't fail for certain expected errors
-                        if !e.to_string().contains("already exists") {
-                            tracing::warn!("Migration statement failed: {}", e);
-                        }
+                if !statement.is_empty()
+                    && !is_comment_only
+                    && let Err(e) = connection.execute_unprepared(statement).await
+                {
+                    // Log but don't fail for certain expected errors
+                    if !e.to_string().contains("already exists") {
+                        tracing::warn!("Migration statement failed: {}", e);
                     }
                 }
             }

@@ -38,12 +38,10 @@ fn extract_key(request: &Request) -> String {
     if let Some(forwarded) = headers
         .get("x-forwarded-for")
         .and_then(|v| v.to_str().ok())
+        && let Some(ip) = forwarded.rsplit(',').next().map(|s| s.trim())
+        && !ip.is_empty()
     {
-        if let Some(ip) = forwarded.rsplit(',').next().map(|s| s.trim()) {
-            if !ip.is_empty() {
-                return format!("ip:{}", ip);
-            }
-        }
+        return format!("ip:{}", ip);
     }
 
     // Fall back to TCP socket peer address

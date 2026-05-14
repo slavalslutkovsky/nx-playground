@@ -28,7 +28,7 @@ members = [
 [workspace.dependencies]
 api_resource = { path = 'libs/core/proc_macros/api_resource' }
 argon2 = { version = '0.5.3', features = ['std'] }
-async-nats = '0.47.0'
+async-nats = '0.48.0'
 async-stream = '0.3.6'
 async-trait = '0.1.89'
 axum = { version = "0.8.9", features = ['default', 'tracing', 'ws'] }
@@ -53,7 +53,7 @@ futures = "0.3.32"
 grpc-client = { path = 'libs/core/grpc' }
 handlebars = '6.4.0'
 http = { version = '1.4.0' }
-jsonwebtoken = { version = '10.3.0', features = ['aws_lc_rs'] }
+jsonwebtoken = { version = '10.4.0', features = ['aws_lc_rs'] }
 #k8s-openapi = { version = '0.26.0', features = ['v1_34'] }
 #kube = { version = '2.0.1', features = ['derive', 'runtime'] }
 lettre = { version = '0.11.21', default-features = false, features = ['tokio1-rustls-tls', 'builder', 'smtp-transport', 'hostname'] }
@@ -70,10 +70,10 @@ oauth2 = '5.0.0'
 pluralizer = '0.5.0'
 proc-macro2 = "1.0.106"
 prost = '0.14.3'
-qdrant-client = "1.17.0"
+qdrant-client = "1.18.0"
 quote = '1.0.45'
 rand = "0.10.1"
-redis = { version = "1.0.5", features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
+redis = { version = "1.2.1", features = ['aio', 'r2d2', 'tokio-comp', 'connection-manager'] }
 regex = "1.12.3"
 reqwest = { version = "0.13.3", features = ['json', 'rustls'], default-features = false }
 rpc = { path = 'libs/rpc' }
@@ -92,20 +92,20 @@ test-utils = { path = 'libs/testing/test-utils' }
 testcontainers = "0.27.3"
 testcontainers-modules = { version = "0.15.0", features = ['postgres', 'mongo', 'redis'] }
 thiserror = '2.0.18'
-tokio = { version = "1.52.2", features = ['full'] }
+tokio = { version = "1.52.3", features = ['full'] }
 tokio-stream = { version = '0.1.18', features = ['sync'] }
-tonic = { version = "0.14.5", features = ['zstd'] }
-tonic-health = "0.14.5"
-tonic-prost = "0.14.5"
+tonic = { version = "0.14.6", features = ['zstd'] }
+tonic-health = "0.14.6"
+tonic-prost = "0.14.6"
 tower = '0.5.3'
-tower-http = { version = '0.6.8', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
+tower-http = { version = '0.6.10', features = ['timeout', 'trace', 'compression-full', 'decompression-full', 'cors'] }
 tracing = "0.1.44"
 tracing-error = '0.2.1'
 tracing-opentelemetry = '0.32.1'
 tracing-subscriber = { version = '0.3.23', features = ['env-filter', 'json', 'serde_json'] }
 trybuild = "1.0.116"
 ts-rs = { version = "12.0.1", features = ["chrono-impl", "uuid-impl"] }
-utoipa = { version = '5.4.0', features = ['axum_extras', 'chrono', 'uuid'] }
+utoipa = { version = '5.5.0', features = ['axum_extras', 'chrono', 'uuid'] }
 utoipa-rapidoc = { version = '6.0.0', features = ['axum'] }
 utoipa-redoc = { version = '6.0.0', features = ['axum'] }
 utoipa-scalar = { version = '0.3.0', features = ['axum'] }
