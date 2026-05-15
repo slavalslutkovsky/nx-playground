@@ -61,12 +61,12 @@ messaging = { path = 'libs/core/messaging' }
 metrics = '0.24.5'
 metrics-exporter-prometheus = '0.18.3'
 mockall = '0.14.0'
+oauth2 = '5.0.0'
 #mongodb = '3.4.1'
 opentelemetry = '0.31'
 opentelemetry-otlp = { version = '0.31', features = ['grpc-tonic', 'trace'], default-features = false }
 opentelemetry-semantic-conventions = '0.31'
 opentelemetry_sdk = { version = '0.31', features = ['rt-tokio', 'trace'] }
-oauth2 = '5.0.0'
 pluralizer = '0.5.0'
 proc-macro2 = "1.0.106"
 prost = '0.14.3'

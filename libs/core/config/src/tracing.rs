@@ -105,8 +105,7 @@ pub fn init_tracing(environment: &Environment, app: AppInfo) -> TracingGuard {
     match result {
         Ok(_) => info!(
             otel_enabled = provider.is_some(),
-            "Tracing initialized. Environment: {:?}",
-            environment
+            "Tracing initialized. Environment: {:?}", environment
         ),
         Err(_) => debug!("Tracing already initialized, skipping re-initialization"),
     }
@@ -143,8 +142,7 @@ fn build_otel_layer(
 
     // OTEL spec: OTEL_SERVICE_NAME env wins over programmatic service.name.
     // Fall back to AppInfo (CARGO_PKG_NAME of the caller crate).
-    let service_name = std::env::var("OTEL_SERVICE_NAME")
-        .unwrap_or_else(|_| app.name.to_string());
+    let service_name = std::env::var("OTEL_SERVICE_NAME").unwrap_or_else(|_| app.name.to_string());
 
     let exporter = opentelemetry_otlp::SpanExporter::builder()
         .with_tonic()
@@ -183,7 +181,10 @@ mod tests {
     use super::*;
 
     fn test_app() -> AppInfo {
-        AppInfo { name: "test_app", version: "0.0.0" }
+        AppInfo {
+            name: "test_app",
+            version: "0.0.0",
+        }
     }
 
     #[test]

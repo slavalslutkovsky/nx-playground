@@ -21,7 +21,10 @@ fn build_info(config: &RedisConfig) -> redis::RedisResult<ConnectionInfo> {
     Ok(info.set_redis_settings(redis_settings))
 }
 
-async fn connect_info(info: ConnectionInfo, url_for_log: &str) -> redis::RedisResult<ConnectionManager> {
+async fn connect_info(
+    info: ConnectionInfo,
+    url_for_log: &str,
+) -> redis::RedisResult<ConnectionManager> {
     info!("Attempting to connect to Redis at {}", url_for_log);
     let client = Client::open(info)?;
     let manager = ConnectionManager::new(client).await?;
@@ -135,9 +138,7 @@ pub async fn connect_from_config_with_retry(
     let url_owned = config.url.clone();
 
     match retry_config {
-        Some(rc) => {
-            retry_with_backoff(|| connect_info(info.clone(), &url_owned), rc).await
-        }
+        Some(rc) => retry_with_backoff(|| connect_info(info.clone(), &url_owned), rc).await,
         None => retry(|| connect_info(info.clone(), &url_owned)).await,
     }
 }
