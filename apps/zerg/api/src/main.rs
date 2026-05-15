@@ -1,4 +1,5 @@
 use axum_helpers::server::{create_production_app, health_router};
+use core_config::app_info;
 use core_config::tracing::{init_tracing, install_color_eyre};
 use domain_vector::{OpenAIProvider, QdrantConfig, QdrantRepository, VectorService};
 use email::NotificationService;
@@ -23,8 +24,9 @@ async fn main() -> eyre::Result<()> {
     // Load configuration from environment variables
     let config = Config::from_env()?;
 
-    // Initialize tracing with ErrorLayer for span trace capture
-    init_tracing(&config.environment);
+    // Initialize tracing with ErrorLayer for span trace capture.
+    // Guard must outlive main so OTEL spans flush before the tokio runtime drops.
+    let _tracing_guard = init_tracing(&config.environment, app_info!());
 
     let tasks_addr =
         std::env::var("TASKS_SERVICE_ADDR").unwrap_or_else(|_| "http://[::1]:50051".to_string());
